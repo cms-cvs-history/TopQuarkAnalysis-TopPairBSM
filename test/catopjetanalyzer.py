@@ -24,6 +24,7 @@ dataset = 'zprime'
 algorithm = 'ca'
 output_dst = True
 nevents = -1
+idtag = '_noadjacency'
 
 # this defines the input files
 
@@ -125,6 +126,8 @@ process.load("PhysicsTools.PatAlgos.patLayer1_EventContent_cff")
 #process.L2JetCorJetFKt6.src = cms.InputTag("kt6CaloJets")
 
 
+
+
 if algorithm == 'kt' :
     process.caTopJetsProducer.algorithm = cms.int32(0)
 elif algorithm == 'ca' :
@@ -183,20 +186,14 @@ process.out = cms.OutputModule("PoolOutputModule",
                                process.patEventSelection,
                                process.patEventContent,
                                verbose = cms.untracked.bool(False),
-                               fileName = cms.untracked.string('/uscms_data/d1/rappocc/' + dataset + '_' + algorithm + '_214_output.root')
+                               fileName = cms.untracked.string('/uscms_data/d1/rappocc/' + dataset + '_' + algorithm + '_214_output' + idtag + '.root')
                                )
 
 # define path 'p'
 process.p = cms.Path(process.kt6CaloJets*
-#                     process.L2JetCorJetFKt6*
-#                     process.L3JetCorJetFKt6*
                      process.printList*
-#                     process.genParticlesForJets*
-#                     process.topJetPartons*
                      process.caTopJetsProducer*
                      process.CATopJetTagger*
-#                     process.CAJetPartonMatcher*
- #                    process.CAJetFlavourIdentifier*
                      process.patLayer0*
                      process.patLayer1
 #                     process.CATopJetKit

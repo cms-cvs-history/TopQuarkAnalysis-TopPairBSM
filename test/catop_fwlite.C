@@ -17,7 +17,7 @@ void catop_fwlite()
 {
    
    
-  TFile  * file = new TFile("/uscms_data/d1/rappocc/zprime_ca_214_output.root");
+  TFile  * file = new TFile("/uscms_data/d1/rappocc/zprime_ca_214_output_noadjacency.root");
 
   using namespace std;
   using namespace reco;
@@ -136,7 +136,7 @@ void catop_fwlite()
   }
 
 
-  TFile * f = new TFile("histograms_catop_fwlite.root", "RECREATE");
+  TFile * f = new TFile("histograms_catop_fwlite_origadj.root", "RECREATE");
   f->cd();
 
   hist_nontop_jetPt->Write();
