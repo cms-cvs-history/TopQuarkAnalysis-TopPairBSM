@@ -1,0 +1,48 @@
+# my analyzer
+
+  module TopSelection = BoostedTopAnalyzer {
+
+    # Switch on/off verbosity
+    untracked bool debug     = false
+    # Switch on/off ASCII output of four-vector candidates
+    untracked bool writeAscii = false
+    # Filename of ASCII output file
+    untracked string asciiFileName = 'TopAnalysis.txt'
+    # Switch on/off to apply CSA07 weights
+    untracked bool applyWeights = false
+    # Event filter, -1 = no filter
+    untracked int32 event    = -1
+    # Create lego plots of CaloJets, used with event filter
+    untracked bool displayJets = false
+    # Collections:
+    InputTag genEventSource  = genEvt
+    InputTag leptonSource      = selectedLayer1Muons
+    #InputTag electronSource  = selectedLayer1Electrons
+    InputTag metSource       = selectedLayer1METs
+    InputTag jetSource      = selectedLayer1Jets
+    #InputTag ljetSource      = selectedLayer1Jets
+    InputTag EvtSolution     = solutions::TEST
+    int32 leptonFlavor = 13   //electron=11, muon=13
+    
+    PSet jetCuts = {
+	double MinLeadingJetEt = 65.
+	double MinJetEt = 40.
+	double MinJetEta = 2.4
+    }
+
+    PSet leptonCuts = {
+
+	double MinLeptonPt = 30.
+	double MinLeptonEta = 2.1
+	double TrackIso = 3.0
+	double CaloIso = 1.0
+    }
+
+    PSet METCuts = {
+	
+	double MinMET = 0.
+    }
+    # Name of the root file which will contain the output histograms
+    untracked string rootFileName = 'TopAnalysis.root'
+
+  }

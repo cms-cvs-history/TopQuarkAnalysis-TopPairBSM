@@ -1,0 +1,24 @@
+<use name=AnalysisDataFormats/TopObjects>
+<use name=DataFormats/Candidate>
+<use name=DataFormats/Common>
+<use name=DataFormats/PatCandidates>
+<use name=FWCore/Framework>
+<use name=FWCore/ParameterSet>
+<use name=TopQuarkAnalysis/TopTools>
+<use name=rootcore>
+<use name=root>
+
+<export>
+  <use name=AnalysisDataFormats/TopObjects>
+  <use name=DataFormats/Candidate>
+  <use name=DataFormats/Common>
+  <use name=DataFormats/PatCandidates>
+  <use name=FWCore/Framework>
+  <use name=FWCore/ParameterSet>
+  <use name=TopQuarkAnalysis/TopTools>
+  <use name=rootcore>
+  <use name=root>
+
+  <lib name=TopQuarkAnalysisTopPairBSM>
+</export>
+
