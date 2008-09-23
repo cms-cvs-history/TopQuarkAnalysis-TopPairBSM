@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: JetCombinatorics.cc,v 1.5 2007/11/03 00:39:24 yumiceva Exp $
+ version $Id: JetCombinatorics.cc,v 1.1.2.1 2008/09/22 22:05:08 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -202,7 +202,7 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets) {
 
 	int n = 0; // total number of combos
 	std::map< Combo, int, minChi2 > allCombos;
-	std::map< Combo, int, minChi2 > allCombosSumEt;
+	std::map< Combo, int, maxSumEt > allCombosSumEt;
 	
 	std::map< int, std::string > aTemplateCombos;
 	aTemplateCombos.clear();
@@ -268,7 +268,7 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets) {
 	}
 
 	allCombos_ = allCombos;
-	
+	allCombosSumEt_ = allCombosSumEt;
        
 }
 

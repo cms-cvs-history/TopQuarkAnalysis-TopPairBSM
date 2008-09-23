@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BoostedTopAnalyzer.cc,v 1.5 2008/06/02 20:16:01 yumiceva Exp $
+// $Id: BoostedTopAnalyzer.cc,v 1.1.2.1 2008/09/22 22:05:08 yumiceva Exp $
 //
 //
 
@@ -691,7 +691,11 @@ BoostedTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
    }
    hjets_->Fill1d(TString("jet_deltaR_muon")+"_cut1", minDeltaR_muon_jet, weight );
    hjets_->Fill2d(TString("jet_deltaR_muon_vs_RelIso")+"_cut1", minDeltaR_muon_jet, themuonRelIso, weight );
-   
+
+   if (theJetClosestMu != -1 ) {
+	   hjets_->Fill1d(TString("jet_pTrel_muon")+"_cut0",PtRel(muonP4,muonP4+closestJet),weight );
+	   hjets_->Fill1d(TString("jet_pT_closest_muon")+"_cut0", closestJet.Pt(), weight );
+   }
    // OK apply loose top selection from CMS PAS TOP-08-005
 
    if ( ngoodmuons != 1 || !found_goodmuon || (minDeltaR_muon_jet <= 0.3 ) ||
