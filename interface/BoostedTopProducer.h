@@ -46,7 +46,7 @@
 //
 // Original Author:  "Salvatore Rappoccio"
 //         Created:  Thu May  1 11:37:48 CDT 2008
-// $Id: BoostedTopProducer.h,v 1.3 2008/09/05 15:03:30 srappocc Exp $
+// $Id: BoostedTopProducer.h,v 1.2 2008/06/05 19:01:44 srappocc Exp $
 //
 //
 
@@ -63,7 +63,7 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "DataFormats/Candidate/interface/CompositeCandidate.h"
+#include "DataFormats/Candidate/interface/NamedCompositeCandidate.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
@@ -71,7 +71,7 @@
 #include "DataFormats/PatCandidates/interface/Hemisphere.h"
 
 #include "TopQuarkAnalysis/TopTools/interface/MEzCalculator.h"
-#include "AnalysisDataFormats/TopObjects/interface/TtSemiLeptonicEvent.h"
+#include "AnalysisDataFormats/TopObjects/interface/TtSemiEvtSolution.h"
 #include "TLorentzVector.h"
 #include "TMath.h"
 

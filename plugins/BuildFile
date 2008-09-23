@@ -1,10 +1,23 @@
-<export></export>
-<library name=TopQuarkAnalysisTopPairBSM_plugins file=*.cc>
-   <use name=FWCore/PluginManager>
-   <use name=FWCore/ParameterSet>
-   <use name=DataFormats/PatCandidates>
-   <use name=TopQuarkAnalysis/TopTools>
-   <use name=PhysicsTools/CandUtils>
-   <use name=PhysicsTools/StarterKit>
-   <use name=TopQuarkAnalysis/TopPairBSM>
+<use name=AnalysisDataFormats/TopObjects>
+<use name=DataFormats/Candidate>
+<use name=DataFormats/Common>
+<use name=DataFormats/PatCandidates>
+<use name=FWCore/Framework>
+<use name=FWCore/ParameterSet>
+<use name=TopQuarkAnalysis/TopTools>
+<use name=rootcore>
+<use name=root>
+
+<use name=TopQuarkAnalysis/TopPairBSM>
+
+<library file=BoostedTopProducer.cc name=BoostedTopProducer>
+  <flags EDM_PLUGIN=1>
+
 </library>
+
+<library file=BoostedTopAnalyzer.cc name=BoostedTopAnalyzer>
+  <flags EDM_PLUGIN=1>
+
+</library>
+
+
