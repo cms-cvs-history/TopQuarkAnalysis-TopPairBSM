@@ -30,8 +30,10 @@ idtag = '_noadjacency'
 
 if dataset == 'zprime' :
     from TopQuarkAnalysis.TopPairBSM.RecoInput_ZPrime2000_cfi import *
-elif dataset == 'qcd' :
+elif dataset == 'qcd_smallstats' :
     from TopQuarkAnalysis.TopPairBSM.RecoInput_QCD_500_1000_cfi import *
+elif dataset == 'qcd_470_csa08' :
+    from TopQuarkAnalysis.TopPairBSM.RecoInput_QCD_470_cfi import *
 else :
     from TopQuarkAnalysis.TopPairBSM.RecoInput_ttbar_cfi import *
 
