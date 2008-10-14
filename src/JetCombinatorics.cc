@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: JetCombinatorics.cc,v 1.1.2.1 2008/09/22 22:05:08 yumiceva Exp $
+ version $Id: JetCombinatorics.cc,v 1.1.2.2 2008/09/23 21:01:00 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -258,11 +258,19 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets) {
 			//std::cout << " acombo setup" << std::endl;
 			
 			acombo.analyze();
+
+			// invariant mass cuts
+			TLorentzVector aHadWP4 = acombo.GetHadW();
+			TLorentzVector aLepWP4 = acombo.GetLepW();
+
+			if ( ( aHadWP4.M() > minMassHadW_ && aHadWP4.M() < maxMassHadW_ ) &&
+				 ( aLepWP4.M() > minMassLepW_ && aLepWP4.M() < maxMassLepW_ ) ) {
 			
-			allCombos[acombo] = n;
-			allCombosSumEt[acombo] = n;
+				allCombos[acombo] = n;
+				allCombosSumEt[acombo] = n;
 			
-			n++;
+				n++;
+			}
 		
 		}
 	}

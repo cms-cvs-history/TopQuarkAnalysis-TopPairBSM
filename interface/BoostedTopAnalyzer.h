@@ -78,6 +78,7 @@ class BoostedTopAnalyzer : public edm::EDAnalyzer {
 
 	JetCombinatorics myCombi_;
 	JetCombinatorics myCombi2_;
+	JetCombinatorics myCombi3_;
 	
     // configuration
 	bool fwriteAscii;// flag to dump ASCII file

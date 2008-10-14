@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: TPBHistograms.cc,v 1.6 2008/06/24 20:27:14 yumiceva Exp $
+ version $Id: TPBHistograms.cc,v 1.1.2.1 2008/09/22 22:05:08 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -122,6 +122,11 @@ void TPBHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		//h1["topPair_et"+suffix1] = new TH1D("Mjet_et"+suffix1, "MJet E_{T} [GeV/c^{2}]",100,0,2500);
 		h1["jet_deltaR_muon"+suffix1] = new TH1D("jet_deltaR_muon"+suffix1, "#Delta R(Jet,#mu)",35,0,9);
 		h1["jet_pTrel_muon"+suffix1] = new TH1D("jet_pTrel_muon"+suffix1, "p_{T}^{Rel}",35,0,10);
+		h1["jet_pTrel_muon_b"+suffix1] = new TH1D("jet_pTrel_muon_b"+suffix1, "p_{T}^{Rel}",35,0,10);
+		h1["jet_pTrel_muon_c"+suffix1] = new TH1D("jet_pTrel_muon_c"+suffix1, "p_{T}^{Rel}",35,0,10);
+		h1["jet_pTrel_muon_udsg"+suffix1] = new TH1D("jet_pTrel_muon_udsg"+suffix1, "p_{T}^{Rel}",35,0,10);
+		h1["jet_flavor_closest_muon"+suffix1] = new TH1D("jet_flavor_closest_muon"+suffix1, "Jet Flavor",21,0,21);
+		
 		h1["jet_pT_closest_muon"+suffix1]  = new TH1D("jet_pT_closest_muon"+suffix1,"Jet p_{T} [GeV]",50,0,500);
 		h2["jet_deltaR_muon_vs_RelIso"+suffix1] = new TH2D("jet_deltaR_muon_vs_RelIso"+suffix1, "#Delta R(Jet,#mu) vs RelIso",35,0,9,80,0,5);
 	
@@ -186,12 +191,12 @@ void TPBHistograms::Init(TString type, TString suffix1, TString suffix2) {
 	}
 	else if ( type == "Mass") {
 
-		h1["LeptonicTop_mass"+suffix1] = new TH1D("LeptonicTop_mass"+suffix1, "Mass (jet+W_{#mu+#nu}) [GeV/c^{2}]",100,0.,300.0);
-		h1["HadronicTop_mass"+suffix1] = new TH1D("HadronicTop_mass"+suffix1, "Mass (j_{1}j_{2}j_{3}) [GeV/c^{2}]",100,0,300.0);
-		h1["LeptonicW_mass"+suffix1] = new TH1D("LeptonicW_mass"+suffix1, "Mass(#mu + #nu) [GeV/c^{2}]",100,0,300);
-		h1["HadronicW_mass"+suffix1] = new TH1D("HadronicW_mass"+suffix1, "Mass(j_{1}j_{2}) [GeV/c^{2}]",100,0,300);
-		h2["LepTop_vs_LepW"+suffix1] = new TH2D("LepTop_vs_LepW"+suffix1, "Mass LepTop vs LepW [GeV/c^{2}]",100,0,300,100,0,300);
-		h2["HadTop_vs_HadW"+suffix1] = new TH2D("HadTop_vs_HadW"+suffix1, "Mass HadTop vs HadW [GeV/c^{2}]",100,0,300,100,0,300);		
+		h1["LeptonicTop_mass"+suffix1] = new TH1D("LeptonicTop_mass"+suffix1, "Mass (jet+W_{#mu+#nu}) [GeV/c^{2}]",20,100.,500.);
+		h1["HadronicTop_mass"+suffix1] = new TH1D("HadronicTop_mass"+suffix1, "Mass (j_{1}j_{2}j_{3}) [GeV/c^{2}]",20,100.,500.);
+		h1["LeptonicW_mass"+suffix1] = new TH1D("LeptonicW_mass"+suffix1, "Mass(#mu + #nu) [GeV/c^{2}]",20,0,300);
+		h1["HadronicW_mass"+suffix1] = new TH1D("HadronicW_mass"+suffix1, "Mass(j_{1}j_{2}) [GeV/c^{2}]",20,0,300);
+		h2["LepTop_vs_LepW"+suffix1] = new TH2D("LepTop_vs_LepW"+suffix1, "Mass LepTop vs LepW [GeV/c^{2}]",20,100,500,20,0.,300.);
+		h2["HadTop_vs_HadW"+suffix1] = new TH2D("HadTop_vs_HadW"+suffix1, "Mass HadTop vs HadW [GeV/c^{2}]",20,100,500,20,0.,300.);		
 
 		h1["WTolnu"+suffix1] = new TH1D("WTolnu"+suffix1,"(#mu + #nu) mass [GeV/c^{2}]",80,0.0,300.0);
 		h1["tToWlnuj"+suffix1] = new TH1D("tToWlnuj"+suffix1,"(W_{l#nu} + jet) mass [GeV/c^{2}]",50,0.0,500.0);
