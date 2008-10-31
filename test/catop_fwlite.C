@@ -1,4 +1,7 @@
 #include "DataFormats/FWLite/interface/Handle.h"
+#include "DataFormats/FWLite/interface/Event.h"
+#include <TH1.h>
+#include <TFile.h>
 
 
 #if !defined(__CINT__) && !defined(__MAKECINT__)
@@ -17,7 +20,7 @@ void catop_fwlite()
 {
    
    
-  TFile  * file = new TFile("/uscms_data/d1/rappocc/zprime_ca_214_output_noadjacency.root");
+  TFile  * file = new TFile("/uscms_data/d1/rappocc/zprime_ca_GenJet_default_testing.root");
 
   using namespace std;
   using namespace reco;
@@ -77,7 +80,7 @@ void catop_fwlite()
 
      for ( int i = 0; i < jets.size();  ++i ) {
 
-       const reco::CATopJetTagInfo * catopTag = dynamic_cast<CATopJetTagInfo*>(jets[i].tagInfo("CATopJetTagger"));
+       const reco::CATopJetTagInfo * catopTag = dynamic_cast<CATopJetTagInfo const *>(jets[i].tagInfo("CATopJetTagger"));
        
        if ( abs(jets[i].partonFlavour()) == 6) {
 
@@ -136,7 +139,7 @@ void catop_fwlite()
   }
 
 
-  TFile * f = new TFile("histograms_catop_fwlite_origadj.root", "RECREATE");
+  TFile * f = new TFile("histograms_catop_fwlite_genjets.root", "RECREATE");
   f->cd();
 
   hist_nontop_jetPt->Write();

@@ -20,11 +20,13 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
 print "Setting variables"
 
-dataset = 'zprime'
+dataset = 'qcd_470'
 algorithm = 'ca'
 output_dst = True
-nevents = -1
-idtag = '_noadjacency'
+nevents = 200
+idtag = 'default'
+outputdir = '/uscms_data/d1/rappocc/'
+inputtype = 'CaloJet'
 
 # this defines the input files
 
@@ -32,8 +34,10 @@ if dataset == 'zprime' :
     from TopQuarkAnalysis.TopPairBSM.RecoInput_ZPrime2000_cfi import *
 elif dataset == 'qcd_smallstats' :
     from TopQuarkAnalysis.TopPairBSM.RecoInput_QCD_500_1000_cfi import *
-elif dataset == 'qcd_470_csa08' :
+elif dataset == 'qcd_470' :
     from TopQuarkAnalysis.TopPairBSM.RecoInput_QCD_470_cfi import *
+elif dataset == 'qcd_600' :
+    from TopQuarkAnalysis.TopPairBSM.RecoInput_QCD_600_cfi import *
 else :
     from TopQuarkAnalysis.TopPairBSM.RecoInput_ttbar_cfi import *
 
@@ -46,7 +50,7 @@ process.load("RecoJets.Configuration.GenJetParticles_cff")
 # Load geometry
 process.load("Configuration.StandardSequences.Geometry_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
-process.GlobalTag.globaltag = cms.string('IDEAL_V6::All')
+process.GlobalTag.globaltag = cms.string('IDEAL_V9::All')
 process.load("Configuration.StandardSequences.MagneticField_cff")
 #process.load("Configuration.StandardSequences.GeometryPilot1_cff")
 
@@ -54,8 +58,32 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("RecoJets.JetProducers.kt6CaloJets_cff")
 
 # CATopJets
-process.load("TopQuarkAnalysis.TopPairBSM.caTopJets_cff")
+#process.load("TopQuarkAnalysis.TopPairBSM.caTopJets_cff")
 process.load("TopQuarkAnalysis.TopPairBSM.CATopJetTagger_cfi")
+
+from RecoJets.JetProducers.CATopJetParameters_cfi import *
+from RecoJets.JetProducers.GenJetParameters_cfi import *
+from RecoJets.JetProducers.CaloJetParameters_cfi import *
+process.load("RecoJets.Configuration.GenJetParticles_cff")
+
+print "Switching input collections"
+
+parameters = cms.PSet()
+
+if inputtype == 'GenJet' :
+    parameters = GenJetParameters
+else :
+    parameters = CaloJetParameters
+
+parameters.jetPtMin = cms.double(500.)
+parameters.correctInputToSignalVertex = cms.bool(False)
+parameters.inputEtMin = cms.double(5.0)
+
+
+process.caTopJetsProducer = cms.EDProducer("CATopJetProducer",
+                                           CATopJetParameters,
+                                           parameters
+                                           )
 
 print "About to input pat sequences"
 
@@ -154,7 +182,7 @@ process.maxEvents = cms.untracked.PSet(
 )
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('histo_' + dataset + '_' + algorithm + '_214.root')
+    fileName = cms.string('histotesting_' + dataset + '_' + algorithm + '_' + inputtype + '_' + idtag + '.root')
 )
 
 
@@ -166,6 +194,7 @@ process.patEventContent = cms.PSet(
 # extend event content to include PAT objects
 process.patEventContent.outputCommands.extend(process.patLayer1EventContent.outputCommands)
 process.patEventContent.outputCommands.extend(['keep *_genParticles_*_*',
+                                               'keep *_genParticlesForJets_*_*',
                                                'keep *_towerMaker_*_*',
                                                'keep *_caTopJetsProducer_*_*',
                                                'keep *_CATopJetTagger_*_*',
@@ -188,11 +217,12 @@ process.out = cms.OutputModule("PoolOutputModule",
                                process.patEventSelection,
                                process.patEventContent,
                                verbose = cms.untracked.bool(False),
-                               fileName = cms.untracked.string('/uscms_data/d1/rappocc/' + dataset + '_' + algorithm + '_214_output' + idtag + '.root')
+                               fileName = cms.untracked.string(outputdir + dataset + '_' + algorithm + '_' + inputtype + '_' + idtag + '_testing.root')
                                )
 
 # define path 'p'
-process.p = cms.Path(process.kt6CaloJets*
+process.p = cms.Path(process.genParticlesForJets*
+                     process.kt6CaloJets*
                      process.printList*
                      process.caTopJetsProducer*
                      process.CATopJetTagger*
