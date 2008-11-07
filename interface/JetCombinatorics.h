@@ -8,7 +8,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: JetCombinatorics.h,v 1.3 2007/10/31 19:34:56 yumiceva Exp $
+ version $Id: JetCombinatorics.h,v 1.1.2.1 2008/09/22 22:05:07 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -36,6 +36,8 @@ class Combo {
 	void SetMaxMassLepW( double mass ) { maxMassLepW_ = mass; }
 	void SetMinMassHadW( double mass ) { minMassHadW_ = mass; }
 	void SetMaxMassHadW( double mass ) { maxMassHadW_ = mass; }
+	void SetMinMassLepTop( double mass ) { minMassLepTop_ = mass; }
+	void SetMaxMassLepTop( double mass ) { maxMassLepTop_ = mass; }
 	
 	void analyze() {
 
@@ -67,6 +69,14 @@ class Combo {
 	TLorentzVector GetTopPair() { return TopPair_; }
 	double GetChi2() { return chi2_; }
 	double GetSumEt() { return SumEt_; }
+	int GetIdHadb() { return IdHadb_;}
+	int GetIdWp() { return IdWp_; }
+	int GetIdWq() { return IdWq_; }
+	int GetIdLepb() { return IdLepb_;}
+	void SetIdHadb(int id) { IdHadb_ = id;}
+	void SetIdWp(int id) { IdWp_ = id; }
+	void SetIdWq(int id) { IdWq_ = id; }
+	void SetIdLepb(int id) { IdLepb_ = id;}
 	
   private:
 	
@@ -87,9 +97,17 @@ class Combo {
 	double maxMassLepW_;
 	double minMassHadW_;
 	double maxMassHadW_;
+	
+	double minMassLepTop_;
+	double maxMassLepTop_;
 
 	double MW;
 	double Mtop;
+
+	int IdHadb_;
+	int IdWp_;
+	int IdWq_;
+	int IdLepb_;
 	
 };
 
@@ -133,7 +151,8 @@ class JetCombinatorics {
 	void SetMaxMassLepW( double mass ) { maxMassLepW_ = mass; }
 	void SetMinMassHadW( double mass ) { minMassHadW_ = mass; }
 	void SetMaxMassHadW( double mass ) { maxMassHadW_ = mass; }
-	
+	void SetMinMassLepTop( double mass ) { minMassLepTop_ = mass; }
+	void SetMaxMassLepTop( double mass ) { maxMassLepTop_ = mass; }
 
 	void Clear();
 
@@ -162,7 +181,9 @@ class JetCombinatorics {
 	double maxMassLepW_;
 	double minMassHadW_;
 	double maxMassHadW_;
-
+	double minMassLepTop_;
+	double maxMassLepTop_;
+	
 	std::map< Combo, int, minChi2 > allCombos_;
 	std::map< Combo, int, maxSumEt > allCombosSumEt_;
 

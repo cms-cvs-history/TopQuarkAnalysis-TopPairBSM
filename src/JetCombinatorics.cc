@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: JetCombinatorics.cc,v 1.1.2.2 2008/09/23 21:01:00 yumiceva Exp $
+ version $Id: JetCombinatorics.cc,v 1.1.2.3 2008/10/14 16:36:52 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -32,6 +32,9 @@ JetCombinatorics::JetCombinatorics() {
 	maxMassLepW_ = 999999.;
 	minMassHadW_ = -999999.;
 	maxMassHadW_ = 999999.;
+	minMassLepTop_ = -999999.;
+	maxMassLepTop_ = 999999.;
+	
 	minPhi_ = -1.;
 	removeDuplicates_ = true;
 	maxNJets_ = 9999;
@@ -50,6 +53,7 @@ JetCombinatorics::~JetCombinatorics() {
 void JetCombinatorics::Clear() {
 
 	allCombos_.clear();
+	allCombosSumEt_.clear();
 	Template4jCombos_.clear();
 	Template5jCombos_.clear();
 	Template6jCombos_.clear();
@@ -209,7 +213,7 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets) {
 
 	if ( jets.size() == 4 ) aTemplateCombos[0] = std::string("0123");
 	if ( jets.size() == 5 ) aTemplateCombos = Template5jCombos_;
-	if ( jets.size() == 6 ) aTemplateCombos = Template6jCombos_;
+	if ( jets.size() >= 6 ) aTemplateCombos = Template6jCombos_;
 
 	// force to use only 4 jets
 	if ( maxNJets_ == 4 ) aTemplateCombos[0] = std::string("0123");
@@ -227,7 +231,7 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets) {
 		
 		// make a list of 4 jets
 		std::vector< TLorentzVector > the4jets;
-
+		std::vector< int > the4Ids;
 		
 		//the4jets[0] = jets[0];
 		
@@ -238,6 +242,7 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets) {
 			int tmpi = atoi((aTemplate.substr(ij,1)).c_str());
 			//std::cout << "tmpi= " << tmpi << std::endl;
 			the4jets.push_back(jets[tmpi]);
+			the4Ids.push_back(tmpi);
 		}
 		//std::cout << " the4jets[ij].size = " << the4jets.size() << std::endl;
 			
@@ -255,6 +260,10 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets) {
 			acombo.SetLepb( the4jets[atoi((a4template.substr(3,1)).c_str())] );
 			acombo.SetLepW( theLepW_ );
 
+			acombo.SetIdWp( the4Ids[atoi((a4template.substr(0,1)).c_str())] );
+			acombo.SetIdWq( the4Ids[atoi((a4template.substr(1,1)).c_str())] );
+			acombo.SetIdHadb( the4Ids[atoi((a4template.substr(2,1)).c_str())] );
+			acombo.SetIdLepb( the4Ids[atoi((a4template.substr(3,1)).c_str())] );
 			//std::cout << " acombo setup" << std::endl;
 			
 			acombo.analyze();
@@ -262,9 +271,11 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets) {
 			// invariant mass cuts
 			TLorentzVector aHadWP4 = acombo.GetHadW();
 			TLorentzVector aLepWP4 = acombo.GetLepW();
-
+			TLorentzVector aLepTopP4=acombo.GetLepTop();
+			
 			if ( ( aHadWP4.M() > minMassHadW_ && aHadWP4.M() < maxMassHadW_ ) &&
-				 ( aLepWP4.M() > minMassLepW_ && aLepWP4.M() < maxMassLepW_ ) ) {
+				 ( aLepWP4.M() > minMassLepW_ && aLepWP4.M() < maxMassLepW_ ) &&
+				 ( aLepTopP4.M() > minMassLepTop_ && aLepTopP4.M() < maxMassLepTop_) ) {
 			
 				allCombos[acombo] = n;
 				allCombosSumEt[acombo] = n;

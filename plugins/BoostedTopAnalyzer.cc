@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BoostedTopAnalyzer.cc,v 1.1.2.2 2008/09/23 21:00:59 yumiceva Exp $
+// $Id: BoostedTopAnalyzer.cc,v 1.1.2.3 2008/10/14 16:36:52 yumiceva Exp $
 //
 //
 
@@ -153,12 +153,16 @@ BoostedTopAnalyzer::BoostedTopAnalyzer(const edm::ParameterSet& iConfig)
   hmass_->Init("Mass","cut2");
   hmass_->Init("Mass","cut3");
   hmass_->Init("Mass","cut4");
+  hmass_->Init("Mass","cut5");
+  hmass_->Init("Mass","cut6");
 
   hjets_->Init("Jets","cut0");
   hjets_->Init("Jets","cut1");
   hjets_->Init("Jets","cut2");
   hjets_->Init("Jets","cut3");
   hjets_->Init("Jets","cut4");
+  hjets_->Init("Jets","cut5");
+  hjets_->Init("Jets","cut6");
 
   hmet_->Init("MET","cut0");
   hmet_->Init("MET","cut1");
@@ -279,6 +283,47 @@ BoostedTopAnalyzer::PtRel(TLorentzVector p, TLorentzVector paxis) {
 	return p3.Perp(p3axis);
 
 }
+
+bool
+BoostedTopAnalyzer::IsTruthMatch( Combo acombo, const std::vector<pat::Jet> jets ) {
+
+	bool match = false;
+	
+	// get pat jets
+	pat::Jet patWp = jets[ acombo.GetIdWp() ];
+	pat::Jet patWq = jets[ acombo.GetIdWq() ];
+	pat::Jet patHadb = jets[ acombo.GetIdHadb() ];
+	pat::Jet patLepb = jets[ acombo.GetIdLepb() ];
+
+	// get gen partons
+	const reco::Particle* genWp = patWp.genParton();
+	const reco::Particle* genWq = patWq.genParton();
+	const reco::Particle* genHadb=patHadb.genParton();
+	const reco::Particle* genLepb=patLepb.genParton();
+
+	// first check if we have partons associated to the jets
+	
+	if ( !genWp || !genWq || !genHadb || !genLepb ) {
+	  //std::cout << "GenMatching: null pointer" << std::endl;
+	  return match;
+	}
+	// now check correct association
+	
+	//std::cout << " GenMatching: Hadb = " << genHadb->pdgId() << std::endl;
+	//std::cout << " GenMatching: Lepb = " << genLepb->pdgId() << std::endl;
+	//std::cout << " GenMatching: Wp = " << genWp->pdgId() << std::endl;
+	//std::cout << " GenMatching: Wq = " << genWq->pdgId() << std::endl;
+	
+	if ( abs(genHadb->pdgId()) == 5 && abs(genLepb->pdgId()) == 5 ) {
+
+		if ( (abs(genWp->pdgId()) < 5) && (abs(genWq->pdgId()) < 5 ) ) match = true;
+	}
+
+	//std::cout << " GenMatching: match = " << match << std::endl;
+
+	return match;
+}
+
 
 void
 BoostedTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -412,6 +457,7 @@ BoostedTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 			hgen_->Fill2d("gentop_rapidities", genTop->y(), genTopBar->y() );
 			genNupz = genNu->p4().Pz();
 			hgen_->Fill1d("gen_nu_pz", genNupz );
+			hgen_->Fill2d("gen_nu_pt_vs_pz", genNu->p4().Pt(), genNupz );
 			hgen_->Fill1d("gen_deltaR_qb", DeltaR<reco::Candidate>()(*genHadWq, *genHadb ) );
 			hgen_->Fill1d("gen_deltaR_pb", DeltaR<reco::Candidate>()(*genHadWp, *genHadb ) );
 			hgen_->Fill1d("gen_deltaR_pq", DeltaR<reco::Candidate>()(*genHadWp, *genHadWq ) );
@@ -513,6 +559,9 @@ BoostedTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
    
    //**** JETS ****//
    //////////////////
+   // FIXME, jet collections is sorted in jet pT, but apply cut on eta, so need to check that "ijet"
+   // is still sorted.
+   
    hjets_->Fill1d(TString("jets")+"_"+"cut0", jets.size(), weight );
 
    if (debug) std::cout << " number of jets = " << jets.size() << std::endl;
@@ -585,12 +634,14 @@ BoostedTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	   }
 
 	   if (ijet<6) jetP4[ijet] = tmpP4;
-
+	   
 	   hjets_->Fill1d(TString("jet_et")+"_"+"cut0", jets[ijet].et(), weight );
 	   hjets_->Fill1d(TString("jet_eta")+"_"+"cut0", jets[ijet].eta(), weight );
 	   hjets_->Fill1d(TString("jet_phi")+"_"+"cut0", jets[ijet].phi(), weight );
 	   hjets_->Fill2d(TString("jet_ptVseta")+"_cut0", jets[ijet].et(),jets[ijet].eta(), weight);
+	   hjets_->Fill1d(TString("jet_emFrac_cut0"), jets[ijet].emEnergyFraction(), weight);
 	   
+	   hjets_->Fill1d(TString("jet_nocorr_et")+"_cut0", jets[ijet].noCorrJet().et(), weight);
    }
    if (debug) std::cout << "got " << NgoodJets << " leading jets" << std::endl;
 
@@ -680,25 +731,45 @@ BoostedTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
    
    double minDeltaR_muon_jet = 9e9;
    int theJetClosestMu = -1;
+   double closestEMFrac = -1;
    TLorentzVector closestJet;
+   TLorentzVector closestJet2;
+   
    for( size_t ijet=0; ijet < jets.size(); ++ijet ) {
 	   TLorentzVector tmpP4;
 	   tmpP4.SetPxPyPzE(jets[ijet].px(),jets[ijet].py(),jets[ijet].pz(),jets[ijet].energy());
+	   TLorentzVector tmpP4raw;
+	   tmpP4raw.SetPxPyPzE(jets[ijet].noCorrJet().px(),jets[ijet].noCorrJet().py(),jets[ijet].noCorrJet().pz(),jets[ijet].noCorrJet().energy());
+
+	   double tmpclosestEMFrac = jets[ijet].emEnergyFraction();
+	   
 	   double aDeltaR_muon_jet = ROOT::Math::VectorUtil::DeltaR( tmpP4.Vect(), muonP4.Vect() );
 	   hjets_->Fill1d(TString("jet_deltaR_muon")+"_cut0", aDeltaR_muon_jet, weight );
 	   if ( aDeltaR_muon_jet < minDeltaR_muon_jet ) {
 		   theJetClosestMu = (int) ijet;
 		   minDeltaR_muon_jet = aDeltaR_muon_jet;
 		   closestJet = tmpP4;
+		   closestJet2= tmpP4raw;
+		   closestEMFrac = tmpclosestEMFrac;
 	   }
    }
+   
    hjets_->Fill1d(TString("jet_deltaR_muon")+"_cut1", minDeltaR_muon_jet, weight );
+   if (closestJet2.Et() > 10. ) hjets_->Fill1d(TString("jet_deltaR_muon")+"_cut2", minDeltaR_muon_jet, weight );
+   
    hjets_->Fill2d(TString("jet_deltaR_muon_vs_RelIso")+"_cut1", minDeltaR_muon_jet, themuonRelIso, weight );
 
    if (theJetClosestMu != -1 ) {
 	   hjets_->Fill1d(TString("jet_pTrel_muon")+"_cut0",PtRel(muonP4,muonP4+closestJet),weight );
 	   hjets_->Fill1d(TString("jet_pT_closest_muon")+"_cut0", closestJet.Pt(), weight );
-
+	   hjets_->Fill1d(TString("jet_pT_closest_muon")+"_cut2", closestJet2.Pt(),weight );
+	   hjets_->Fill1d(TString("jet_emFrac_cut1"), closestEMFrac );
+	   
+	   if (closestJet2.Et() > 10. ) {
+		   hjets_->Fill1d(TString("jet_pT_closest_muon")+"_cut3", closestJet.Pt(), weight);
+		   hjets_->Fill1d(TString("jet_emFrac_cut2"), closestEMFrac );
+	   }
+	   
 	   int flavour = fabs(jets[theJetClosestMu].partonFlavour());
 	   hjets_->Fill1d(TString("jet_flavor_closest_muon")+"_cut0", flavour,  weight );
 	   if ( flavour == 5 ) hjets_->Fill1d(TString("jet_pTrel_muon_b")+"_cut0",PtRel(muonP4,muonP4+closestJet),weight );
@@ -835,7 +906,10 @@ BoostedTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
    TLorentzVector leadingP4;
 
    std::vector< TLorentzVector > vectorjets;
-   for( size_t ijet=0; ijet != NgoodJets; ++ijet) vectorjets.push_back(jetP4[ijet]);
+   int cutNgoodJets = NgoodJets;
+   if (NgoodJets > 6) cutNgoodJets = 6; // use only 6 good jets
+   
+   for( size_t ijet=0; ijet != cutNgoodJets; ++ijet) vectorjets.push_back(jetP4[ijet]);
 
 
    // OK now let's repeat the TOP loose selection
@@ -848,24 +922,36 @@ BoostedTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	   // do combinatorics
 	   if (debug ) std::cout << "number of good jets " << NgoodJets << std::endl;
 
-	   //ymyCombi2_.SetMaxNJets(4); // only 4 jets
-	   myCombi2_.SetLeptonicW( lepWP4 );
-	   myCombi2_.FourJetsCombinations(vectorjets);
-
-	   Combo bestCombo = myCombi2_.GetCombinationSumEt();
+	   //ymyCombi0_.SetMaxNJets(4); // only 4 jets
+	   myCombi0_.SetLeptonicW( lepWP4 );
+	   myCombi0_.FourJetsCombinations(vectorjets);
+	   		   
+	   Combo bestCombo = myCombi0_.GetCombinationSumEt(0);
 	   
 	   hadWP4 = bestCombo.GetHadW();
 	   hadTopP4 = bestCombo.GetHadTop();
 	   lepTopP4 = bestCombo.GetLepTop();
 
-	   // fill plots
-	   hjets_->Fill1d(TString("jet_combinations_ProbChi2_cut0"), TMath::Prob(bestCombo.GetChi2(),3), weight);
-	   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut0"), bestCombo.GetChi2()/3., weight);
-	   hmass_->Fill1d(TString("LeptonicTop_mass")+"_cut0", lepTopP4.M(), weight);
-	   hmass_->Fill1d(TString("HadronicTop_mass")+"_cut0", hadTopP4.M(), weight);
-	   hmass_->Fill1d(TString("HadronicW_mass")+"_cut0", hadWP4.M(), weight);
-	   hmass_->Fill2d(TString("LepTop_vs_LepW")+"_cut0", lepTopP4.M(), lepWP4.M(), weight );
-	   hmass_->Fill2d(TString("HadTop_vs_HadW")+"_cut0", hadTopP4.M(), hadWP4.M(), weight );
+	   // fill plots, old prescription
+	   hjets_->Fill1d(TString("jet_combinations_ProbChi2_cut1"), TMath::Prob(bestCombo.GetChi2(),3), weight);
+	   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut1"), bestCombo.GetChi2()/3., weight);
+	   hmass_->Fill1d(TString("LeptonicTop_mass")+"_cut1", lepTopP4.M(), weight);
+	   hmass_->Fill1d(TString("HadronicTop_mass")+"_cut1", hadTopP4.M(), weight);
+	   hmass_->Fill1d(TString("HadronicW_mass")+"_cut1", hadWP4.M(), weight);
+	   hmass_->Fill2d(TString("LepTop_vs_LepW")+"_cut1", lepTopP4.M(), lepWP4.M(), weight );
+	   hmass_->Fill2d(TString("HadTop_vs_HadW")+"_cut1", hadTopP4.M(), hadWP4.M(), weight );
+
+
+	   // check MC truth
+	   if ( IsTruthMatch(bestCombo, jets) ) {
+	     hjets_->Fill1d(TString("MCjet_combinations_ProbChi2_cut1"), TMath::Prob(bestCombo.GetChi2(),3), weight);
+	     hjets_->Fill1d(TString("MCjet_combinations_NormChi2_cut1"), bestCombo.GetChi2()/3., weight);
+	     hmass_->Fill1d(TString("MCLeptonicTop_mass")+"_cut1", lepTopP4.M(), weight);
+	     hmass_->Fill1d(TString("MCHadronicTop_mass")+"_cut1", hadTopP4.M(), weight);
+	     hmass_->Fill1d(TString("MCHadronicW_mass")+"_cut1", hadWP4.M(), weight);
+	     hmass_->Fill2d(TString("MCLepTop_vs_LepW")+"_cut1", lepTopP4.M(), lepWP4.M(), weight );
+	     hmass_->Fill2d(TString("MCHadTop_vs_HadW")+"_cut1", hadTopP4.M(), hadWP4.M(), weight );
+	   }
 	   
    }
    
@@ -885,16 +971,27 @@ BoostedTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
 		   myCombi_.SetLeptonicW( lepWP4 );
 		   myCombi_.FourJetsCombinations(vectorjets);
-
-		   myCombi3_.SetLeptonicW( lepWP4 );
-		   myCombi3_.FourJetsCombinations(vectorjets);
-		   myCombi3_.SetMaxMassHadW( 100.);
-			   
+		   		   
+		   myCombi2_.SetLeptonicW( lepWP4 );
+		   myCombi2_.SetMaxMassHadW( 110.);
+		   myCombi2_.SetMaxMassLepW( 150.);
+		   myCombi2_.FourJetsCombinations(vectorjets);
+		   
+                   
+		   //myCombi3_.SetLeptonicW( lepWP4 );
+		   //myCombi3_.FourJetsCombinations(vectorjets);
+		   //myCombi3_.SetMaxMassHadW( 110.);
+		   //myCombi3_.SetMaxMassLepW( 150.);
+		   //myCombi3_.SetMinMassLepTop( 150.);
+		   //myCombi3_.SetMaxMassLepTop( 220.);
+		   
 		   Combo bestCombo;
 		   		   
 		   for ( int icombo=0; icombo< myCombi_.GetNumberOfCombos(); ++icombo) {
 
-			   if (icombo==0) bestCombo = myCombi_.GetCombination();
+			   if (debug) std::cout << " combination # " << icombo << std::endl;
+			   
+			   if (icombo==0) bestCombo = myCombi_.GetCombination(0);
 			   			   
 			   Combo tmpCombo = myCombi_.GetCombination(icombo);
 			   
@@ -902,22 +999,31 @@ BoostedTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 			   hadTopP4 = tmpCombo.GetHadTop();
 			   lepTopP4 = tmpCombo.GetLepTop();
 
-			   // fill plots
-			   if (debug ) std::cout << "combination chi2 = " << tmpCombo.GetChi2() << std::endl;
-			   hjets_->Fill1d(TString("jet_combinations_ProbChi2_cut1"), TMath::Prob(tmpCombo.GetChi2(),3), weight);
-			   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut1"), tmpCombo.GetChi2()/3., weight);
-			   hmass_->Fill1d(TString("LeptonicTop_mass")+"_cut1", lepTopP4.M(), weight);
-			   hmass_->Fill1d(TString("HadronicTop_mass")+"_cut1", hadTopP4.M(), weight);
-			   hmass_->Fill1d(TString("HadronicW_mass")+"_cut1", hadWP4.M(), weight);
-			   hmass_->Fill2d(TString("LepTop_vs_LepW")+"_cut1", lepTopP4.M(), lepWP4.M(), weight );
-			   hmass_->Fill2d(TString("HadTop_vs_HadW")+"_cut1", hadTopP4.M(), hadWP4.M(), weight );
+			   // fill plots, all solutions
+			   if (debug ) {
+				   std::cout << "combination chi2 = " << tmpCombo.GetChi2() << std::endl;
+				   std::cout << " hadWP4.M() = " << hadWP4.M() << std::endl;
+			   }
+			   hjets_->Fill1d(TString("jet_combinations_ProbChi2_cut0"), TMath::Prob(tmpCombo.GetChi2(),3), weight);
+			   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut0"), tmpCombo.GetChi2()/3., weight);
+			   hmass_->Fill1d(TString("LeptonicTop_mass")+"_cut0", lepTopP4.M(), weight);
+			   hmass_->Fill1d(TString("HadronicTop_mass")+"_cut0", hadTopP4.M(), weight);
+			   hmass_->Fill1d(TString("HadronicW_mass")+"_cut0", hadWP4.M(), weight);
+			   hmass_->Fill2d(TString("LepTop_vs_LepW")+"_cut0", lepTopP4.M(), lepWP4.M(), weight );
+			   hmass_->Fill2d(TString("HadTop_vs_HadW")+"_cut0", hadTopP4.M(), hadWP4.M(), weight );
 		   }
 
+		   			   
 		   hadWP4 = bestCombo.GetHadW();
 		   hadTopP4 = bestCombo.GetHadTop();
 		   lepTopP4 = bestCombo.GetLepTop();
 
-		   // fill plots
+		   if (hadWP4.M() < 5. ) {
+			   std::cout << " had. W mass !! " << hadWP4.M() << std::endl;
+			   std::cout << "best sol. had W mass = " << hadWP4.M() << " for Ngoodjets = " << NgoodJets << std::endl;
+			   std::cout << "number of combinations = " << myCombi_.GetNumberOfCombos() << std::endl;
+		   }
+		   // fill plots, best chi-square
 		   hjets_->Fill1d(TString("jet_combinations_ProbChi2_cut2"), TMath::Prob(bestCombo.GetChi2(),3), weight);
 		   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut2"), bestCombo.GetChi2()/3., weight);
 		   hmass_->Fill1d(TString("LeptonicTop_mass")+"_cut2", lepTopP4.M(), weight);
@@ -926,15 +1032,27 @@ BoostedTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 		   hmass_->Fill2d(TString("LepTop_vs_LepW")+"_cut2", lepTopP4.M(), lepWP4.M(), weight );
 		   hmass_->Fill2d(TString("HadTop_vs_HadW")+"_cut2", hadTopP4.M(), hadWP4.M(), weight );
 
-		   //Combinatorics
+		   if ( IsTruthMatch(bestCombo, jets) ) {
+		     
+		     hjets_->Fill1d(TString("MCjet_combinations_ProbChi2_cut2"), TMath::Prob(bestCombo.GetChi2(),3), weight);
+		     hjets_->Fill1d(TString("MCjet_combinations_NormChi2_cut2"), bestCombo.GetChi2()/3., weight);
+		     hmass_->Fill1d(TString("MCLeptonicTop_mass")+"_cut2", lepTopP4.M(), weight);
+		     hmass_->Fill1d(TString("MCHadronicTop_mass")+"_cut2", hadTopP4.M(), weight);
+		     hmass_->Fill1d(TString("MCHadronicW_mass")+"_cut2", hadWP4.M(), weight);
+		     hmass_->Fill2d(TString("MCLepTop_vs_LepW")+"_cut2", lepTopP4.M(), lepWP4.M(), weight );
+		     hmass_->Fill2d(TString("MCHadTop_vs_HadW")+"_cut2", hadTopP4.M(), hadWP4.M(), weight );
 
-		   Combo Combo3 = myCombi_.GetCombination(2);
+
+		   }
+		   //Combinatorics - 3rd chi-square
+		   int theNthCombinatorics = 2; // counting from zero
+		   Combo Combo3 = myCombi_.GetCombination(theNthCombinatorics);
 
 		   hadWP4 = Combo3.GetHadW();
 		   hadTopP4 = Combo3.GetHadTop();
 		   lepTopP4 = Combo3.GetLepTop();
 
-		   // fill plots for combinatorics
+		   // fill plots for combinatorics, 3rd chi-square solution
 		   hjets_->Fill1d(TString("jet_combinations_ProbChi2_cut3"), TMath::Prob(Combo3.GetChi2(),3), weight);
 		   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut3"), Combo3.GetChi2()/3., weight);
 		   hmass_->Fill1d(TString("LeptonicTop_mass")+"_cut3", lepTopP4.M(), weight);
@@ -943,23 +1061,73 @@ BoostedTopAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 		   hmass_->Fill2d(TString("LepTop_vs_LepW")+"_cut3", lepTopP4.M(), lepWP4.M(), weight );
 		   hmass_->Fill2d(TString("HadTop_vs_HadW")+"_cut3", hadTopP4.M(), hadWP4.M(), weight );
 
-		   // apply a cut on W mass
+		   if ( IsTruthMatch(Combo3, jets) ) {
 
-		   Combo Combo3cut = myCombi3_.GetCombination(2);
+		     hjets_->Fill1d(TString("MCjet_combinations_ProbChi2_cut3"), TMath::Prob(Combo3.GetChi2(),3), weight);
+		     hjets_->Fill1d(TString("MCjet_combinations_NormChi2_cut3"), Combo3.GetChi2()/3., weight);
+		     hmass_->Fill1d(TString("MCLeptonicTop_mass")+"_cut3", lepTopP4.M(), weight);
+		     hmass_->Fill1d(TString("MCHadronicTop_mass")+"_cut3", hadTopP4.M(), weight);
+		     hmass_->Fill1d(TString("MCHadronicW_mass")+"_cut3", hadWP4.M(), weight);
+		     hmass_->Fill2d(TString("MCLepTop_vs_LepW")+"_cut3", lepTopP4.M(), lepWP4.M(), weight );
+		     hmass_->Fill2d(TString("MCHadTop_vs_HadW")+"_cut3", hadTopP4.M(), hadWP4.M(), weight );
 
-		   hadWP4 = Combo3cut.GetHadW();
-		   hadTopP4 = Combo3cut.GetHadTop();
-		   lepTopP4 = Combo3cut.GetLepTop();
+		   }
 
-		   hjets_->Fill1d(TString("jet_combinations_ProbChi2_cut4"), TMath::Prob(Combo3cut.GetChi2(),3), weight);
-		   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut4"), Combo3cut.GetChi2()/3., weight);
+		   // apply a cut on W had and lep mass
+
+		   // best chi-square + cuts
+		   Combo bestComboCut = myCombi2_.GetCombination(0);
+
+		   hadWP4 = bestComboCut.GetHadW();
+		   hadTopP4 = bestComboCut.GetHadTop();
+		   lepTopP4 = bestComboCut.GetLepTop();
+
+		   hjets_->Fill1d(TString("jet_combinations_ProbChi2_cut4"), TMath::Prob(bestComboCut.GetChi2(),3), weight);
+		   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut4"), bestComboCut.GetChi2()/3., weight);
 		   hmass_->Fill1d(TString("LeptonicTop_mass")+"_cut4", lepTopP4.M(), weight);
 		   hmass_->Fill1d(TString("HadronicTop_mass")+"_cut4", hadTopP4.M(), weight);
 		   hmass_->Fill1d(TString("HadronicW_mass")+"_cut4", hadWP4.M(), weight);
 		   hmass_->Fill2d(TString("LepTop_vs_LepW")+"_cut4", lepTopP4.M(), lepWP4.M(), weight );
 		   hmass_->Fill2d(TString("HadTop_vs_HadW")+"_cut4", hadTopP4.M(), hadWP4.M(), weight );
 
-		   
+		   if ( IsTruthMatch(bestComboCut, jets) ) {
+		     hjets_->Fill1d(TString("MCjet_combinations_ProbChi2_cut4"), TMath::Prob(bestComboCut.GetChi2(),3), weight);
+		     hjets_->Fill1d(TString("MCjet_combinations_NormChi2_cut4"), bestComboCut.GetChi2()/3., weight);
+		     hmass_->Fill1d(TString("MCLeptonicTop_mass")+"_cut4", lepTopP4.M(), weight);
+		     hmass_->Fill1d(TString("MCHadronicTop_mass")+"_cut4", hadTopP4.M(), weight);
+		     hmass_->Fill1d(TString("MCHadronicW_mass")+"_cut4", hadWP4.M(), weight);
+		     hmass_->Fill2d(TString("MCLepTop_vs_LepW")+"_cut4", lepTopP4.M(), lepWP4.M(), weight );
+		     hmass_->Fill2d(TString("MCHadTop_vs_HadW")+"_cut4", hadTopP4.M(), hadWP4.M(), weight );
+
+		   }
+
+		   //Combinatorics - 3rd chi-squre solution + cuts
+
+		   Combo Combo3Cut = myCombi2_.GetCombination(theNthCombinatorics);
+
+		   hadWP4 = Combo3Cut.GetHadW();
+		   hadTopP4 = Combo3Cut.GetHadTop();
+		   lepTopP4 = Combo3Cut.GetLepTop();
+
+		   hjets_->Fill1d(TString("jet_combinations_ProbChi2_cut5"), TMath::Prob(Combo3Cut.GetChi2(),3), weight);
+		   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut5"), Combo3Cut.GetChi2()/3., weight);
+		   hmass_->Fill1d(TString("LeptonicTop_mass")+"_cut5", lepTopP4.M(), weight);
+		   hmass_->Fill1d(TString("HadronicTop_mass")+"_cut5", hadTopP4.M(), weight);
+		   hmass_->Fill1d(TString("HadronicW_mass")+"_cut5", hadWP4.M(), weight);
+		   hmass_->Fill2d(TString("LepTop_vs_LepW")+"_cut5", lepTopP4.M(), lepWP4.M(), weight );
+		   hmass_->Fill2d(TString("HadTop_vs_HadW")+"_cut5", hadTopP4.M(), hadWP4.M(), weight );
+
+
+		   if ( IsTruthMatch(Combo3Cut, jets) ) {
+		     hjets_->Fill1d(TString("MCjet_combinations_ProbChi2_cut5"), TMath::Prob(Combo3Cut.GetChi2(),3), weight);
+		     hjets_->Fill1d(TString("MCjet_combinations_NormChi2_cut5"), Combo3Cut.GetChi2()/3., weight);
+		     hmass_->Fill1d(TString("MCLeptonicTop_mass")+"_cut5", lepTopP4.M(), weight);
+		     hmass_->Fill1d(TString("MCHadronicTop_mass")+"_cut5", hadTopP4.M(), weight);
+		     hmass_->Fill1d(TString("MCHadronicW_mass")+"_cut5", hadWP4.M(), weight);
+		     hmass_->Fill2d(TString("MCLepTop_vs_LepW")+"_cut5", lepTopP4.M(), lepWP4.M(), weight );
+		     hmass_->Fill2d(TString("MCHadTop_vs_HadW")+"_cut5", hadTopP4.M(), hadWP4.M(), weight );
+
+		   }
 	   }
 
 

@@ -50,6 +50,9 @@ class BoostedTopAnalyzer : public edm::EDAnalyzer {
     /// Perform the real analysis
     void analyze(const edm::Event & iEvent, const edm::EventSetup& iSetup);
 
+    /// Jet to parton matching
+    bool IsTruthMatch( Combo acombo, const std::vector<pat::Jet> jets );
+
     /// 3d angles
 	double Psi(TLorentzVector p1, TLorentzVector p2, double mass);
 	double dij(TLorentzVector p1, TLorentzVector p2, double mass, bool min = true);
@@ -77,6 +80,7 @@ class BoostedTopAnalyzer : public edm::EDAnalyzer {
 	std::ofstream fasciiFile;
 
 	JetCombinatorics myCombi_;
+        JetCombinatorics myCombi0_;
 	JetCombinatorics myCombi2_;
 	JetCombinatorics myCombi3_;
 	
