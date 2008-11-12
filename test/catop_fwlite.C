@@ -20,7 +20,7 @@ void catop_fwlite()
 {
    
    
-  TFile  * file = new TFile("/uscms_data/d1/rappocc/zprime_ca_GenJet_default_testing.root");
+  TFile  * file = new TFile("qcd_470_ca_pat_default_2110.root");
 
   using namespace std;
   using namespace reco;

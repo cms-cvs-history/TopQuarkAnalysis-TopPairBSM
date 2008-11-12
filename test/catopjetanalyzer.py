@@ -1,3 +1,4 @@
+
 # import configurations
 import FWCore.ParameterSet.Config as cms
 
@@ -10,6 +11,7 @@ print "Creating message logger"
 # input message logger
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.include( "SimGeneral/HepPDTESSource/data/pythiapdt.cfi")
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.MessageLogger.cerr.threshold = 'INFO'
 process.MessageLogger.categories.append('PATLayer0Summary')
 process.MessageLogger.cerr.INFO = cms.untracked.PSet(
@@ -21,12 +23,14 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 print "Setting variables"
 
 dataset = 'qcd_470'
+#outputdir = '/uscms_data/d1/rappocc/qcd_600'
+outputdir = './'
 algorithm = 'ca'
 output_dst = True
 nevents = 200
-idtag = 'default'
-outputdir = '/uscms_data/d1/rappocc/'
-inputtype = 'CaloJet'
+idtag = '_default_2110'
+
+print "Output file : " + outputdir + dataset + '_' + algorithm + '_pat' + idtag + '.root'
 
 # this defines the input files
 
@@ -38,10 +42,15 @@ elif dataset == 'qcd_470' :
     from TopQuarkAnalysis.TopPairBSM.RecoInput_QCD_470_cfi import *
 elif dataset == 'qcd_600' :
     from TopQuarkAnalysis.TopPairBSM.RecoInput_QCD_600_cfi import *
+elif dataset == 'qcd_800' :
+    from TopQuarkAnalysis.TopPairBSM.RecoInput_QCD_800_cfi import *
+elif dataset == 'qcd_1000' :
+    from TopQuarkAnalysis.TopPairBSM.RecoInput_QCD_1000_cfi import *
 else :
     from TopQuarkAnalysis.TopPairBSM.RecoInput_ttbar_cfi import *
 
 print "Dataset = " + dataset
+
 
 # get generator sequences
 #process.load("Configuration.StandardSequences.Generator_cff")
@@ -50,7 +59,7 @@ process.load("RecoJets.Configuration.GenJetParticles_cff")
 # Load geometry
 process.load("Configuration.StandardSequences.Geometry_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
-process.GlobalTag.globaltag = cms.string('IDEAL_V9::All')
+process.GlobalTag.globaltag = cms.string('IDEAL_V6::All')
 process.load("Configuration.StandardSequences.MagneticField_cff")
 #process.load("Configuration.StandardSequences.GeometryPilot1_cff")
 
@@ -58,32 +67,8 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("RecoJets.JetProducers.kt6CaloJets_cff")
 
 # CATopJets
-#process.load("TopQuarkAnalysis.TopPairBSM.caTopJets_cff")
+process.load("TopQuarkAnalysis.TopPairBSM.caTopJets_cff")
 process.load("TopQuarkAnalysis.TopPairBSM.CATopJetTagger_cfi")
-
-from RecoJets.JetProducers.CATopJetParameters_cfi import *
-from RecoJets.JetProducers.GenJetParameters_cfi import *
-from RecoJets.JetProducers.CaloJetParameters_cfi import *
-process.load("RecoJets.Configuration.GenJetParticles_cff")
-
-print "Switching input collections"
-
-parameters = cms.PSet()
-
-if inputtype == 'GenJet' :
-    parameters = GenJetParameters
-else :
-    parameters = CaloJetParameters
-
-parameters.jetPtMin = cms.double(500.)
-parameters.correctInputToSignalVertex = cms.bool(False)
-parameters.inputEtMin = cms.double(5.0)
-
-
-process.caTopJetsProducer = cms.EDProducer("CATopJetProducer",
-                                           CATopJetParameters,
-                                           parameters
-                                           )
 
 print "About to input pat sequences"
 
@@ -108,10 +93,13 @@ switchJetCollection(process,
 
 # Place appropriate jet cuts (NB: no cut on number of constituents)
 process.selectedLayer1Jets.cut = cms.string('et > 500. & abs(eta) < 5.0')
+process.selectedLayer1Muons.cut = cms.string('et > 50. & abs(eta) < 2.5 && caloIso < 3.0')
+process.selectedLayer1Electrons.cut = cms.string('et > 50. & abs(eta) < 2.5 && caloIso < 3.0')
+process.selectedLayer1METs.cut = cms.string('et > 200.0')
 # Turn off resolutions, they don't mean anything here
 process.allLayer1Jets.addResolutions = cms.bool(False)
 # Add CATopTag info... piggy-backing on b-tag functionality
-process.layer0TagInfos.associations.append( cms.InputTag("CATopJetTagger") )
+process.layer0TagInfos.associations.append ( cms.InputTag("CATopJetTagger") )
 process.allLayer1Jets.addBTagInfo = cms.bool(True)
 process.allLayer1Jets.addTagInfoRefs = cms.bool(True)
 process.allLayer1Jets.tagInfoNames = cms.vstring('CATopJetTagger')
@@ -135,9 +123,6 @@ process.allLayer1Jets.getJetMCFlavour = cms.bool(True)
 
 #process.allLayer1Jets.JetPartonMapSource = cms.InputTag("CAJetFlavourIdentifier")
 
-
-
-
 print "Done switching jet collection"
 
 # input pat analyzer sequence
@@ -156,7 +141,18 @@ process.load("PhysicsTools.PatAlgos.patLayer1_EventContent_cff")
 #process.L2JetCorJetFKt6.src = cms.InputTag("kt6CaloJets")
 
 
+# Reduce number of tracks in the output file
+process.goodTracks = cms.EDProducer("TrackViewCandidateProducer",
+    src = cms.InputTag("generalTracks"),
+    particleType = cms.string('pi+'),
+    cut = cms.string('pt > 10')
+)
 
+# only keep events that have at least one jet
+process.jetFilter = cms.EDFilter("CandViewCountFilter",
+                                  src = cms.InputTag("selectedLayer1Jets"),
+                                  minNumber = cms.uint32( 1 )
+                                  )
 
 if algorithm == 'kt' :
     process.caTopJetsProducer.algorithm = cms.int32(0)
@@ -182,7 +178,7 @@ process.maxEvents = cms.untracked.PSet(
 )
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('histotesting_' + dataset + '_' + algorithm + '_' + inputtype + '_' + idtag + '.root')
+    fileName = cms.string('histo_' + dataset + '_' + algorithm + '_2110.root')
 )
 
 
@@ -193,16 +189,19 @@ process.patEventContent = cms.PSet(
 
 # extend event content to include PAT objects
 process.patEventContent.outputCommands.extend(process.patLayer1EventContent.outputCommands)
-process.patEventContent.outputCommands.extend(['keep *_genParticles_*_*',
-                                               'keep *_genParticlesForJets_*_*',
-                                               'keep *_towerMaker_*_*',
-                                               'keep *_caTopJetsProducer_*_*',
-                                               'keep *_CATopJetTagger_*_*',
+process.patEventContent.outputCommands.extend(['drop *_genParticles_*_*',
+                                               'drop *_generalTracks_*_*',
+                                               'keep *_goodTracks_*_*',
+                                               #'keep *_towerMaker_*_*',
+                                               #'keep *_caTopJetsProducer_*_*',
+                                               #'keep *_CATopJetTagger_*_*',
                                                'drop *_selectedLayer1Taus_*_*',
                                                'drop *_selectedLayer1Hemispheres_*_*',
-                                               'drop *_selectedLayer1Photons_*_*',
-                                               'keep *_CAJetPartonMatcher_*_*',
-                                               'keep *_CAJetFlavourIdentifier_*_*'])
+                                               'drop *_selectedLayer1Photons_*_*'
+                                               #'keep *_CAJetPartonMatcher_*_*',
+                                               #'keep *_CAJetFlavourIdentifier_*_*'
+                                               ]
+                                              )
 
 
 # define event selection to be that which satisfies 'p'
@@ -217,17 +216,18 @@ process.out = cms.OutputModule("PoolOutputModule",
                                process.patEventSelection,
                                process.patEventContent,
                                verbose = cms.untracked.bool(False),
-                               fileName = cms.untracked.string(outputdir + dataset + '_' + algorithm + '_' + inputtype + '_' + idtag + '_testing.root')
+                               fileName = cms.untracked.string(outputdir + dataset + '_' + algorithm + '_pat' + idtag + '.root')
                                )
 
 # define path 'p'
-process.p = cms.Path(process.genParticlesForJets*
-                     process.kt6CaloJets*
+process.p = cms.Path(process.kt6CaloJets*
                      process.printList*
+                     process.goodTracks*
                      process.caTopJetsProducer*
                      process.CATopJetTagger*
                      process.patLayer0*
-                     process.patLayer1
+                     process.patLayer1*
+                     process.jetFilter
 #                     process.CATopJetKit
                      )
 # define output path
@@ -236,3 +236,6 @@ if output_dst == True :
 
 # Set the threshold for output logging to 'info'
 process.MessageLogger.cerr.threshold = 'INFO'
+
+
+print process.dumpPython()
