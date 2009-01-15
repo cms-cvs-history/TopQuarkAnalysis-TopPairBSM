@@ -22,35 +22,23 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
 print "Setting variables"
 
-dataset = 'qcd_470'
-#outputdir = '/uscms_data/d1/rappocc/qcd_600'
 outputdir = './'
 algorithm = 'ca'
 output_dst = True
-nevents = 200
-idtag = '_default_2110'
+nevents = 100
+idtag = '_slim_220'
 
-print "Output file : " + outputdir + dataset + '_' + algorithm + '_pat' + idtag + '.root'
+
+outputfile = outputdir + algorithm + '_pat' + idtag + '.root'
+
+print "Output file : " + outputfile
 
 # this defines the input files
 
-if dataset == 'zprime' :
-    from TopQuarkAnalysis.TopPairBSM.RecoInput_ZPrime2000_cfi import *
-elif dataset == 'qcd_smallstats' :
-    from TopQuarkAnalysis.TopPairBSM.RecoInput_QCD_500_1000_cfi import *
-elif dataset == 'qcd_470' :
-    from TopQuarkAnalysis.TopPairBSM.RecoInput_QCD_470_cfi import *
-elif dataset == 'qcd_600' :
-    from TopQuarkAnalysis.TopPairBSM.RecoInput_QCD_600_cfi import *
-elif dataset == 'qcd_800' :
-    from TopQuarkAnalysis.TopPairBSM.RecoInput_QCD_800_cfi import *
-elif dataset == 'qcd_1000' :
-    from TopQuarkAnalysis.TopPairBSM.RecoInput_QCD_1000_cfi import *
-else :
-    from TopQuarkAnalysis.TopPairBSM.RecoInput_ttbar_cfi import *
+from TopQuarkAnalysis.TopPairBSM.RecoInput_QCD_600_cfi import *
 
-print "Dataset = " + dataset
-
+# define the source, from reco input
+process.source = RecoInput()
 
 # get generator sequences
 #process.load("Configuration.StandardSequences.Generator_cff")
@@ -59,7 +47,7 @@ process.load("RecoJets.Configuration.GenJetParticles_cff")
 # Load geometry
 process.load("Configuration.StandardSequences.Geometry_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
-process.GlobalTag.globaltag = cms.string('IDEAL_V6::All')
+process.GlobalTag.globaltag = cms.string('IDEAL_V9::All')
 process.load("Configuration.StandardSequences.MagneticField_cff")
 #process.load("Configuration.StandardSequences.GeometryPilot1_cff")
 
@@ -76,6 +64,10 @@ print "About to input pat sequences"
 process.load("PhysicsTools.PatAlgos.patLayer0_cff")
 process.load("PhysicsTools.PatAlgos.patLayer1_cff")
 
+## Necessary fixes to run 2.2.X on 2.1.X data
+from PhysicsTools.PatAlgos.tools.cmsswVersionTools import run22XonSummer08AODSIM
+run22XonSummer08AODSIM(process)
+
 # switch jet collection to our juets
 from PhysicsTools.PatAlgos.tools.jetTools import *
 
@@ -88,11 +80,12 @@ switchJetCollection(process,
         runCleaner="BasicJet", # =None if not to clean
         doJTA=True,            # Run Jet-Track association & JetCharge
         doBTagging=True,       # Run b-tagging
-        jetCorrLabel='FKt6',   # example jet correction name; set to None for no JEC
+        jetCorrLabel=('KT6', 'Calo'),   # example jet correction name; set to None for no JEC
         doType1MET=False)      # recompute Type1 MET using these jets
 
 # Place appropriate jet cuts (NB: no cut on number of constituents)
-process.selectedLayer1Jets.cut = cms.string('et > 500. & abs(eta) < 5.0')
+process.selectedLayer1Jets.cut = cms.string('et > 300. & abs(eta) < 5.0')
+#process.selectedLayer1Jets.cut = cms.string('et > 50. & abs(eta) < 5.0')
 process.selectedLayer1Muons.cut = cms.string('et > 50. & abs(eta) < 2.5 && caloIso < 3.0')
 process.selectedLayer1Electrons.cut = cms.string('et > 50. & abs(eta) < 2.5 && caloIso < 3.0')
 process.selectedLayer1METs.cut = cms.string('et > 200.0')
@@ -107,6 +100,9 @@ process.allLayer1Jets.addDiscriminators = cms.bool(False)
 # Add parton match to quarks and gluons
 process.allLayer1Jets.addGenPartonMatch = cms.bool(True)
 process.allLayer1Jets.embedGenPartonMatch = cms.bool(True)
+process.allLayer1Jets.embedCaloTowers = cms.bool(True)
+#process.allLayer1Muons.addGenPartonMatch = cms.bool(True)
+#process.allLayer1Muons.embedGenPartonMatch = cms.bool(True)
 process.jetPartons.withTop = cms.bool(True)
 process.jetPartonAssociation.coneSizeToAssociate = cms.double(0.8)
 process.jetPartonAssociation.doPriority = cms.bool(True)
@@ -169,16 +165,13 @@ process.printList = cms.EDAnalyzer( "ParticleListDrawer",
 
 
 
-# define the source, from reco input
-process.source = RecoInput()
-
 # set the number of events
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(nevents)
 )
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string('histo_' + dataset + '_' + algorithm + '_2110.root')
+    fileName = cms.string('histo_' + '_' + algorithm + '_2110.root')
 )
 
 
@@ -190,9 +183,11 @@ process.patEventContent = cms.PSet(
 # extend event content to include PAT objects
 process.patEventContent.outputCommands.extend(process.patLayer1EventContent.outputCommands)
 process.patEventContent.outputCommands.extend(['drop *_genParticles_*_*',
+                                               'keep *_genEventScale_*_*',
                                                'drop *_generalTracks_*_*',
                                                'keep *_goodTracks_*_*',
-                                               #'keep *_towerMaker_*_*',
+                                               #'keep *_kt6Calojets_*_*',
+                                               'drop *_towerMaker_*_*',
                                                #'keep *_caTopJetsProducer_*_*',
                                                #'keep *_CATopJetTagger_*_*',
                                                'drop *_selectedLayer1Taus_*_*',
@@ -216,7 +211,8 @@ process.out = cms.OutputModule("PoolOutputModule",
                                process.patEventSelection,
                                process.patEventContent,
                                verbose = cms.untracked.bool(False),
-                               fileName = cms.untracked.string(outputdir + dataset + '_' + algorithm + '_pat' + idtag + '.root')
+                               dropMetaDataForDroppedData = cms.untracked.bool(True),
+                               fileName = cms.untracked.string(outputfile)
                                )
 
 # define path 'p'
@@ -238,4 +234,4 @@ if output_dst == True :
 process.MessageLogger.cerr.threshold = 'INFO'
 
 
-print process.dumpPython()
+#print process.dumpPython()
