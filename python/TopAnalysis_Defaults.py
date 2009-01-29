@@ -1,7 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 
-TopAnalyzer = cms.EDAnalyzer("BoostedTopAnalyzer",
+TopAnalyzer = cms.EDAnalyzer("BooLowMAnalyzer",
                              debug = cms.bool( False ),
+                             IsMCTop = cms.bool( True ),
                              leptonFlavor = cms.int32( 13 ),
                              genEventSource = cms.InputTag('genEvt'),
                              leptonSource   = cms.InputTag('selectedLayer1Muons'),
@@ -11,7 +12,7 @@ TopAnalyzer = cms.EDAnalyzer("BoostedTopAnalyzer",
                              rootFilename = cms.string('TopAnalysis.root'),
                              jetCuts = cms.PSet(
                                        MinLeadingJetEt = cms.double( 65. ),
-                                       MinJetEt        = cms.double( 2.1 ),
+                                       MinJetEt        = cms.double( 40. ),
                                        MinJetEta       = cms.double( 2.4)
                                        ),
                              leptonCuts = cms.PSet(

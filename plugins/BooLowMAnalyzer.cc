@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooLowMAnalyzer.cc,v 1.1.2.4 2008/11/07 23:02:45 yumiceva Exp $
+// $Id: BooLowMAnalyzer.cc,v 1.1.2.1 2009/01/07 22:32:55 yumiceva Exp $
 //
 //
 
@@ -61,7 +61,9 @@ BooLowMAnalyzer::BooLowMAnalyzer(const edm::ParameterSet& iConfig)
   jetSrc           = iConfig.getParameter<edm::InputTag> ("jetSource");
   //jetSrc1           = iConfig.getParameter<edm::InputTag> ("jetSource1");
   //jetSrc2           = iConfig.getParameter<edm::InputTag> ("jetSource2");
-  
+
+  fIsMCTop          = iConfig.getParameter<bool>  ("IsMCTop");
+
   fMinLeptonPt      = iConfig.getParameter<edm::ParameterSet>("leptonCuts").getParameter<double>("MinLeptonPt");
   fMinLeptonEta     = iConfig.getParameter<edm::ParameterSet>("leptonCuts").getParameter<double>("MinLeptonEta");
   fTrackIso         = iConfig.getParameter<edm::ParameterSet>("leptonCuts").getParameter<double>("TrackIso");
@@ -174,7 +176,7 @@ BooLowMAnalyzer::BooLowMAnalyzer(const edm::ParameterSet& iConfig)
   nWcomplex = 0;
   MCAllmatch_sumEt_ = 0;
   MCAllmatch_chi2_ = 0;
-
+  
 }
 
 
@@ -393,7 +395,8 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 	using namespace edm;
 	
-	enum { INITIAL = 1, GOODGEN, GOODJETS, GOOD4JETS, GOODMUON,
+	enum { INITIAL = 1, GOODGEN, GENFIDUTIAL, GOODJETS,
+		   GOOD4JETS, GOODMUON, GOODISOMUON, ISOMU4JETS,
 		   TOPLOOSE, MYSELECTION };
 	
 	//check if we process one event
@@ -472,6 +475,10 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		
 		if (debug) std::cout << " gen top rapidities: t_y = " << genTop->y()
 							 << " tbar_y = " << genTopBar->y() << std::endl;
+
+		// run next block only for muon+jets channel
+		if ( genEvent->isSemiLeptonic() && genEvent->semiLeptonicChannel()==2 ) {
+
 		if (genHadWp && genHadWq && genMuon && genHadb && genLepb && genNu) {
 			hgen_->Fill2d("gentop_rapidities", genTop->y(), genTopBar->y() );
 			genNupz = genNu->p4().Pz();
@@ -534,7 +541,19 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			hgen_->Fill2d("gen_cosCM_vs_psi",tmpcosCM,Psi(TLorentzVector(tmpgenmu.Px(),tmpgenmu.Py(),tmpgenmu.Pz(),tmpgenmu.E()),
 														  TLorentzVector(tmpgennu.Px(),tmpgennu.Py(),tmpgennu.Pz(),tmpgennu.E()),
 														  tmpgenLepW.M()));
-										
+
+			// count gen events in the fidutial region
+			if ( ( fabs(genMuon->eta()) < fMinLeptonEta ) &&
+				 ( genMuon->et()  > fMinLeptonPt*0.9) &&
+				 ( genHadWp->et() > fMinJetEt*0.8 ) &&
+				 ( genHadWq->et() > fMinJetEt*0.8 ) &&
+				 ( genHadb->et()  > fMinJetEt*0.8 ) &&
+				 ( genLepb->et()  > fMinJetEt*0.8 ) &&
+				 ( fabs(genHadWp->eta()) < fMinJetEta ) &&
+				 ( fabs(genHadWq->eta()) < fMinJetEta ) &&
+				 ( fabs(genHadb->eta() ) < fMinJetEta ) &&
+				 ( fabs(genLepb->eta() ) < fMinJetEta ) ) hcounter->Fill1d("counter",GENFIDUTIAL);;
+				 
 		} else {
 			edm::LogWarning ( "BooLowMAnalyzer" ) << " No top decay generator info, what happen here?";
 			if (!genHadWp) edm::LogWarning ( "BooLowMAnalyzer" ) << " no genHadWp";
@@ -546,9 +565,11 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			edm::LogWarning ( "BooLowMAnalyzer" ) << " skipping event, no counting this event ";
 			return;
 		}
+		}
 		if (debug) std::cout << "done gen histo" << std::endl;
 	} else {
-		edm::LogWarning ( "BooLowMAnalyzer" ) << "no ttbar pair in generator";
+	  if (fIsMCTop)
+	    edm::LogWarning ( "BooLowMAnalyzer" ) << "no ttbar pair in generator";
 	}
 
 	// count events
@@ -680,12 +701,19 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    double themuonRelIso = 0;
    
    for( size_t imu=0; imu != muons.size(); ++imu) {
+
+     // check that we have at least a global muon
+     if ( ! muons[imu].isGlobalMuon() ) continue;
+
+	   double muonpt = muons[imu].pt(); // innerTrack()->pt(); // to test tracker muons
+	   hmuons_->Fill1d(TString("muon_pt")+"_cut0", muonpt );
+
+	   hmuons_->Fill1d(TString("muon_pt")+"_cut1", muons[imu].innerTrack()->pt() );
 	   
-	   hmuons_->Fill1d(TString("muon_pt")+"_cut0", muons[imu].pt());
 	   //hmuons_->Fill1d(TString("muon_normchi2")+"_"+"cut0",muons[imu].combinedMuon()->chi2()/muons[imu].combinedMuon()->ndof());
 	   hmuons_->Fill1d(TString("muon_caloIso")+"_"+"cut0",muons[imu].caloIso());
 	   hmuons_->Fill1d(TString("muon_trackIso")+"_"+"cut0",muons[imu].trackIso());
-	   double RelIso = 1./(1.+(muons[imu].trackIso()+muons[imu].caloIso())/muons[imu].pt());
+	   double RelIso = 1./(1.+(muons[imu].trackIso()+muons[imu].caloIso())/muonpt );
 	   hmuons_->Fill1d(TString("muon_RelIso")+"_"+"cut0", RelIso);  
 
 	   //std::cout << "muon id: " << muons[imu].leptonID() << std::endl;
@@ -696,7 +724,13 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   //double normChi2 = (*(muons[imu].combinedMuon())).chi2()/muons[imu].combineMuon()->ndof();
 	   //if ( (nhit > 7) && (normChi2>5) ) passmu = true;
 
-	   if ( muons[imu].pt() > fMinLeptonPt &&
+	   if ( muonpt > fMinLeptonPt &&
+			fabs(muons[imu].eta()) < fMinLeptonEta) {
+		   hcounter->Fill1d("counter",GOODMUON);
+		   hmuons_->Fill1d("muon_pt_cut2", muonpt );
+	   }
+	   
+	   if ( muonpt > fMinLeptonPt &&
 		fabs(muons[imu].eta()) < fMinLeptonEta &&
 		muons[imu].caloIso() < fCaloIso &&
 		muons[imu].trackIso() < fTrackIso ) {
@@ -707,31 +741,41 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   // do I have a good muon?
 	   //if ( ( TMath::Abs( muons[imu].leptonID() -1 ) < 1.e4 ) && !found_goodmuon ) {
 	   if ( !found_goodmuon && passmu ) {
-		   muonP4.SetPxPyPzE(muons[imu].px(),muons[imu].py(),muons[imu].pz(),muons[imu].energy());
+
+		   hcounter->Fill1d("counter",GOODISOMUON);
+		   
+		   //double energymu = sqrt(muons[imu].innerTrack()->px()*muons[imu].innerTrack()->px() +
+		   //					  muons[imu].innerTrack()->py()*muons[imu].innerTrack()->py() +
+		   //				  muons[imu].innerTrack()->pz()*muons[imu].innerTrack()->pz() + 0.1057*0.1057);
+		   double energymu = muons[imu].energy();
+		   muonP4.SetPxPyPzE(muons[imu].px(),muons[imu].py(),muons[imu].pz(),energymu );
 		   muonCharge = muons[imu].charge();
 		   found_goodmuon = true;
-		   hcounter->Fill1d("counter",GOODMUON);
 		   
-		   hmuons_->Fill1d(TString("muon_pt")+"_cut1", muons[imu].pt());
+		   
+		   hmuons_->Fill1d(TString("muon_pt")+"_cut3", muonpt );
+		   hmuons_->Fill1d(TString("muon_pt")+"_cut4", muons[imu].innerTrack()->pt() );
+		   
 		   hmuons_->Fill1d(TString("muon_caloIso")+"_"+"cut1",muons[imu].caloIso());
 		   hmuons_->Fill1d(TString("muon_trackIso")+"_"+"cut1",muons[imu].trackIso());
 		   //hmuons_->Fill1d(TString("muon_leptonID")+"_cut1",muons[imu].leptonID());
 		   hmuons_->FillvsJets2d(TString("muons_vsJets")+"_cut1",nmuons, jets);
-		   themuonRelIso = 1./(1.+(muons[imu].trackIso()+muons[imu].caloIso())/muons[imu].pt());
+		   themuonRelIso = 1./(1.+(muons[imu].trackIso()+muons[imu].caloIso())/muonpt );
 		   hmuons_->Fill1d(TString("muon_RelIso")+"_"+"cut1", themuonRelIso);
+
+		   bool matchMu = false;
 		   
-		   if ( muons[imu].trackIso() < fTrackIso ) {
-			   hmuons_->Fill1d(TString("muon_pt")+"_cut2", muons[imu].pt());
+		   //if ( muons[imu].trackIso() < fTrackIso ) {
+		   //  hmuons_->Fill1d(TString("muon_pt")+"_cut2", muonpt );
 			   //hcounter->Fill1d("counter",TRACKISO);
-		   }
-		   if ( muons[imu].caloIso() < fCaloIso ) {
-			   hmuons_->Fill1d(TString("muon_pt")+"_cut3", muons[imu].pt());
+		   //}
+		   //if ( muons[imu].caloIso() < fCaloIso ) {
+		   //	   hmuons_->Fill1d(TString("muon_pt")+"_cut3", muonpt );
 			   //hcounter->Fill1d("counter",CALOISO);
-		   }
+		   //}
 		   if ( muons[imu].caloIso() < fCaloIso && muons[imu].trackIso() < fTrackIso ) {
-			   isomuonP4.SetPxPyPzE(muons[imu].px(),muons[imu].py(),muons[imu].pz(),muons[imu].energy());
-			   hmuons_->Fill1d(TString("muon_pt")+"_cut4", muons[imu].pt());
-			   //hcounter->Fill1d("counter",ALLISO);
+			   isomuonP4.SetPxPyPzE(muons[imu].px(),muons[imu].py(),muons[imu].pz(),energymu);
+			   //hmuons_->Fill1d(TString("muon_pt")+"_cut4", muonpt );
 		   }
 		   		   		   
 	   }
@@ -804,11 +848,17 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   
    }
    // OK apply loose top selection from CMS PAS TOP-08-005
-
+   if ( ngoodmuons == 1 && found_goodmuon &&
+		gotLeadingJet && NgoodJets >= 4 )  hcounter->Fill1d("counter", ISOMU4JETS );
+	   
    if ( ngoodmuons != 1 || !found_goodmuon || (minDeltaR_muon_jet <= 0.3 ) ||
-	!gotLeadingJet || NgoodJets < 4 ) { return;}
+	!gotLeadingJet || NgoodJets < 4 ) {
+	    hjets_->Fill1d("jets_cut1",NgoodJets);
+		return;
+   }
 
    hcounter->Fill1d("counter", TOPLOOSE );
+   hjets_->Fill1d("jets_cut1",NgoodJets);
    
    if (debug) std::cout << " jet_deltaR_muon histo filled" << std::endl;
 
@@ -940,6 +990,8 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    for( size_t ijet=0; ijet != cutNgoodJets; ++ijet) vectorjets.push_back(jetP4[ijet]);
 
 
+  
+   
    // OK now let's repeat the TOP loose selection
    if (NgoodJets >=4 ) {
 
@@ -1149,6 +1201,8 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		     hmass_->Fill2d(TString("MCHadTop_vs_HadW")+"_cut4", hadTopP4.M(), hadWP4.M());
 
 		   }
+
+		   hmass_->Fill1d(TString("topPair_cut4"), (hadTopP4+lepTopP4).M() );
 
 		   //Combinatorics - 3rd chi-squre solution + cuts
 

@@ -97,6 +97,8 @@ class BooLowMAnalyzer : public edm::EDAnalyzer {
     std::string fasciiFileName; // ASCII filename
     // csa07 weights
     bool fApplyWeights;
+    bool fIsMCTop;
+
     // verbose
     bool debug;
 	bool fdisplayJets; // make lego plots
@@ -119,7 +121,7 @@ class BooLowMAnalyzer : public edm::EDAnalyzer {
 	int nWcomplex;
 	int MCAllmatch_chi2_;
 	int MCAllmatch_sumEt_;
-	
+		
 	double fMinLeptonPt;
 	double fMinLeptonEta;
 	double fTrackIso;
