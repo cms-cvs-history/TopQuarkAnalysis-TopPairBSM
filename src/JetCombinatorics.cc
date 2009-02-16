@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: JetCombinatorics.cc,v 1.1.2.4 2008/11/07 23:02:45 yumiceva Exp $
+ version $Id: JetCombinatorics.cc,v 1.1.4.2 2009/01/07 22:32:02 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -38,7 +38,8 @@ JetCombinatorics::JetCombinatorics() {
 	minPhi_ = -1.;
 	removeDuplicates_ = true;
 	maxNJets_ = 9999;
-	
+	verbosef = false;
+
 	Template4jCombos_ = NestedCombinatorics(); // 12 combinations
 	Template5jCombos_ = Combinatorics(4,5); // 5 combinations of 4 combos
 	Template6jCombos_ = Combinatorics(4,6); // 15 combinations of 4 combos
@@ -222,16 +223,16 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets) {
 	// force to use only 4 jets
 	if ( maxNJets_ == 4 ) aTemplateCombos[0] = std::string("0123");
 	
-	//std::cout << "jets size = " << jets.size() << std::endl;
+	if (verbosef) std::cout << "[JetCombinatorics] size of vector of jets = " << jets.size() << std::endl;
 	
 	for (size_t ic=0; ic != aTemplateCombos.size(); ++ic) {
 
-		//std::cout << " ic = " << ic << std::endl;
+		if (verbosef) std::cout << "[JetCombinatorics] get 4 jets from the list, cluster # " << ic << "/"<< aTemplateCombos.size()-1 << std::endl;
 		
 		// get a template
 		std::string aTemplate = aTemplateCombos[ic];
 
-		//std::cout << "aTemplate = " << aTemplate << std::endl;
+		if (verbosef) std::cout << "[JetCombinatorics] template of 4 jets = " << aTemplate << std::endl;
 		
 		// make a list of 4 jets
 		std::vector< TLorentzVector > the4jets;
@@ -248,13 +249,16 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets) {
 			the4jets.push_back(jets[tmpi]);
 			the4Ids.push_back(tmpi);
 		}
+
+		if (verbosef) std::cout<< "[JetCombinatorics] with these 4 jets, make 12 combinations: " <<std::endl;
+
 		//std::cout << " the4jets[ij].size = " << the4jets.size() << std::endl;
 			
 		for (size_t itemplate=0; itemplate!= Template4jCombos_.size(); ++itemplate) {
 			
 			std::string a4template = Template4jCombos_[itemplate];
 
-			//std::cout << "a4template = " << a4template << std::endl;
+			if (verbosef) std::cout << "[JetCombinatorics] ==> combination: " << a4template << " is # " << itemplate << "/"<<  Template4jCombos_.size()-1 << std::endl;
 			
 			Combo acombo;
 			
@@ -271,6 +275,12 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets) {
 			//std::cout << " acombo setup" << std::endl;
 			
 			acombo.analyze();
+
+			if (verbosef) {
+
+			  std::cout << "[JetCombinatorics] ==> combination done:" << std::endl;
+			  acombo.Print();
+			}
 
 			// invariant mass cuts
 			TLorentzVector aHadWP4 = acombo.GetHadW();

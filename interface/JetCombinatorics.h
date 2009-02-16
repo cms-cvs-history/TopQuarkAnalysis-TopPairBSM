@@ -8,13 +8,14 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: JetCombinatorics.h,v 1.1.2.2 2008/11/07 23:02:42 yumiceva Exp $
+ version $Id: JetCombinatorics.h,v 1.1.4.2 2009/01/07 22:31:00 yumiceva Exp $
 
 ________________________________________________________________**/
 
 #include "TLorentzVector.h"
 #include <map>
 #include <vector>
+#include <iostream>
 
 class Combo {
 
@@ -79,6 +80,13 @@ class Combo {
 	void SetIdWp(int id) { IdWp_ = id; }
 	void SetIdWq(int id) { IdWq_ = id; }
 	void SetIdLepb(int id) { IdLepb_ = id;}
+	void Print() {
+	  std::cout << " jet Wp  : px = " << Wp_.Px() << " py = " <<  Wp_.Py() << " pz = " << Wp_.Pz() << " e = " << Wp_.E() << std::endl;
+	  std::cout << " jet Wq  : px = " << Wq_.Px() << " py = " <<  Wq_.Py() << " pz = " << Wq_.Pz() << " e = "<< Wq_.E() << std::endl;
+	  std::cout << " jet Hadb: px = " << Hadb_.Px() << " py = " <<  Hadb_.Py() <<" pz = " << Hadb_.Pz() <<" e = "<< Hadb_.E() << std::endl;
+	  std::cout << " jet Lepb: px = " << Lepb_.Px() << " py = " <<  Lepb_.Py() <<" pz = " << Lepb_.Pz() <<" e = "<< Lepb_.E() << std::endl;
+	  std::cout << " chi-squared = " << chi2_ << " sumEt = " << SumEt_ << std::endl;
+	}
 	
   private:
 	
@@ -137,6 +145,10 @@ class JetCombinatorics {
 	JetCombinatorics();
 	~JetCombinatorics();
 
+	void Verbose() {
+	  verbosef = true;
+	}
+
 	std::map< int, std::string > Combinatorics(int k, int max = 6);
 	std::map< int, std::string > NestedCombinatorics();
 
@@ -171,6 +183,7 @@ class JetCombinatorics {
 
 	//int kcombos_;
 	//int maxcombos_;
+	bool verbosef;
 	std::map< int, std::string > Template4jCombos_;
 	std::map< int, std::string > Template5jCombos_;
 	std::map< int, std::string > Template6jCombos_;
