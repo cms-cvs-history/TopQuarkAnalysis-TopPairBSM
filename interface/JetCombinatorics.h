@@ -8,11 +8,15 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: JetCombinatorics.h,v 1.1.4.2 2009/01/07 22:31:00 yumiceva Exp $
+ version $Id: JetCombinatorics.h,v 1.1.4.3 2009/02/16 23:00:38 yumiceva Exp $
 
 ________________________________________________________________**/
 
 #include "TLorentzVector.h"
+#include "TString.h"
+#include "TH1F.h"
+#include "TFile.h"
+#include "TMath.h"
 #include <map>
 #include <vector>
 #include <iostream>
@@ -27,6 +31,7 @@ class Combo {
 		MW = 79.8;
 		Mtop = 175.;
 		SumEt_ = 0.;
+		usebtag_ = false;
 	}
 	~Combo(){};
 
@@ -35,6 +40,16 @@ class Combo {
 	void SetHadb(TLorentzVector Hadb) { Hadb_ = Hadb; }
 	void SetLepW(TLorentzVector LepW) { LepW_ = LepW; }
 	void SetLepb(TLorentzVector Lepb) { Lepb_ = Lepb; }
+	void SetWp_disc(double disc) { Wp_disc_ = disc;}
+	void SetWq_disc(double disc) { Wq_disc_= disc;}
+	void SetHadb_disc(double disc) { Hadb_disc_= disc;}
+	void SetLepb_disc(double disc) { Lepb_disc_= disc;}
+	void SetbDiscPdf(TString filename) { 
+	  pdffile_ = TFile::Open(filename);
+	  hdisc_b_ = (TH1F*) gDirectory->Get("hdiscNorm_b");
+	  hdisc_cl_ = (TH1F*) gDirectory->Get("hdiscNorm_cl");
+	}
+	void Usebtagging(bool option = true) { usebtag_ = option;}
 	void SetMinMassLepW( double mass ) { minMassLepW_ = mass; }
 	void SetMaxMassLepW( double mass ) { maxMassLepW_ = mass; }
 	void SetMinMassHadW( double mass ) { minMassHadW_ = mass; }
@@ -59,8 +74,23 @@ class Combo {
 
 		chi2_ = chiHadW*chiHadW + chiHadt*chiHadt + chiLept*chiLept;
 
-		SumEt_ = HadTop_.Et();
-		
+		SumEt_ = HadTop_.Pt();
+
+		if ( usebtag_ ) {
+
+		  //double gauss_norm = (2.)*TMath::Log(sigmaHadW*TMath::Sqrt(2*TMath::Pi())) +
+		  //  (2.)*TMath::Log(sigmaHadt*TMath::Sqrt(2*TMath::Pi())) + (2.)*TMath::Log(sigmaLept*TMath::Sqrt(2*TMath::Pi()));
+		  double btag_Wp = GetPdfValue( "cl", Wp_disc_ );
+		  double btag_Wq = GetPdfValue( "cl", Wq_disc_ );
+		  double btag_Hadb = GetPdfValue( "b", Hadb_disc_ );
+		  double btag_Lepb = GetPdfValue( "b", Lepb_disc_ );
+
+		  double btag_total = (-2.)*TMath::Log(btag_Wp) + (-2.)*TMath::Log(btag_Wq) + (-2.)*TMath::Log(btag_Hadb) + (-2.)*TMath::Log(btag_Lepb);
+		  
+		  chi2_ += btag_total;// + gauss_norm;
+
+		  pdffile_->Close();
+		}
 	}
 	
 	TLorentzVector GetHadW() { return HadW_; }
@@ -87,6 +117,16 @@ class Combo {
 	  std::cout << " jet Lepb: px = " << Lepb_.Px() << " py = " <<  Lepb_.Py() <<" pz = " << Lepb_.Pz() <<" e = "<< Lepb_.E() << std::endl;
 	  std::cout << " chi-squared = " << chi2_ << " sumEt = " << SumEt_ << std::endl;
 	}
+	double GetPdfValue(std::string flavor, double disc) {
+	  double pdf= 0;
+	  TH1F *hpdf;
+	  if ( flavor == "b" ) hpdf = hdisc_b_;
+	  else hpdf = hdisc_cl_;
+	  int bin = hpdf->GetXaxis()->FindBin( disc );
+	  pdf = hpdf->Integral(0, bin );
+	  if ( disc < -20 || disc>80) return 1e-5;
+	  return pdf;
+	}
 	
   private:
 	
@@ -98,8 +138,16 @@ class Combo {
 	TLorentzVector LepW_;
 	TLorentzVector Lepb_;	
 	TLorentzVector LepTop_;
-	
 	TLorentzVector TopPair_;
+	
+	bool usebtag_;
+	double Wp_disc_;
+	double Wq_disc_;
+	double Hadb_disc_;
+	double Lepb_disc_;
+	TFile *pdffile_;
+	TH1F *hdisc_b_;
+	TH1F *hdisc_cl_;
 
 	double chi2_;
 	double SumEt_;
@@ -152,7 +200,7 @@ class JetCombinatorics {
 	std::map< int, std::string > Combinatorics(int k, int max = 6);
 	std::map< int, std::string > NestedCombinatorics();
 
-	void FourJetsCombinations(std::vector<TLorentzVector> jets);
+	void FourJetsCombinations(std::vector<TLorentzVector> jets, std::vector<double> bdiscriminators = 0);
 	void SetMaxNJets(int n) { maxNJets_ = n; }
 	Combo GetCombination(int n=0);
 	Combo GetCombinationSumEt(int n=0);
@@ -168,6 +216,8 @@ class JetCombinatorics {
 	void SetMinMassLepTop( double mass ) { minMassLepTop_ = mass; }
 	void SetMaxMassLepTop( double mass ) { maxMassLepTop_ = mass; }
 
+	void UsebTagging( bool option = true ) { UsebTagging_ = option; }
+	void SetbTagPdf( TString name ) { bTagPdffilename_ = name; }
 	void Clear();
 
 	std::vector< TLorentzVector > TwoCombos();
@@ -190,6 +240,8 @@ class JetCombinatorics {
 	std::map< int, std::string > Template7jCombos_;
 
 	int maxNJets_;
+	bool UsebTagging_;
+	TString bTagPdffilename_;
 	
 	TLorentzVector theLepW_;
 

@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: JetCombinatorics.cc,v 1.1.4.2 2009/01/07 22:32:02 yumiceva Exp $
+ version $Id: JetCombinatorics.cc,v 1.1.4.3 2009/02/16 23:00:26 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -39,7 +39,8 @@ JetCombinatorics::JetCombinatorics() {
 	removeDuplicates_ = true;
 	maxNJets_ = 9999;
 	verbosef = false;
-
+	UsebTagging_ = false;
+	
 	Template4jCombos_ = NestedCombinatorics(); // 12 combinations
 	Template5jCombos_ = Combinatorics(4,5); // 5 combinations of 4 combos
 	Template6jCombos_ = Combinatorics(4,6); // 15 combinations of 4 combos
@@ -205,7 +206,7 @@ std::map< int, std::string > JetCombinatorics::NestedCombinatorics() {
 }
 
 //______________________________________________________________
-void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets) {
+void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets, std::vector<double> bdiscriminators ) {
 
 
 	int n = 0; // total number of combos
@@ -237,6 +238,7 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets) {
 		// make a list of 4 jets
 		std::vector< TLorentzVector > the4jets;
 		std::vector< int > the4Ids;
+		std::vector< double > thebdisc;
 		
 		//the4jets[0] = jets[0];
 		
@@ -248,6 +250,7 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets) {
 			//std::cout << "tmpi= " << tmpi << std::endl;
 			the4jets.push_back(jets[tmpi]);
 			the4Ids.push_back(tmpi);
+			if ( UsebTagging_ ) thebdisc.push_back( bdiscriminators[tmpi] );
 		}
 
 		if (verbosef) std::cout<< "[JetCombinatorics] with these 4 jets, make 12 combinations: " <<std::endl;
@@ -273,6 +276,16 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets) {
 			acombo.SetIdHadb( the4Ids[atoi((a4template.substr(2,1)).c_str())] );
 			acombo.SetIdLepb( the4Ids[atoi((a4template.substr(3,1)).c_str())] );
 			//std::cout << " acombo setup" << std::endl;
+			if ( UsebTagging_ ) {
+
+				acombo.Usebtagging();
+				acombo.SetbDiscPdf(bTagPdffilename_);
+				acombo.SetWp_disc( thebdisc[atoi((a4template.substr(0,1)).c_str())] );
+				acombo.SetWq_disc( thebdisc[atoi((a4template.substr(1,1)).c_str())] );
+				acombo.SetHadb_disc( thebdisc[atoi((a4template.substr(2,1)).c_str())] );
+				acombo.SetLepb_disc( thebdisc[atoi((a4template.substr(3,1)).c_str())] );
+				
+			}
 			
 			acombo.analyze();
 

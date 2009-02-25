@@ -18,11 +18,13 @@ process.MessageLogger.cerr.threshold = 'INFO'
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
     #
-    '/store/mc/Summer08/TTJets-madgraph/GEN-SIM-RECO/IDEAL_V9_v2/0002/00437D8F-04A9-DD11-8D99-0015C5E9B2AB.root',
-    '/store/mc/Summer08/TTJets-madgraph/GEN-SIM-RECO/IDEAL_V9_v2/0002/00BD3644-90A8-DD11-8D9E-001CC47BCFDC.root',
-    '/store/mc/Summer08/TTJets-madgraph/GEN-SIM-RECO/IDEAL_V9_v2/0002/02DCB67E-9FA9-DD11-B550-00E081402E8B.root',
-    '/store/mc/Summer08/TTJets-madgraph/GEN-SIM-RECO/IDEAL_V9_v2/0002/0419137A-9BA8-DD11-B5AC-0015C5E9C17C.root',
-    '/store/mc/Summer08/TTJets-madgraph/GEN-SIM-RECO/IDEAL_V9_v2/0002/046A072B-31A9-DD11-A931-00E08140EAB7.root'
+    'file:/uscmst1b_scratch/lpc1/cmsroc/yumiceva/TQAF/challange2009/ChallengeFile.root',
+    'file:/uscmst1b_scratch/lpc1/cmsroc/yumiceva/TQAF/challange2009/ChallengeFile2.root'
+#    '/store/mc/Summer08/TTJets-madgraph/GEN-SIM-RECO/IDEAL_V9_v2/0002/00437D8F-04A9-DD11-8D99-0015C5E9B2AB.root',
+#    '/store/mc/Summer08/TTJets-madgraph/GEN-SIM-RECO/IDEAL_V9_v2/0002/00BD3644-90A8-DD11-8D9E-001CC47BCFDC.root',
+#    '/store/mc/Summer08/TTJets-madgraph/GEN-SIM-RECO/IDEAL_V9_v2/0002/02DCB67E-9FA9-DD11-B550-00E081402E8B.root',
+#    '/store/mc/Summer08/TTJets-madgraph/GEN-SIM-RECO/IDEAL_V9_v2/0002/0419137A-9BA8-DD11-B5AC-0015C5E9C17C.root',
+#    '/store/mc/Summer08/TTJets-madgraph/GEN-SIM-RECO/IDEAL_V9_v2/0002/046A072B-31A9-DD11-A931-00E08140EAB7.root'
     #'/store/mc/Summer08/TauolaTTbar/GEN-SIM-RECO/IDEAL_V9_v1/0004/16AAC418-218A-DD11-AC33-001F2908F0E4.root',
     #'/store/mc/Summer08/TauolaTTbar/GEN-SIM-RECO/IDEAL_V9_v1/0004/1E19C1C2-EF89-DD11-A6AB-001E0B1C74DA.root',
     #'/store/mc/Summer08/TauolaTTbar/GEN-SIM-RECO/IDEAL_V9_v1/0004/2AE099C8-1F8A-DD11-B30F-00144F2031D4.root',
@@ -34,7 +36,7 @@ process.source = cms.Source("PoolSource",
 
 ## define maximal number of events to loop over
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(50)
+    input = cms.untracked.int32(-1)
 )
 
 ## configure process options
@@ -57,7 +59,7 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 #-------------------------------------------------
 
 ## std sequence for tqaf layer1
-process.load("TopQuarkAnalysis.TopObjectProducers.BooTopPatTuple")
+process.load("TopQuarkAnalysis.TopPairBSM.BooTopPatTuple")
 
 ## necessary fixes to run 2.2.X on 2.1.X data
 from PhysicsTools.PatAlgos.tools.cmsswVersionTools import run22XonSummer08AODSIM
@@ -116,12 +118,12 @@ from PhysicsTools.PatAlgos.selectionLayer1.jetMinFilter_cfi      import minLayer
 from PhysicsTools.PatAlgos.selectionLayer1.muonMinFilter_cfi     import minLayer1Muons
 #
 
-selectedLayer1Electrons.cut  = cms.string('pt > 15. & abs(eta) < 2.4')
+#selectedLayer1Electrons.cut  = cms.string('pt > 15. & abs(eta) < 2.5')
 selectedLayer1Muons.cut      = cms.string('pt > 15. & abs(eta) < 2.4')
-selectedLayer1Jets.cut       = cms.string('et > 20. & abs(eta) < 2.4 & nConstituents > 0')
+selectedLayer1Jets.cut       = cms.string('pt > 20. & abs(eta) < 2.4 & nConstituents > 0')
 selectedLayer1METs.cut       = cms.string('et >= 0.')
-countLayer1Leptons.minNumber = 1
-minLayer1Jets.minNumber      = 2
+#countLayer1Leptons.minNumber = 1
+minLayer1Jets.minNumber      = 1
 minLayer1Muons               = 1
 
 #-------------------------------------------------
@@ -145,8 +147,7 @@ process.out = cms.OutputModule("PoolOutputModule",
     process.patTupleEventContent,
     verbose = cms.untracked.bool(True),
     dropMetaDataForDroppedData = cms.untracked.bool(True),                           
-##  fileName = cms.untracked.string('/afs/cern.ch/user/r/rwolf/pccmsuhh06/testPatTuple_recHits_221.root')
-    fileName = cms.untracked.string('TTJets-madgraph_Summer08.root'),
+    fileName = cms.untracked.string('/uscmst1b_scratch/lpc1/cmsroc/yumiceva/TQAF/challange2009/PatChallengeTestall.root'),
     dataset = cms.untracked.PSet(
             dataTier = cms.untracked.string('USER'),
             filterName = cms.untracked.string('')
@@ -154,9 +155,9 @@ process.out = cms.OutputModule("PoolOutputModule",
 )
 
 process.configurationMetadata = cms.untracked.PSet(
-    version = cms.untracked.string('$Revision: 1.11 $'),
+    version = cms.untracked.string('$Revision: 1.1.2.1 $'),
     annotation = cms.untracked.string('PAT tuple creation'),
-    name = cms.untracked.string('$Source: /cvs_server/repositories/CMSSW/CMSSW/TopQuarkAnalysis/TopPairBSM/test/BooTopPatTuple_cfg.py,v $')
+    name = cms.untracked.string('$Source: /cvs_server/repositories/CMSSW/CMSSW/TopQuarkAnalysis/TopPairBSM/test/Attic/BooTopPatTuple_cfg.py,v $')
 )
 
 

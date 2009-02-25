@@ -19,6 +19,7 @@
 #include "DataFormats/PatCandidates/interface/Particle.h"
 #include "DataFormats/PatCandidates/interface/Lepton.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
+#include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
 
@@ -73,6 +74,7 @@ class BooLowMAnalyzer : public edm::EDAnalyzer {
     // Histogram containers
 	BooHistograms *hcounter;
 	BooHistograms *hmuons_;
+	BooHistograms *helectrons_;
 	BooHistograms *hmet_;
 	BooHistograms *hjets_;
 	BooHistograms *hgen_;
@@ -105,10 +107,9 @@ class BooLowMAnalyzer : public edm::EDAnalyzer {
     int feventToProcess;
 	
     std::string rootFileName;
-    int leptonFlavor;
 	edm::InputTag genEvnSrc;
-    edm::InputTag leptonSrc;
-    //edm::InputTag electronSrc;
+    edm::InputTag muonSrc;
+    edm::InputTag electronSrc;
     edm::InputTag metSrc;
     edm::InputTag jetSrc;
 	edm::InputTag jetSrc1;
@@ -122,10 +123,16 @@ class BooLowMAnalyzer : public edm::EDAnalyzer {
 	int MCAllmatch_chi2_;
 	int MCAllmatch_sumEt_;
 		
-	double fMinLeptonPt;
-	double fMinLeptonEta;
-	double fTrackIso;
-	double fCaloIso;
+	double fMinMuonPt;
+	double fMinMuonEta;
+	double fMuonRelIso;
+	double fMaxMuonEm;
+	double fMaxMuonHad;
+	
+	double fMinElectronPt;
+	double fMinElectronEta;
+	double fElectronRelIso;
+	
 	double fMinLeadingJetEt;
 	double fMinJetEt;
 	double fMinJetEta;

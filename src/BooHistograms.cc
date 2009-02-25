@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: BooHistograms.cc,v 1.1.2.3 2008/11/07 23:02:45 yumiceva Exp $
+ version $Id: BooHistograms.cc,v 1.1.2.1 2009/01/07 22:32:02 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -33,8 +33,10 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 	if (suffix1 != "") suffix1 = "_" + suffix1;
 	if (suffix2 != "") suffix1 += "_" + suffix2;
 
-	if ( type == "counter" )  h1["counter"] = new TH1D("counter","Selection",20,0,20);
-	
+	if ( type == "counter" )  {
+		h1["counter"] = new TH1I("counter","Selection",20,0,20);
+		h1["counter"]->SetBit(TH1::kCanRebin);
+	}
 	if ( type == "generator") {
 		h1["gen_top_pt"] = new TH1D("gen_top_pt","top quark p_{T} [GeV/c]",80,0,1200);
 		h1["gen_top_eta"] = new TH1D("gen_top_eta","top quark #eta",60,-4,4);
@@ -78,7 +80,10 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h1["jet1_et"+suffix1]  = new TH1D("jet1_et"+suffix1,"Jet #2 E_{T} [GeV]",50,0,500);
 		h1["jet2_et"+suffix1]  = new TH1D("jet2_et"+suffix1,"Jet #3 E_{T} [GeV]",50,0,500);
 		h1["jet3_et"+suffix1]  = new TH1D("jet3_et"+suffix1,"Jet #4 E_{T} [GeV]",50,0,500);
-		h1["jet0_eta"+suffix1]  = new TH1D("jet0_eta"+suffix1,"Jet #1 #eta [GeV]",50,-3.,3.);
+		h1["jet0_eta"+suffix1]  = new TH1D("jet0_eta"+suffix1,"Jet #1 #eta",50,-3.,3.);
+		h1["jet1_eta"+suffix1]  = new TH1D("jet1_eta"+suffix1,"Jet #2 #eta",50,-3.,3.);
+		h1["jet2_eta"+suffix1]  = new TH1D("jet2_eta"+suffix1,"Jet #3 #eta",50,-3.,3.);
+		h1["jet3_eta"+suffix1]  = new TH1D("jet3_eta"+suffix1,"Jet #4 #eta",50,-3.,3.);
 		h1["jet_et"+suffix1]  = new TH1D("jet_et"+suffix1,"Jet E_{T} [GeV]",50,0,500);
 		h1["jet_eta"+suffix1] = new TH1D("jet_eta"+suffix1,"Jet #eta",50,-3.,3.);
 		h2["jet_ptVseta"+suffix1] = new TH2D("jet_ptVseta"+suffix1,"Jet E_{T} vs #eta",50,0,500,50,-3.,3.);
@@ -115,9 +120,14 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h1["LeptonicTop_pt"+suffix1] = new TH1D("LeptonicTop_pt"+suffix1, "p_{T} (jet+W_{#mu+#nu}) [GeV/c]",100,0,4500.);
 		h1["HadronicTop_pt"+suffix1] = new TH1D("HadronicTop_pt"+suffix1, "p_{T} (jet+leading-jet) [GeV/c]",100,0,4500.);
 		h1["jet_combinations_ProbChi2"+suffix1] = new TH1D("jet_combinations_ProbChi2"+suffix1, "#chi^{2} Probability",50,0,1.);
-		h1["jet_combinations_NormChi2"+suffix1] = new TH1D("jet_combinations_NormChi2"+suffix1, "#chi^{2}/ndf",100,0,500);
+		h1["jet_combinations_NormChi2"+suffix1] = new TH1D("jet_combinations_NormChi2"+suffix1, "#chi^{2}/ndf",100,0,100);
 		h1["MCjet_combinations_ProbChi2"+suffix1] = new TH1D("MCjet_combinations_ProbChi2"+suffix1, "#chi^{2} Probability",50,0,1.);
-                h1["MCjet_combinations_NormChi2"+suffix1] = new TH1D("MCjet_combinations_NormChi2"+suffix1, "#chi^{2}/ndf",100,0,500);
+		h1["MCjet_combinations_NormChi2"+suffix1] = new TH1D("MCjet_combinations_NormChi2"+suffix1, "#chi^{2}/ndf",100,0,250);
+
+		h1["jet_Hadb_disc"+suffix1] = new TH1D("jet_Hadb_disc"+suffix1,"b-tag discriminator",40,-20,100);
+		h1["jet_Lepb_disc"+suffix1] = new TH1D("jet_Lepb_disc"+suffix1,"b-tag discriminator",40,-20,100);
+		h1["jet_Hadb_flavor"+suffix1] = new TH1D("jet_Hadb_flavor"+suffix1,"Flavor",22,0,22);
+		h1["jet_Lepb_flavor"+suffix1] = new TH1D("jet_Lepb_flavor"+suffix1,"Flavor",22,0,22);
 
 	}
 	else if ( type == "DisplayJets") {
@@ -148,7 +158,15 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h1["muon_deltaPhi_nu"+suffix1]  = new TH1D("muon_deltaPhi_nu"+suffix1, "#Delta #phi(#mu,#nu)",35,0,3.142);
 		h1["muon_deltaR_b"+suffix1]  = new TH1D("muon_deltaR_b"+suffix1, "#Delta R(#mu,b)",35,0,5);
 		h1["muon_RelIso"+suffix1]       = new TH1D("muon_RelIso"+suffix1,"RelIsolation",80,0.0,5.0);
-	
+		h1["muon_vetoEm"+suffix1]          = new TH1D("muon_vetoEM"+suffix1,"EM Energy in veto cone",35,0,25);
+		h1["muon_vetoHad"+suffix1]          = new TH1D("muon_vetoHad"+suffix1,"Had Energy in veto cone",35,0,25);
+		h1["muon_d0"+suffix1]               = new TH1D("muon_d0"+suffix1,"Muon d0 [cm]",35,-4,4);
+	}
+	else if ( type == "Electrons") {
+		h1["electrons"+suffix1]            = new TH1D("electrons"+suffix1, "Number of electrons",4,1,5);
+		h1["electron_pt"+suffix1]              = new TH1D("electron_pt"+suffix1,"Electron p_{T} [GeV/c]",80,0.0,200.0);
+		h1["electron_eta"+suffix1]              = new TH1D("electron_eta"+suffix1,"Electron #eta",50,-3.,3.);
+		h1["electron_phi"+suffix1]              = new TH1D("electron_phi"+suffix1,"Electron #phi",30,-3.15,3.15);
 	}
 	else if ( type == "MET") {
 
@@ -162,7 +180,7 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		
 		h1["myMET"+suffix1] = new TH1D("myMET"+suffix1,"MET [GeV]",100,0.0,1500.0);
 		h1["MET_deltaR_muon"+suffix1] = new TH1D("MET_deltaR_muon"+suffix1,"#DeltaR(MET,#mu)",35,0.,7.);
-		//h1["METcomplex"+suffix1] = new TH1D("METcomplex"+suffix1,"MET [GeV]",80,0.0,300.0);
+		//h1["nu_pz_complex"+suffix1] = new TH1D("nu_pz_complex"+suffix1,"Number of complex solutions",80,0.0,300.0);
 		h1["nu_pz"+suffix1] = new TH1D("nu_pz"+suffix1,"Neutrino p_{z} [GeV/c]",50,-500.0,500.0);
 		h2["nu_pt_vs_pz"+suffix1] = new TH2D("nu_pt_vs_pz"+suffix1,"Neutrino p_{T} vs p_{z} [GeV/c]",50,0,500,50,-500,500);
 		h1["nu_eta"+suffix1] = new TH1D("nu_eta"+suffix1,"Neutrino #eta",50,-3.,3.);
@@ -255,6 +273,13 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 	}
 }
 
+
+//_______________________________________________________________
+void BooHistograms::Counter(TString name) {
+
+	h1["counter"]->Fill(name, 1);
+}
+
 //_______________________________________________________________
 void BooHistograms::Fill1d(TString name, Double_t x, Double_t weight) {
 
@@ -270,6 +295,16 @@ void BooHistograms::Fill2d(TString name, Double_t x, Double_t y, Double_t weight
 
 //_______________________________________________________________
 void BooHistograms::FillvsJets2d(TString name, Double_t x, edm::View<pat::Jet> jets, Double_t weight ) {
+
+	if (jets.size() == 1 ) h2[name]->Fill(x,1,weight);
+	if (jets.size() == 2 ) h2[name]->Fill(x,2,weight);
+	if (jets.size() == 3 ) h2[name]->Fill(x,3,weight);
+	if (jets.size() >= 4 ) h2[name]->Fill(x,4,weight);
+		
+}
+
+//_______________________________________________________________
+void BooHistograms::FillvsJets2d(TString name, Double_t x, std::vector<TLorentzVector> jets, Double_t weight ) {
 
 	if (jets.size() == 1 ) h2[name]->Fill(x,1,weight);
 	if (jets.size() == 2 ) h2[name]->Fill(x,2,weight);
