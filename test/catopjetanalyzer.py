@@ -27,8 +27,8 @@ dataset = 'qcd_470'
 outputdir = './'
 algorithm = 'ca'
 output_dst = True
-nevents = 200
-idtag = '_default_2110'
+nevents = 1000
+idtag = '_slim_223'
 
 print "Output file : " + outputdir + dataset + '_' + algorithm + '_pat' + idtag + '.root'
 
@@ -49,8 +49,8 @@ elif dataset == 'qcd_1000' :
 else :
     from TopQuarkAnalysis.TopPairBSM.RecoInput_ttbar_cfi import *
 
-print "Dataset = " + dataset
 
+print "Dataset = " + dataset
 
 # get generator sequences
 #process.load("Configuration.StandardSequences.Generator_cff")
@@ -70,6 +70,13 @@ process.load("RecoJets.JetProducers.kt6CaloJets_cff")
 process.load("TopQuarkAnalysis.TopPairBSM.caTopJets_cff")
 process.load("TopQuarkAnalysis.TopPairBSM.CATopJetTagger_cfi")
 
+# turn off sum-et dependent stuff.
+process.caTopJetsProducer.ptBins = cms.vdouble(0,10e9)
+process.caTopJetsProducer.rBins  = cms.vdouble(0.8,0.8)
+process.caTopJetsProducer.ptFracBins = cms.vdouble(0.05,0.05)
+process.caTopJetsProducer.nCellBins = cms.vint32(1,1)
+
+
 print "About to input pat sequences"
 
 # input pat sequences
@@ -81,6 +88,11 @@ from PhysicsTools.PatAlgos.tools.jetTools import *
 
 print "About to switch jet collection"
 
+
+
+
+
+
 ## ==== Example with CaloJets
 switchJetCollection(process, 
         'caTopJetsProducer',   # Jet collection; must be already in the event when patLayer0 sequence is executed
@@ -88,14 +100,26 @@ switchJetCollection(process,
         runCleaner="BasicJet", # =None if not to clean
         doJTA=True,            # Run Jet-Track association & JetCharge
         doBTagging=True,       # Run b-tagging
-        jetCorrLabel='FKt6',   # example jet correction name; set to None for no JEC
+        #jetCorrLabel=('KT6', 'Calo'),   # example jet correction name; set to None for no JEC
+        jetCorrLabel=None,     # Turn this off, do it by hand. This tool doesn't work with new JEC
         doType1MET=False)      # recompute Type1 MET using these jets
 
+# now set JEC by hand
+process.jetCorrFactors.jetSource = cms.InputTag("kt6CaloJets")
+process.jetCorrFactors.L1Offset  = cms.string('none')
+process.jetCorrFactors.L2Relative= cms.string('Summer08_L2Relative_KT6Calo')
+process.jetCorrFactors.L3Absolute= cms.string('Summer08_L3Absolute_KT6Calo')
+process.jetCorrFactors.L4EMF     = cms.string('none')
+process.jetCorrFactors.L5Flavor  = cms.string('none')
+process.jetCorrFactors.L6UE      = cms.string('none')                           
+process.jetCorrFactors.L7Parton  = cms.string('none')
+
 # Place appropriate jet cuts (NB: no cut on number of constituents)
-process.selectedLayer1Jets.cut = cms.string('et > 500. & abs(eta) < 5.0')
-process.selectedLayer1Muons.cut = cms.string('et > 50. & abs(eta) < 2.5 && caloIso < 3.0')
-process.selectedLayer1Electrons.cut = cms.string('et > 50. & abs(eta) < 2.5 && caloIso < 3.0')
-process.selectedLayer1METs.cut = cms.string('et > 200.0')
+process.selectedLayer1Jets.cut = cms.string('pt > 250. & abs(rapidity) < 5.0')
+process.selectedLayer1Muons.cut = cms.string('pt > 50. & abs(rapidity) < 2.5 && caloIso < 3.0')
+process.selectedLayer1Electrons.cut = cms.string('pt > 50. & abs(rapidity) < 2.5 && caloIso < 3.0')
+process.selectedLayer1METs.cut = cms.string('pt > 150.0')
+process.selectedLayer1Photons.cut = cms.string('pt > 50. & abs(rapidity) < 5.0')
 # Turn off resolutions, they don't mean anything here
 process.allLayer1Jets.addResolutions = cms.bool(False)
 # Add CATopTag info... piggy-backing on b-tag functionality
@@ -120,6 +144,13 @@ process.jetPartonMatch.maxDeltaR = cms.double(0.8)
 # Add jet MC flavour (custom built to capture tops)
 process.allLayer1Jets.getJetMCFlavour = cms.bool(True)
 
+#turn off all trigger info
+process.allLayer1Jets.addTrigMatch = cms.bool(False)
+process.allLayer1Electrons.addTrigMatch = cms.bool(False)
+process.allLayer1Muons.addTrigMatch = cms.bool(False)
+process.allLayer1Taus.addTrigMatch = cms.bool(False)
+process.allLayer1METs.addTrigMatch = cms.bool(False)
+process.allLayer1Photons.addTrigMatch = cms.bool(False)
 
 #process.allLayer1Jets.JetPartonMapSource = cms.InputTag("CAJetFlavourIdentifier")
 
@@ -196,8 +227,8 @@ process.patEventContent.outputCommands.extend(['drop *_genParticles_*_*',
                                                #'keep *_caTopJetsProducer_*_*',
                                                #'keep *_CATopJetTagger_*_*',
                                                'drop *_selectedLayer1Taus_*_*',
-                                               'drop *_selectedLayer1Hemispheres_*_*',
-                                               'drop *_selectedLayer1Photons_*_*'
+                                               'drop *_selectedLayer1Hemispheres_*_*'
+                                               #'drop *_selectedLayer1Photons_*_*'
                                                #'keep *_CAJetPartonMatcher_*_*',
                                                #'keep *_CAJetFlavourIdentifier_*_*'
                                                ]
@@ -225,11 +256,14 @@ process.p = cms.Path(process.kt6CaloJets*
                      process.goodTracks*
                      process.caTopJetsProducer*
                      process.CATopJetTagger*
-                     process.patLayer0*
+                     process.patLayer0_withoutTrigMatch*
                      process.patLayer1*
                      process.jetFilter
 #                     process.CATopJetKit
                      )
+
+
+                     
 # define output path
 if output_dst == True :
     process.outpath = cms.EndPath(process.out)
