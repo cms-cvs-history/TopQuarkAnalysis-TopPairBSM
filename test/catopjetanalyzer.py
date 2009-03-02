@@ -22,8 +22,7 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
 print "Setting variables"
 
-dataset = 'qcd_470'
-#outputdir = '/uscms_data/d1/rappocc/qcd_600'
+dataset = 'zprime'
 outputdir = './'
 algorithm = 'ca'
 output_dst = True
@@ -70,11 +69,6 @@ process.load("RecoJets.JetProducers.kt6CaloJets_cff")
 process.load("TopQuarkAnalysis.TopPairBSM.caTopJets_cff")
 process.load("TopQuarkAnalysis.TopPairBSM.CATopJetTagger_cfi")
 
-# turn off sum-et dependent stuff.
-process.caTopJetsProducer.ptBins = cms.vdouble(0,10e9)
-process.caTopJetsProducer.rBins  = cms.vdouble(0.8,0.8)
-process.caTopJetsProducer.ptFracBins = cms.vdouble(0.05,0.05)
-process.caTopJetsProducer.nCellBins = cms.vint32(1,1)
 
 
 print "About to input pat sequences"
@@ -272,4 +266,3 @@ if output_dst == True :
 process.MessageLogger.cerr.threshold = 'INFO'
 
 
-print process.dumpPython()
