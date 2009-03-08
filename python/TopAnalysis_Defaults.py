@@ -34,6 +34,7 @@ TopAnalyzer = cms.EDAnalyzer("BooLowMAnalyzer",
                              METCuts = cms. PSet(
                                        MinMET = cms.double( 0. )
                                        ),
+                             UsebTagging = cms.bool(False),
                              writeAscii = cms.bool( False),
                              asciiFilename = cms.string('TopAnalysis.txt'),
                              processOnlyEvent = cms.int32( -1 ),

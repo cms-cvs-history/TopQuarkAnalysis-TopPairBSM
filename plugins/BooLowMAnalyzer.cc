@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooLowMAnalyzer.cc,v 1.1.2.2 2009/01/29 23:07:32 yumiceva Exp $
+// $Id: BooLowMAnalyzer.cc,v 1.1.2.3 2009/02/25 05:45:36 yumiceva Exp $
 //
 //
 
@@ -36,6 +36,7 @@
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "TopQuarkAnalysis/TopPairBSM/interface/METzCalculator.h"
+#include "TopQuarkAnalysis/TopPairBSM/interface/BooTools.h"
 
 #include "AnalysisDataFormats/TopObjects/interface/TtGenEvent.h"
 
@@ -80,6 +81,8 @@ BooLowMAnalyzer::BooLowMAnalyzer(const edm::ParameterSet& iConfig)
   fMinJetEt         = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<double>("MinJetEt");
   fMinJetEta        = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<double>("MinJetEta");
 
+  fUsebTagging      = iConfig.getParameter<bool>  ("UsebTagging");
+  
   //fMinHt           = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<double>("MinHt");
   //fMinMET           = iConfig.getParameter<edm::ParameterSet>("METCuts").getParameter<double>("MinMET");
     
@@ -455,7 +458,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		
 	// count events
 	hcounter->Counter("Processed");
-
+	
 	/////////////////////////////////////////
 	//
 	// G E N E R A T O R
@@ -626,6 +629,11 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    TLorentzVector lepTopP4;
    
    std::vector< double > vect_bdiscriminators;
+
+   ////////////
+   // Tools
+
+   BooTools tools;
    
    ////////////////////////////////////////
    //
@@ -1162,7 +1170,10 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 	   // check MC truth
 	   //std::cout << "check gen matching" << std::endl;
-	   if ( IsTruthMatch(bestCombo, jets, *genEvent, true ) ) MCAllmatch_sumEt_++;
+	   if ( IsTruthMatch(bestCombo, jets, *genEvent, true ) ) {
+		   MCAllmatch_sumEt_++;
+		   hcounter->Counter("M3MatchedAllJets");
+	   }
 	   
 	   //std::cout << "check gen matching2"<< std::endl;
 	   if ( IsTruthMatch(bestCombo, jets, *genEvent ) ) {
@@ -1173,6 +1184,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	     hmass_->Fill1d(TString("MCHadronicW_mass")+"_cut1", hadWP4.M());
 	     hmass_->Fill2d(TString("MCLepTop_vs_LepW")+"_cut1", lepTopP4.M(), lepWP4.M());
 	     hmass_->Fill2d(TString("MCHadTop_vs_HadW")+"_cut1", hadTopP4.M(), hadWP4.M());
+		 hcounter->Counter("M3MatchedJets");
 	   }
 	   
    }
@@ -1199,10 +1211,13 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   if (debug ) std::cout << "number of good jets " << NgoodJets << std::endl;
 
 		   myCombi_.SetLeptonicW( lepWP4 );
+		   double Ndof = 3.;
 		   // apply btagging
-		   myCombi_.UsebTagging();
-		   myCombi_.SetbTagPdf("/uscms/home/yumiceva/work/CMSSW_2_2_3/src/TopQuarkAnalysis/TopPairBSM/data/bdiscriminator.root");
-		   double ndf = 7.;//btagging
+		   if (fUsebTagging) {
+			   myCombi_.UsebTagging();
+			   myCombi_.SetbTagPdf("/uscms/home/yumiceva/work/CMSSW_2_2_3/src/TopQuarkAnalysis/TopPairBSM/data/bdiscriminator.root");
+			   Ndof = 7.;//btagging
+		   }
 
 		   myCombi_.FourJetsCombinations(vectorjets, vect_bdiscriminators ); // pass the b-tag dicriminators
 		  		   
@@ -1244,11 +1259,11 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 			   // fill plots, all solutions
 			   if (debug ) {
-				   std::cout << "combination chi2 = " << tmpCombo.GetChi2() << std::endl;
-				   std::cout << " hadWP4.M() = " << hadWP4.M() << std::endl;
+				   std::cout << "combination chi2 = " << tmpCombo.GetChi2()
+							 << " hadWP4.M() = " << hadWP4.M() << " hadTopP4.M() = " << hadTopP4.M() << std::endl;
 			   }
 			   hjets_->Fill1d(TString("jet_combinations_ProbChi2_cut0"), TMath::Prob(tmpCombo.GetChi2(),3));
-			   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut0"), tmpCombo.GetChi2()/ndf);
+			   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut0"), tmpCombo.GetChi2()/Ndof);
 			   hmass_->Fill1d(TString("LeptonicTop_mass")+"_cut0", lepTopP4.M());
 			   hmass_->Fill1d(TString("HadronicTop_mass")+"_cut0", hadTopP4.M());
 			   hmass_->Fill1d(TString("HadronicW_mass")+"_cut0", hadWP4.M());
@@ -1271,7 +1286,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   }
 		   // fill plots, best chi-square
 		   hjets_->Fill1d(TString("jet_combinations_ProbChi2_cut2"), TMath::Prob(bestCombo.GetChi2(),3));
-		   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut2"), bestCombo.GetChi2()/ndf);
+		   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut2"), bestCombo.GetChi2()/Ndof);
 		   hmass_->Fill1d(TString("LeptonicTop_mass")+"_cut2", lepTopP4.M());
 		   hmass_->Fill1d(TString("HadronicTop_mass")+"_cut2", hadTopP4.M());
 		   hmass_->Fill1d(TString("HadronicW_mass")+"_cut2", hadWP4.M());
@@ -1282,22 +1297,59 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   hjets_->Fill1d("jet_Lepb_disc_cut2", jets[ bestCombo.GetIdLepb() ].bDiscriminator("trackCountingHighEffBJetTags") );
 		   hjets_->Fill1d("jet_Hadb_flavor_cut2", jets[ bestCombo.GetIdHadb() ].partonFlavour() );
 		   hjets_->Fill1d("jet_Lepb_flavor_cut2", jets[ bestCombo.GetIdLepb() ].partonFlavour() );
+
+		   ///////////////
+		   // Wiggle jets
+		   TLorentzVector *newWp = new TLorentzVector(bestCombo.GetWp().Px(),
+													  bestCombo.GetWp().Py(),
+													  bestCombo.GetWp().Pz(),
+													  bestCombo.GetWp().E() );
+		   TLorentzVector *newWq = new TLorentzVector(bestCombo.GetWq().Px(),
+													  bestCombo.GetWq().Py(),
+													  bestCombo.GetWq().Pz(),
+													  bestCombo.GetWq().E() );
+		   //std::cout << "newWp pt = " << newWp->Pt() << std::endl;
+		   //std::cout << "newWq pt = " << newWq->Pt() << std::endl;
 		   
-			
-		   if ( IsTruthMatch(bestCombo, jets, *genEvent, true) ) MCAllmatch_chi2_++;
+		   double resolution1 = sqrt( 1.11*1.11/newWp->Pt() + 0.03*0.03 )*(newWp->Pt());
+		   double resolution2 = sqrt( 1.11*1.11/newWq->Pt() + 0.03*0.03 )*(newWq->Pt());
+		   double Wsigmas = tools.fix4VectorsForMass( *newWp, *newWq, 79.8, resolution1, resolution2,
+													 resolution1, resolution2);
+		   
+		   
+		   //std::cout << "newWp pt = " << newWp->Pt() << std::endl;
+		   //std::cout << "newWq pt = " << newWq->Pt() << std::endl;
+
+		   TLorentzVector fitHadW = TLorentzVector(newWp->Px(),newWp->Py(),newWp->Pz(),newWp->E()) +
+			   TLorentzVector(newWq->Px(),newWq->Py(),newWq->Pz(),newWq->E());
+		   TLorentzVector fitHadTop = fitHadW + bestCombo.GetHadb();
+
+		   hmass_->Fill1d(TString("fitHadronicW_mass")+"_cut2", fitHadW.M());
+		   hmass_->Fill1d(TString("fitHadronicTop_mass")+"_cut2", fitHadTop.M());
+		   hmass_->Fill1d(TString("fittopPair_cut2"), (hadTopP4+lepTopP4).M() );
+		   
+		   delete newWp;
+		   delete newWq;
+
+		   if ( IsTruthMatch(bestCombo, jets, *genEvent, true) ) {
+			   MCAllmatch_chi2_++;
+			   hcounter->Counter("M3PrimeMatchedAllJets");
+			   hjets_->Fill1d("jet_Wmass_sigmas_cut2", Wsigmas ); //Wsigmas*resolution1/bestCombo.GetWp().E() );
+		   }
 		   
 		   if ( IsTruthMatch(bestCombo, jets, *genEvent) ) {
 		     
 		     hjets_->Fill1d(TString("MCjet_combinations_ProbChi2_cut2"), TMath::Prob(bestCombo.GetChi2(),3));
-		     hjets_->Fill1d(TString("MCjet_combinations_NormChi2_cut2"), bestCombo.GetChi2()/ndf);
+		     hjets_->Fill1d(TString("MCjet_combinations_NormChi2_cut2"), bestCombo.GetChi2()/Ndof);
 		     hmass_->Fill1d(TString("MCLeptonicTop_mass")+"_cut2", lepTopP4.M());
 		     hmass_->Fill1d(TString("MCHadronicTop_mass")+"_cut2", hadTopP4.M());
 		     hmass_->Fill1d(TString("MCHadronicW_mass")+"_cut2", hadWP4.M());
 		     hmass_->Fill2d(TString("MCLepTop_vs_LepW")+"_cut2", lepTopP4.M(), lepWP4.M());
 		     hmass_->Fill2d(TString("MCHadTop_vs_HadW")+"_cut2", hadTopP4.M(), hadWP4.M());
 
-
+			 hcounter->Counter("M3PrimeMatchedJets");
 		   }
+		   
 		   //Combinatorics - 3rd chi-square
 		   int theNthCombinatorics = 2; // counting from zero
 		   Combo Combo3 = myCombi_.GetCombination(theNthCombinatorics);
@@ -1308,7 +1360,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 		   // fill plots for combinatorics, 3rd chi-square solution
 		   hjets_->Fill1d(TString("jet_combinations_ProbChi2_cut3"), TMath::Prob(Combo3.GetChi2(),3));
-		   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut3"), Combo3.GetChi2()/ndf);
+		   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut3"), Combo3.GetChi2()/Ndof);
 		   hmass_->Fill1d(TString("LeptonicTop_mass")+"_cut3", lepTopP4.M());
 		   hmass_->Fill1d(TString("HadronicTop_mass")+"_cut3", hadTopP4.M());
 		   hmass_->Fill1d(TString("HadronicW_mass")+"_cut3", hadWP4.M());
@@ -1318,7 +1370,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   if ( IsTruthMatch(Combo3, jets, *genEvent) ) {
 
 		     hjets_->Fill1d(TString("MCjet_combinations_ProbChi2_cut3"), TMath::Prob(Combo3.GetChi2(),3));
-		     hjets_->Fill1d(TString("MCjet_combinations_NormChi2_cut3"), Combo3.GetChi2()/ndf);
+		     hjets_->Fill1d(TString("MCjet_combinations_NormChi2_cut3"), Combo3.GetChi2()/Ndof);
 		     hmass_->Fill1d(TString("MCLeptonicTop_mass")+"_cut3", lepTopP4.M());
 		     hmass_->Fill1d(TString("MCHadronicTop_mass")+"_cut3", hadTopP4.M());
 		     hmass_->Fill1d(TString("MCHadronicW_mass")+"_cut3", hadWP4.M());
@@ -1337,7 +1389,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   lepTopP4 = bestComboCut.GetLepTop();
 
 		   hjets_->Fill1d(TString("jet_combinations_ProbChi2_cut4"), TMath::Prob(bestComboCut.GetChi2(),3));
-		   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut4"), bestComboCut.GetChi2()/ndf);
+		   hjets_->Fill1d(TString("jet_combinations_NormChi2_cut4"), bestComboCut.GetChi2()/Ndof);
 		   hmass_->Fill1d(TString("LeptonicTop_mass")+"_cut4", lepTopP4.M());
 		   hmass_->Fill1d(TString("HadronicTop_mass")+"_cut4", hadTopP4.M());
 		   hmass_->Fill1d(TString("HadronicW_mass")+"_cut4", hadWP4.M());

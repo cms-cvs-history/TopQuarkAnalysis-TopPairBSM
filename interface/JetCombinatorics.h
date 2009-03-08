@@ -8,7 +8,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: JetCombinatorics.h,v 1.1.4.3 2009/02/16 23:00:38 yumiceva Exp $
+ version $Id: JetCombinatorics.h,v 1.1.4.4 2009/02/25 05:45:36 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -78,21 +78,40 @@ class Combo {
 
 		if ( usebtag_ ) {
 
-		  //double gauss_norm = (2.)*TMath::Log(sigmaHadW*TMath::Sqrt(2*TMath::Pi())) +
-		  //  (2.)*TMath::Log(sigmaHadt*TMath::Sqrt(2*TMath::Pi())) + (2.)*TMath::Log(sigmaLept*TMath::Sqrt(2*TMath::Pi()));
-		  double btag_Wp = GetPdfValue( "cl", Wp_disc_ );
-		  double btag_Wq = GetPdfValue( "cl", Wq_disc_ );
-		  double btag_Hadb = GetPdfValue( "b", Hadb_disc_ );
-		  double btag_Lepb = GetPdfValue( "b", Lepb_disc_ );
+			double gauss_norm = (2.)*TMath::Log(sigmaHadW*TMath::Sqrt(2*TMath::Pi())) +
+				(2.)*TMath::Log(sigmaHadt*TMath::Sqrt(2*TMath::Pi())) + (2.)*TMath::Log(sigmaLept*TMath::Sqrt(2*TMath::Pi()));
 
-		  double btag_total = (-2.)*TMath::Log(btag_Wp) + (-2.)*TMath::Log(btag_Wq) + (-2.)*TMath::Log(btag_Hadb) + (-2.)*TMath::Log(btag_Lepb);
+			double LR_Wp; double LR_Wq;
+			double LR_Hadb; double LR_Lepb;
+
+			double LR_den = 0;
+			LR_den = ( getPdfValue("cl", Wp_disc_) + getPdfValue("b", Wp_disc_));
+			if (LR_den == 0 ) LR_Wp = 1e-5;
+			else LR_Wp = getPdfValue( "cl", Wp_disc_ )/ LR_den;
+
+			LR_den = ( getPdfValue("cl", Wq_disc_) + getPdfValue("b", Wq_disc_));
+			if (LR_den == 0 ) LR_Wq = 1e-5;
+			else LR_Wq = getPdfValue( "cl", Wq_disc_ )/ LR_den;
+
+			LR_den = ( getPdfValue("cl", Hadb_disc_) + getPdfValue("b", Hadb_disc_));
+			if (LR_den == 0 ) LR_Hadb = 1e-5;
+			else LR_Hadb = getPdfValue( "b", Hadb_disc_ )/ LR_den;
+
+			LR_den = ( getPdfValue("cl", Lepb_disc_) + getPdfValue("b", Lepb_disc_));
+			if (LR_den == 0 ) LR_Lepb = 1e-5;
+			else LR_Lepb = getPdfValue( "b", Lepb_disc_ )/ LR_den;
+
+			double btag_norm = (-0.25-TMath::Log(4)/2);
+			double btag_N2LL = btag_norm*4.*( LR_Wp * TMath::Log(LR_Wp/4) + LR_Wq*TMath::Log(LR_Wq/4) + LR_Hadb*TMath::Log(LR_Hadb/4) + LR_Lepb*TMath::Log(LR_Lepb/4) );
 		  
-		  chi2_ += btag_total;// + gauss_norm;
-
-		  pdffile_->Close();
+			chi2_ += btag_N2LL + gauss_norm;
+			
+			pdffile_->Close();
 		}
 	}
-	
+
+	TLorentzVector GetWp() { return Wp_; }
+	TLorentzVector GetWq() { return Wq_; }
 	TLorentzVector GetHadW() { return HadW_; }
 	TLorentzVector GetLepW() { return LepW_; }
 	TLorentzVector GetHadb() { return Hadb_; }
@@ -117,14 +136,15 @@ class Combo {
 	  std::cout << " jet Lepb: px = " << Lepb_.Px() << " py = " <<  Lepb_.Py() <<" pz = " << Lepb_.Pz() <<" e = "<< Lepb_.E() << std::endl;
 	  std::cout << " chi-squared = " << chi2_ << " sumEt = " << SumEt_ << std::endl;
 	}
-	double GetPdfValue(std::string flavor, double disc) {
+	double getPdfValue(std::string flavor, double disc) {
 	  double pdf= 0;
 	  TH1F *hpdf;
 	  if ( flavor == "b" ) hpdf = hdisc_b_;
 	  else hpdf = hdisc_cl_;
 	  int bin = hpdf->GetXaxis()->FindBin( disc );
-	  pdf = hpdf->Integral(0, bin );
-	  if ( disc < -20 || disc>80) return 1e-5;
+	  pdf = hpdf->GetBinContent( bin );
+	  if ( disc < -10 || disc >50 ) return 0;
+	  //if ( pdf == 0 ) return 1.e-7;
 	  return pdf;
 	}
 	

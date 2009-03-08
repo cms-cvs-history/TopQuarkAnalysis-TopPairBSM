@@ -117,6 +117,8 @@ class BooLowMAnalyzer : public edm::EDAnalyzer {
 
     edm::InputTag evtsols;
 
+	bool fUsebTagging;
+	
 	int nevents;
 	int nbadmuons;
 	int nWcomplex;
