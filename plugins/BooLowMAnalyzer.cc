@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooLowMAnalyzer.cc,v 1.1.2.3 2009/02/25 05:45:36 yumiceva Exp $
+// $Id: BooLowMAnalyzer.cc,v 1.1.2.4 2009/03/08 03:26:21 yumiceva Exp $
 //
 //
 
@@ -31,6 +31,9 @@
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/JetReco/interface/CaloJetCollection.h"
+#include "DataFormats/BeamSpot/interface/BeamSpot.h"
+#include "DataFormats/Math/interface/Point3D.h"
+
 //#include "PhysicsTools/Utilities/interface/deltaR.h"
 //#include "Math/GenVector/VectorUtil.h"
 #include "DataFormats/Math/interface/deltaR.h"
@@ -426,6 +429,22 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	//
 	// C O L L E C T I O N S
 	//
+
+	// beam spot
+	reco::BeamSpot beamSpot;
+	edm::Handle<reco::BeamSpot> beamSpotHandle;
+	iEvent.getByLabel("offlineBeamSpot", beamSpotHandle);
+
+	if ( beamSpotHandle.isValid() )
+	  {
+	    beamSpot = *beamSpotHandle;
+
+	  } else
+	    {
+	      edm::LogInfo("MyAnalyzer")
+		<< "No beam spot available from EventSetup \n";
+	    }
+      
 	// Muons
 	Handle< View<pat::Muon> > muonHandle;
 	iEvent.getByLabel(muonSrc, muonHandle);
@@ -805,13 +824,17 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   // Muon ID
 		   int nhit = muons[imu].innerTrack()->numberOfValidHits();
 		   double normChi2 = muons[imu].globalTrack()->chi2() / muons[imu].globalTrack()->ndof();
-		   double d0 = muons[imu].innerTrack()->d0();
-		   
-		   if ( nhit > 10 && normChi2 < 10 ) {
+		   // math::XYZPoint point(bSpot.x0()+bSpot.dxdz()*eleDZ0,bSpot.y0()+bSpot.dydz()*eleDZ0, bSpot.z0());
+		   math::XYZPoint point(beamSpot.x0(),beamSpot.y0(), beamSpot.z0());
+		   //double d0 = muons[imu].innerTrack()->d0();
+		   double d0 = -1.* muons[imu].innerTrack()->dxy(point);
+		   hmuons_->Fill1d("muon_d0_cut1", d0 );
+
+		   if ( nhit > 10 && normChi2 < 10 && fabs(d0)< 0.2 ) {
 
 			   NgoodMuonsID++;
 			   hmuons_->Fill1d("muon_pt_cut2", muonpt );
-			   hmuons_->Fill1d("muon_d0_cut2", d0 );
+			   //hmuons_->Fill1d("muon_d0_cut2", d0 );
 			   
 			   // ISOLATION	   
 			   double RelIso = ( muonpt/(muonpt + muons[imu].caloIso() + muons[imu].trackIso()) );

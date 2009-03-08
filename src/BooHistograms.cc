@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: BooHistograms.cc,v 1.1.2.2 2009/02/25 05:45:37 yumiceva Exp $
+ version $Id: BooHistograms.cc,v 1.1.2.3 2009/03/08 03:26:22 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -129,7 +129,7 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h1["jet_Lepb_disc"+suffix1] = new TH1D("jet_Lepb_disc"+suffix1,"b-tag discriminator",40,-20,100);
 		h1["jet_Hadb_flavor"+suffix1] = new TH1D("jet_Hadb_flavor"+suffix1,"Flavor",22,0,22);
 		h1["jet_Lepb_flavor"+suffix1] = new TH1D("jet_Lepb_flavor"+suffix1,"Flavor",22,0,22);
-		h1["jet_Wmass_sigmas"+suffix1] = new TH1D("jet_Wmass_sigmas"+suffix1,"\sigma",20,0,20.);
+		h1["jet_Wmass_sigmas"+suffix1] = new TH1D("jet_Wmass_sigmas"+suffix1,"#sigma",20,0,20.);
 
 	}
 	else if ( type == "DisplayJets") {
@@ -151,6 +151,7 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h1["muons"+suffix1]                = new TH1D("muons"+suffix1,"Number of muons",4,1,5);
 		h1["muon_normchi2"+suffix1]        = new TH1D("muon_normchi2"+suffix1,"#chi^{2}/ndof",40,0,30);
 		h1["muon_pt"+suffix1]              = new TH1D("muon_pt"+suffix1,"Muon p_{T} [GeV/c]",80,0.0,200.0);
+                h1["muon_d0"+suffix1]              = new TH1D("muon_d0"+suffix1,"Muon d_{0} [cm]",40,-2,2);
 		h1["muon_eta"+suffix1]              = new TH1D("muon_eta"+suffix1,"Muon #eta",50,-3.,3.);
 		h1["muon_phi"+suffix1]              = new TH1D("muon_phi"+suffix1,"Muon #phi",30,-3.15,3.15);
 		h1["muon_caloIso"+suffix1]       = new TH1D("muon_caloIso"+suffix1,"caloIsolation",80,0.0,300.0);
@@ -162,7 +163,7 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h1["muon_RelIso"+suffix1]       = new TH1D("muon_RelIso"+suffix1,"RelIsolation",80,0.0,5.0);
 		h1["muon_vetoEm"+suffix1]          = new TH1D("muon_vetoEM"+suffix1,"EM Energy in veto cone",35,0,25);
 		h1["muon_vetoHad"+suffix1]          = new TH1D("muon_vetoHad"+suffix1,"Had Energy in veto cone",35,0,25);
-		h1["muon_d0"+suffix1]               = new TH1D("muon_d0"+suffix1,"Muon d0 [cm]",35,-4,4);
+		
 	}
 	else if ( type == "Electrons") {
 		h1["electrons"+suffix1]            = new TH1D("electrons"+suffix1, "Number of electrons",4,1,5);

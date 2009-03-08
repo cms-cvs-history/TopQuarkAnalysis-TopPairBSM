@@ -2,6 +2,8 @@
 <use name=DataFormats/Candidate>
 <use name=DataFormats/Common>
 <use name=DataFormats/PatCandidates>
+<use name=DataFormats/BeamSpot>
+<use name=DataFormats/Math>
 <use name=FWCore/Framework>
 <use name=FWCore/ParameterSet>
 <use name=TopQuarkAnalysis/TopTools>
