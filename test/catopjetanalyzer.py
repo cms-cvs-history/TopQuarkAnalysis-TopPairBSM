@@ -1,3 +1,4 @@
+
 # import configurations
 import FWCore.ParameterSet.Config as cms
 
@@ -24,7 +25,7 @@ print "Setting variables"
 outputdir = './'
 algorithm = 'ca'
 output_dst = True
-nevents = 100
+nevents = 1000
 idtag = '_slim_223'
 
 
@@ -52,12 +53,19 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 
 # Kt6 jets
 process.load("RecoJets.JetProducers.kt6CaloJets_cff")
+process.load("RecoJets.JetProducers.antikt6CaloJets_cff")
+process.load("RecoJets.JetProducers.cambridge6CaloJets_cff")
+process.load("RecoJets.JetProducers.sisCone7CaloJets_cff")
 
 # CATopJets
 process.load("TopQuarkAnalysis.TopPairBSM.caTopJets_cff")
 process.load("TopQuarkAnalysis.TopPairBSM.CATopJetTagger_cfi")
 
-
+# turn off sum-et dependent stuff.
+process.caTopJetsProducer.ptBins = cms.vdouble(0,10e9)
+process.caTopJetsProducer.rBins  = cms.vdouble(0.8,0.8)
+process.caTopJetsProducer.ptFracBins = cms.vdouble(0.05,0.05)
+process.caTopJetsProducer.nCellBins = cms.vint32(1,1)
 
 
 print "About to input pat sequences"
@@ -75,11 +83,6 @@ from PhysicsTools.PatAlgos.tools.jetTools import *
 
 print "About to switch jet collection"
 
-
-
-
-
-
 ## ==== Example with CaloJets
 switchJetCollection(process, 
         'caTopJetsProducer',   # Jet collection; must be already in the event when patLayer0 sequence is executed
@@ -87,26 +90,16 @@ switchJetCollection(process,
         runCleaner="BasicJet", # =None if not to clean
         doJTA=True,            # Run Jet-Track association & JetCharge
         doBTagging=True,       # Run b-tagging
-        #jetCorrLabel=('KT6', 'Calo'),   # example jet correction name; set to None for no JEC
-        jetCorrLabel=None,     # Turn this off, do it by hand. This tool doesn't work with new JEC
+        jetCorrLabel=('KT6', 'Calo'),   # example jet correction name; set to None for no JEC
         doType1MET=False)      # recompute Type1 MET using these jets
 
-# now set JEC by hand
-process.jetCorrFactors.jetSource = cms.InputTag("kt6CaloJets")
-process.jetCorrFactors.L1Offset  = cms.string('none')
-process.jetCorrFactors.L2Relative= cms.string('Summer08_L2Relative_KT6Calo')
-process.jetCorrFactors.L3Absolute= cms.string('Summer08_L3Absolute_KT6Calo')
-process.jetCorrFactors.L4EMF     = cms.string('none')
-process.jetCorrFactors.L5Flavor  = cms.string('none')
-process.jetCorrFactors.L6UE      = cms.string('none')                           
-process.jetCorrFactors.L7Parton  = cms.string('none')
 
 # Place appropriate jet cuts (NB: no cut on number of constituents)
-process.selectedLayer1Jets.cut = cms.string('et > 300. & abs(eta) < 5.0')
-#process.selectedLayer1Jets.cut = cms.string('et > 50. & abs(eta) < 5.0')
-process.selectedLayer1Muons.cut = cms.string('et > 50. & abs(eta) < 2.5 && caloIso < 3.0')
-process.selectedLayer1Electrons.cut = cms.string('et > 50. & abs(eta) < 2.5 && caloIso < 3.0')
-process.selectedLayer1METs.cut = cms.string('et > 200.0')
+process.selectedLayer1Jets.cut = cms.string('pt > 250. & abs(rapidity) < 5.0')
+process.selectedLayer1Muons.cut = cms.string('pt > 50. & abs(rapidity) < 2.5 && caloIso < 3.0')
+process.selectedLayer1Electrons.cut = cms.string('pt > 50. & abs(rapidity) < 2.5 && caloIso < 3.0')
+process.selectedLayer1METs.cut = cms.string('pt > 150.0')
+process.selectedLayer1Photons.cut = cms.string('pt > 50. & abs(rapidity) < 5.0')
 # Turn off resolutions, they don't mean anything here
 process.allLayer1Jets.addResolutions = cms.bool(False)
 # Add CATopTag info... piggy-backing on b-tag functionality
@@ -118,7 +111,7 @@ process.allLayer1Jets.addDiscriminators = cms.bool(False)
 # Add parton match to quarks and gluons
 process.allLayer1Jets.addGenPartonMatch = cms.bool(True)
 process.allLayer1Jets.embedGenPartonMatch = cms.bool(True)
-process.allLayer1Jets.embedCaloTowers = cms.bool(True)
+process.allLayer1Jets.embedCaloTowers = cms.bool(False)
 #process.allLayer1Muons.addGenPartonMatch = cms.bool(True)
 #process.allLayer1Muons.embedGenPartonMatch = cms.bool(True)
 process.jetPartons.withTop = cms.bool(True)
@@ -169,6 +162,17 @@ process.goodTracks = cms.EDProducer("TrackViewCandidateProducer",
     cut = cms.string('pt > 10')
 )
 
+# Reduce number of genparticles in output file
+process.prunedGenParticles = cms.EDProducer(
+    "GenParticlePruner",
+    src = cms.InputTag("genParticles"),
+    select = cms.vstring(
+    "drop  *  ", # this is the default
+    "keep pt > 10 & abs(pdgId) < 30",
+    )
+)
+
+
 # only keep events that have at least one jet
 process.jetFilter = cms.EDFilter("CandViewCountFilter",
                                   src = cms.InputTag("selectedLayer1Jets"),
@@ -208,16 +212,20 @@ process.patEventContent = cms.PSet(
 # extend event content to include PAT objects
 process.patEventContent.outputCommands.extend(process.patLayer1EventContent.outputCommands)
 process.patEventContent.outputCommands.extend(['drop *_genParticles_*_*',
+                                               'keep *_prunedGenParticles_*_*',
                                                'keep *_genEventScale_*_*',
                                                'drop *_generalTracks_*_*',
                                                'keep *_goodTracks_*_*',
                                                #'keep *_kt6Calojets_*_*',
+                                               #'keep *_antikt6Calojets_*_*',
+                                               #'keep *_cambridge6Calojets_*_*',
+                                               #'keep *_sisCone7Calojets_*_*',
                                                'drop *_towerMaker_*_*',
-                                               #'keep *_caTopJetsProducer_*_*',
+                                               'keep recoCaloJets_caTopJetsProducer_*_*',
                                                #'keep *_CATopJetTagger_*_*',
                                                'drop *_selectedLayer1Taus_*_*',
-                                               'drop *_selectedLayer1Hemispheres_*_*'
-                                               #'drop *_selectedLayer1Photons_*_*'
+                                               'drop *_selectedLayer1Hemispheres_*_*',
+                                               'drop *_selectedLayer1Photons_*_*'
                                                #'keep *_CAJetPartonMatcher_*_*',
                                                #'keep *_CAJetFlavourIdentifier_*_*'
                                                ]
@@ -241,7 +249,11 @@ process.out = cms.OutputModule("PoolOutputModule",
                                )
 
 # define path 'p'
-process.p = cms.Path(process.kt6CaloJets*
+process.p = cms.Path(process.prunedGenParticles*
+                     process.kt6CaloJets*
+                     process.antikt6CaloJets*
+                     process.cambridge6CaloJets*
+                     process.sisCone7CaloJets*
                      process.printList*
                      process.goodTracks*
                      process.caTopJetsProducer*
@@ -263,5 +275,3 @@ process.MessageLogger.cerr.threshold = 'INFO'
 
 
 #print process.dumpPython()
-
-
