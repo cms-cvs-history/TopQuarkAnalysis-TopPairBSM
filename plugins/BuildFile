@@ -18,4 +18,9 @@
   <flags CXXFLAGS="-O0 -g -DDEBUG">
 </library>
 
+<library file=BooABCDAnalyzer.cc name=BooABCDAnalyzer>
+  <flags EDM_PLUGIN=1>
+  <flags CXXFLAGS="-O0 -g -DDEBUG">
+</library>
+
 

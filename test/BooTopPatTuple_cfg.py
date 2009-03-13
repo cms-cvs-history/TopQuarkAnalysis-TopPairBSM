@@ -31,7 +31,7 @@ process.source = cms.Source("PoolSource",
 
 ## define maximal number of events to loop over
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(100)
 )
 
 ## configure process options
@@ -97,7 +97,7 @@ switchJetCollection(process,
                     runCleaner   = "CaloJet",       # =None if not to clean
                     doJTA        = True,            # run jet-track association & JetCharge
                     doBTagging   = True,            # run b-tagging
-                    jetCorrLabel = None, # example jet correction name; set to None for no JEC
+                    jetCorrLabel = ('SC5','Calo'), # example jet correction name; set to None for no JEC
                     doType1MET   = False             # recompute Type1 MET using these jets
                     )
 
@@ -112,9 +112,6 @@ process.jetCorrFactors.L6UE      = cms.string('none')
 process.jetCorrFactors.L7Parton  = cms.string('none')
 
 
-addJetCollection(process,'JetPlusTrackZSPCorJetIcone5','JPT',runCleaner=None,doJTA=False,doBTagging=False,jetCorrLabel=None,doType1MET=False,doL1Counters=False)
-
-
 # selection
 #
 from PhysicsTools.PatAlgos.selectionLayer1.electronSelector_cfi  import selectedLayer1Electrons
@@ -127,6 +124,8 @@ from PhysicsTools.PatAlgos.selectionLayer1.jetMinFilter_cfi      import minLayer
 from PhysicsTools.PatAlgos.selectionLayer1.muonMinFilter_cfi     import minLayer1Muons
 #
 
+
+
 selectedLayer1Electrons.cut  = cms.string('pt > 15. & abs(eta) < 2.4')
 selectedLayer1Muons.cut      = cms.string('pt > 15. & abs(eta) < 2.4')
 selectedLayer1Jets.cut       = cms.string('et > 20. & abs(eta) < 2.4 & nConstituents > 0')
@@ -134,6 +133,10 @@ selectedLayer1METs.cut       = cms.string('et >= 0.')
 #countLayer1Leptons.minNumber = 1
 minLayer1Jets.minNumber      = 2
 minLayer1Muons               = 1
+
+addJetCollection(process,'JetPlusTrackZSPCorJetIcone5','JPT',runCleaner='CaloJet',doJTA=True,doBTagging=False,jetCorrLabel=None,doType1MET=False,doL1Counters=False)
+
+
 
 #-------------------------------------------------
 # process output; first the event selection is
@@ -167,9 +170,9 @@ process.out = cms.OutputModule("PoolOutputModule",
 process.out.outputCommands.extend(["keep *_selectedLayer1Jets*_*_*"])
 
 process.configurationMetadata = cms.untracked.PSet(
-    version = cms.untracked.string('$Revision: 1.2 $'),
+    version = cms.untracked.string('$Revision: 1.1.2.3 $'),
     annotation = cms.untracked.string('PAT tuple creation'),
-    name = cms.untracked.string('$Source: /cvs_server/repositories/CMSSW/UserCode/Yumiceva/TopWork/crab/BooTopPatTuple_TTJets_cfg.py,v $')
+    name = cms.untracked.string('$Source: /cvs_server/repositories/CMSSW/CMSSW/TopQuarkAnalysis/TopPairBSM/test/Attic/BooTopPatTuple_cfg.py,v $')
 )
 
 

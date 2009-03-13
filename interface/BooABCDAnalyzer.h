@@ -1,7 +1,7 @@
-#ifndef BooLowMAnalyzer_H
-#define BooLowMAnalyzer_H
+#ifndef BooABCDAnalyzer_H
+#define BooABCDAnalyzer_H
 
-/** \class BooLowMAnalyzer
+/** \class BooABCDAnalyzer
  *
  *  Author: Francisco Yumiceva
  */
@@ -35,38 +35,23 @@
 #include <utility> 
 #include <fstream>
 
-struct partonMaxPt
-{
-  bool operator()(const reco::Candidate *c1, const reco::Candidate *c2) const
-  {
-    return c1->pt() >= c1->pt();
-  }
-};
 
-
-class BooLowMAnalyzer : public edm::EDAnalyzer {
+class BooABCDAnalyzer : public edm::EDAnalyzer {
 
   public:
 
 
     /// Constructor
-    BooLowMAnalyzer(const edm::ParameterSet& pset);
+    BooABCDAnalyzer(const edm::ParameterSet& pset);
 
     /// Destructor
-    virtual ~BooLowMAnalyzer();
+    virtual ~BooABCDAnalyzer();
 
     /// Perform the real analysis
     void analyze(const edm::Event & iEvent, const edm::EventSetup& iSetup);
-
-    /// 3d angles
-	double Psi(TLorentzVector p1, TLorentzVector p2, double mass);
-	double dij(TLorentzVector p1, TLorentzVector p2, double mass, bool min = true);
-	double PtRel(TLorentzVector p, TLorentzVector paxis);
 	
 	typedef math::XYZTLorentzVector LorentzVector;
 
-	/// Jet to parton matching
-	bool IsTruthMatch( Combo acombo, const edm::View<pat::Jet> jets,  TtGenEvent genEvt, bool MatchFlavor = false);
 
   private:
 
@@ -81,8 +66,7 @@ class BooLowMAnalyzer : public edm::EDAnalyzer {
 	BooHistograms *hmass_;
 	BooHistograms *hdisp_;
 	
-	std::map<TString, TString> cut_map;
-	    
+		    
     // The file which will store the histos
     TFile *theFile;
     // ascii outpur filename
@@ -97,8 +81,7 @@ class BooLowMAnalyzer : public edm::EDAnalyzer {
     // configuration
 	bool fwriteAscii;// flag to dump ASCII file
     std::string fasciiFileName; // ASCII filename
-    // csa07 weights
-    bool fApplyWeights;
+    
     bool fIsMCTop;
 
     // verbose
@@ -140,7 +123,7 @@ class BooLowMAnalyzer : public edm::EDAnalyzer {
 	double fMinJetEta;
 	double fMinHt;
 	double fMinMET;
-	bool fUseMyMET;
+	
 };
 
 

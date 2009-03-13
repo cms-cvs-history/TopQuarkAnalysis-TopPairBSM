@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooLowMAnalyzer.cc,v 1.1.2.4 2009/03/08 03:26:21 yumiceva Exp $
+// $Id: BooLowMAnalyzer.cc,v 1.1.2.5 2009/03/08 06:54:10 yumiceva Exp $
 //
 //
 
@@ -33,7 +33,8 @@
 #include "DataFormats/JetReco/interface/CaloJetCollection.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 #include "DataFormats/Math/interface/Point3D.h"
-
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "FWCore/Framework/interface/TriggerNames.h"
 //#include "PhysicsTools/Utilities/interface/deltaR.h"
 //#include "Math/GenVector/VectorUtil.h"
 #include "DataFormats/Math/interface/deltaR.h"
@@ -87,7 +88,8 @@ BooLowMAnalyzer::BooLowMAnalyzer(const edm::ParameterSet& iConfig)
   fUsebTagging      = iConfig.getParameter<bool>  ("UsebTagging");
   
   //fMinHt           = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<double>("MinHt");
-  //fMinMET           = iConfig.getParameter<edm::ParameterSet>("METCuts").getParameter<double>("MinMET");
+  fMinMET           = iConfig.getParameter<edm::ParameterSet>("METCuts").getParameter<double>("MinMET");
+  fUseMyMET         = iConfig.getParameter<edm::ParameterSet>("METCuts").getParameter<bool>("Recalculate");
     
   feventToProcess   = iConfig.getParameter<int> ("processOnlyEvent");
   fdisplayJets      = iConfig.getParameter<bool>   ("makeJetLegoPlots");
@@ -152,7 +154,9 @@ BooLowMAnalyzer::BooLowMAnalyzer(const edm::ParameterSet& iConfig)
   }
 
   hcounter->Init("counter");
-  
+
+  hmuons_->Init("Muons","nohlt");
+  hmuons_->Init("Muons","nohltgood");
   hmuons_->Init("Muons","cut0");
   hmuons_->Init("Muons","cut1");
   hmuons_->Init("Muons","cut2");
@@ -474,7 +478,14 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	// Generator
 	Handle<TtGenEvent > genEvent;
 	iEvent.getByLabel(genEvnSrc, genEvent);
-		
+	// Trigger
+	Handle<TriggerResults> hltresults;
+    iEvent.getByLabel("TriggerResults", hltresults);
+    int ntrigs=hltresults->size();
+    edm::TriggerNames triggerNames_;
+    triggerNames_.init(*hltresults);
+    bool acceptHLT = false;
+
 	// count events
 	hcounter->Counter("Processed");
 	
@@ -630,8 +641,43 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    if ( jets.size() ==0 ) { emptyjets  = true; edm::LogWarning ( "BooLowMAnalyzer" ) << " Jets collection: " << jetSrc << " is EMPTY.";}
    if ( met.size()  ==0 ) { emptyMET   = true; edm::LogWarning ( "BooLowMAnalyzer" ) << " MET collection: " << metSrc << " is EMPTY.";}
    if ( emptyjets || emptyMET ) {std::cout << " skipping this event. empty jet or MET collection" << std::endl; return;}
-   
 
+   /////////////////////////////////////////
+   //
+   // H L T
+   //
+   for (int itrig = 0; itrig < ntrigs; ++itrig) {
+	   if (triggerNames_.triggerName(itrig) == "HLT_Mu15") {
+		   acceptHLT = hltresults->accept(itrig);
+	   }
+   }
+
+   for( size_t imu=0; imu != muons.size(); ++imu) {
+
+	   // require Global muons
+	   if ( ! muons[imu].isGlobalMuon() ) continue;
+
+	   
+	   double muonpt = muons[imu].pt(); // innerTrack()->pt(); // to test tracker muons
+	   double muoneta= muons[imu].eta();
+	   hmuons_->Fill1d("muon_pt_nohlt", muonpt );
+	   hmuons_->Fill1d("muon_eta_nohlt", muoneta );
+	    // Muon ID
+	   int nhit = 0;
+	   if ( muons[imu].isTrackerMuon() ) nhit =  muons[imu].innerTrack()->numberOfValidHits();
+	   double normChi2 = muons[imu].globalTrack()->chi2() / muons[imu].globalTrack()->ndof();
+	   if ( nhit > 10 && normChi2 < 10 ) {
+
+		   hmuons_->Fill1d("muon_pt_nohltgood", muonpt );
+		   hmuons_->Fill1d("muon_eta_nohltgood", muoneta );
+	   }
+   }
+
+   if (debug) std::cout << " HLT done" << std::endl;
+   if ( !acceptHLT ) return;
+   hcounter->Counter("HLT_Mu15");
+   
+	   
    /////////////////////////////////////////
    //
    // D E F I N E    4 - M O M E N T U M
@@ -666,15 +712,19 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    
    for( size_t ijet=0; ijet != jets.size(); ++ijet) {
 
+	   TLorentzVector tmpP4;
+	   tmpP4.SetPxPyPzE(jets[ijet].px(),jets[ijet].py(),jets[ijet].pz(),jets[ijet].energy());
+
+	   // recalculate my MET, remove soft jets that could be junk
+	   if (tmpP4.Pt() > 20)
+		   myMETP4 = myMETP4 + TLorentzVector(jets[ijet].px(),jets[ijet].py(),0,jets[ijet].pt());
+	   
 	   // jet cuts
 	   if (jets[ijet].pt() <= fMinJetEt || fabs(jets[ijet].eta()) >= fMinJetEta ) continue;
 
 	   NgoodJets++;
 	   	   
-	   TLorentzVector tmpP4;
-	   tmpP4.SetPxPyPzE(jets[ijet].px(),jets[ijet].py(),jets[ijet].pz(),jets[ijet].energy());
-
-	   myMETP4 = myMETP4 + TLorentzVector(jets[ijet].px(),jets[ijet].py(),0,jets[ijet].pt());
+	   
 
 	   if ( NgoodJets < 7 ) {
 		   jetP4[NgoodJets-1] = tmpP4;
@@ -753,8 +803,8 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   hjets_->Fill1d(TString("jet_phi")+"_"+"cut0", jets[ijet].phi());
 	   hjets_->Fill2d(TString("jet_ptVseta")+"_cut0", jets[ijet].et(),jets[ijet].eta());
 	   hjets_->Fill1d(TString("jet_emFrac_cut0"), jets[ijet].emEnergyFraction());
-	   float jetcorr = jets[ijet].jetCorrFactors().scaleDefault();
-	   hjets_->Fill1d(TString("jet_nocorr_et")+"_cut0", jets[ijet].et() /jetcorr);
+	   //float jetcorr = jets[ijet].jetCorrFactors().scaleDefault();
+	   //hjets_->Fill1d(TString("jet_nocorr_et")+"_cut0", jets[ijet].et() /jetcorr);
 	   
    }
    
@@ -805,7 +855,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    double muonRelIso = 0;
    double muonVetoEm = 0;
    double muonVetoHad = 0;
-   
+    
    for( size_t imu=0; imu != muons.size(); ++imu) {
 
 	   // require Global muons
@@ -814,37 +864,49 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   NGlobalMuons++;
 	   
 	   double muonpt = muons[imu].pt(); // innerTrack()->pt(); // to test tracker muons
+	   double muoneta= muons[imu].eta();
 	   hmuons_->Fill1d("muon_pt_cut0", muonpt );
+	   hmuons_->Fill1d("muon_eta_cut0", muoneta );
+
+	   // Muon ID
+	   int nhit = muons[imu].innerTrack()->numberOfValidHits();
+	   double normChi2 = muons[imu].globalTrack()->chi2() / muons[imu].globalTrack()->ndof();
+	   if ( nhit > 10 && normChi2 < 10 ) {
+		   hmuons_->Fill1d("muon_pt_cut1", muonpt );
+		   hmuons_->Fill1d("muon_eta_cut1", muoneta );
+	   }
 	   
 	   if ( (muonpt > fMinMuonPt) && fabs(muons[imu].eta()) < fMinMuonEta ) {
 
 		   NgoodMuons++;
-		   hmuons_->Fill1d("muon_pt_cut1", muonpt );
+		   
 	   
-		   // Muon ID
-		   int nhit = muons[imu].innerTrack()->numberOfValidHits();
-		   double normChi2 = muons[imu].globalTrack()->chi2() / muons[imu].globalTrack()->ndof();
+		   
 		   // math::XYZPoint point(bSpot.x0()+bSpot.dxdz()*eleDZ0,bSpot.y0()+bSpot.dydz()*eleDZ0, bSpot.z0());
 		   math::XYZPoint point(beamSpot.x0(),beamSpot.y0(), beamSpot.z0());
 		   //double d0 = muons[imu].innerTrack()->d0();
 		   double d0 = -1.* muons[imu].innerTrack()->dxy(point);
-		   hmuons_->Fill1d("muon_d0_cut1", d0 );
+		   hmuons_->Fill2d("muon_phi_vs_d0_cut0", muons[imu].innerTrack()->phi(), muons[imu].innerTrack()->d0() );
+		   hmuons_->Fill2d("muon_phi_vs_d0_cut1", muons[imu].innerTrack()->phi(), d0 );
 
 		   if ( nhit > 10 && normChi2 < 10 && fabs(d0)< 0.2 ) {
 
 			   NgoodMuonsID++;
 			   hmuons_->Fill1d("muon_pt_cut2", muonpt );
+			   hmuons_->FillvsJets2d("muon_pt_vsJets_cut2",muonpt, jets);   
 			   //hmuons_->Fill1d("muon_d0_cut2", d0 );
 			   
 			   // ISOLATION	   
-			   double RelIso = ( muonpt/(muonpt + muons[imu].caloIso() + muons[imu].trackIso()) );
+			   //double RelIso = ( muonpt/(muonpt + muons[imu].caloIso() + muons[imu].trackIso()) );
+			   double RelIso = muons[imu].caloIso()/muons[imu].et() + muons[imu].trackIso()/muonpt;
 			   hmuons_->Fill1d("muon_RelIso_cut2", RelIso);
 			   
-			   if ( RelIso > fMuonRelIso ) {
+			   if ( RelIso < fMuonRelIso ) {
 
 				   NgoodIsoMuons++;
 				   hmuons_->Fill1d("muon_pt_cut3", muonpt );
-			   
+				   hmuons_->FillvsJets2d("muon_pt_vsJets_cut3",muonpt, jets);
+				   
 				   //double energymu = sqrt(muons[imu].innerTrack()->px()*muons[imu].innerTrack()->px() +
 				   //					  muons[imu].innerTrack()->py()*muons[imu].innerTrack()->py() +
 				   //				  muons[imu].innerTrack()->pz()*muons[imu].innerTrack()->pz() + 0.1057*0.1057);
@@ -862,7 +924,11 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 					   hmuons_->Fill1d("muon_vetoEm_cut3", muonVetoEm);
 					   hmuons_->Fill1d("muon_vetoHad_cut3", muonVetoHad);
 
-					   if (muonVetoEm < fMaxMuonEm  && muonVetoHad < fMaxMuonHad )hmuons_->Fill1d("muon_pt_cut4", muonpt );
+					 
+					   if (muonVetoEm < fMaxMuonEm  && muonVetoHad < fMaxMuonHad ) {
+						   hmuons_->Fill1d("muon_pt_cut4", muonpt );
+						   hmuons_->FillvsJets2d("muon_pt_vsJets_cut4",muonpt, jets);
+					   }
 					   
 				   }
 
@@ -910,7 +976,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    int theJetClosestMu = -1;
    double closestEMFrac = -1;
    TLorentzVector closestJet;
-   TLorentzVector closestJet2;
+   //TLorentzVector closestJet2;
    
    for( size_t ijet=0; ijet < jets.size(); ++ijet ) {
 
@@ -919,8 +985,8 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   TLorentzVector tmpP4;
 	   tmpP4.SetPxPyPzE(jets[ijet].px(),jets[ijet].py(),jets[ijet].pz(),jets[ijet].energy());
 	   TLorentzVector tmpP4raw;
-	   float jetcorr = jets[ijet].jetCorrFactors().scaleDefault();
-	   tmpP4raw.SetPxPyPzE(jets[ijet].px()/jetcorr,jets[ijet].py()/jetcorr,jets[ijet].pz()/jetcorr,jets[ijet].energy()/jetcorr);
+	   //float jetcorr = jets[ijet].jetCorrFactors().scaleDefault();
+	   //tmpP4raw.SetPxPyPzE(jets[ijet].px()/jetcorr,jets[ijet].py()/jetcorr,jets[ijet].pz()/jetcorr,jets[ijet].energy()/jetcorr);
 
 	   double tmpclosestEMFrac = jets[ijet].emEnergyFraction();
 	   
@@ -931,7 +997,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   theJetClosestMu = (int) ijet;
 		   minDeltaR_muon_jet = aDeltaR_muon_jet;
 		   closestJet = tmpP4;
-		   closestJet2= tmpP4raw;
+		   //closestJet2= tmpP4raw;
 		   closestEMFrac = tmpclosestEMFrac;
 	   }
    }
@@ -949,13 +1015,13 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    if (theJetClosestMu != -1 ) {
 	   hjets_->Fill1d(TString("jet_pTrel_muon")+"_cut0",PtRel(muonP4,muonP4+closestJet));
 	   hjets_->Fill1d(TString("jet_pT_closest_muon")+"_cut0", closestJet.Pt());
-	   hjets_->Fill1d(TString("jet_pT_closest_muon")+"_cut2", closestJet2.Pt());
+	   //hjets_->Fill1d(TString("jet_pT_closest_muon")+"_cut2", closestJet2.Pt());
 	   hjets_->Fill1d(TString("jet_emFrac_cut1"), closestEMFrac );
 	   
-	   if (closestJet2.Et() > 10. ) {
-		   hjets_->Fill1d(TString("jet_pT_closest_muon")+"_cut3", closestJet.Pt());
-		   hjets_->Fill1d(TString("jet_emFrac_cut2"), closestEMFrac );
-	   }
+	   //if (closestJet2.Et() > 10. ) {
+	   //	   hjets_->Fill1d(TString("jet_pT_closest_muon")+"_cut3", closestJet.Pt());
+	   //	   hjets_->Fill1d(TString("jet_emFrac_cut2"), closestEMFrac );
+	   //}
 	   
 	   int flavour = abs(jets[theJetClosestMu].partonFlavour());
 	   hjets_->Fill1d(TString("jet_flavor_closest_muon")+"_cut0", flavour);
@@ -1008,9 +1074,9 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   if ( ept > fMinElectronPt && fabs(electrons[ie].eta()) < fMinElectronEta &&
 		   electrons[ie].electronID("eidTight")>0) {
 
-		   double relIso = ept/(ept + electrons[ie].trackIso() + electrons[ie].caloIso() );
+		   double relIso = electrons[ie].trackIso() /ept + electrons[ie].caloIso()/electrons[ie].et();
 
-		   if ( relIso > fElectronRelIso ) {
+		   if ( relIso < fElectronRelIso ) {
 
 			   NgoodElectrons++;
 		   }
@@ -1049,17 +1115,24 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    METP4.SetPxPyPzE(met[0].px(), met[0].py(), met[0].pz(), met[0].energy());
    myMETP4 = (-1)*myMETP4;
+
+   if (fUseMyMET) METP4 = myMETP4;
    
    if (debug) std::cout << "MET section done" << std::endl;
       
-   
+   if (NgoodJets >=4 ) {
+     hmuons_->Fill2d("muon_RelIso_vs_MET_cut4", muonRelIso, METP4.Pt() );
+     double Htl = muonP4.Pt();
+     for( int ijet=0; ijet != NgoodJets; ++ijet) Htl += jetP4[ijet].Et();
+     hmuons_->Fill2d("muon_RelIso_vs_Htl_cut4", muonRelIso, Htl );
+   }
+
    ///////////////////////////////////////////////
    //
    // C A L C U L A T E   N E U T R I N O   Pz
    //
    
    double neutrinoPz = -999999.;
-   
    bool found_nu = false;
    bool found_goodMET = false;
   
@@ -1069,7 +1142,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   METzCalculator zcalculator;
 	   
 	   zcalculator.SetMET( METP4 );
-	   //zcalculator.SetMET(myMETP4);
+	   //zcalculator.SetMET(myMTP4);
 	   zcalculator.SetMuon( muonP4 );//muons[0] );
 
 	   if (debug) zcalculator.Print();
@@ -1193,13 +1266,13 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 	   // check MC truth
 	   //std::cout << "check gen matching" << std::endl;
-	   if ( IsTruthMatch(bestCombo, jets, *genEvent, true ) ) {
+	   if ( IsTruthMatch(bestCombo, jets, *genEvent, true ) && fIsMCTop ) {
 		   MCAllmatch_sumEt_++;
 		   hcounter->Counter("M3MatchedAllJets");
 	   }
 	   
 	   //std::cout << "check gen matching2"<< std::endl;
-	   if ( IsTruthMatch(bestCombo, jets, *genEvent ) ) {
+	   if ( IsTruthMatch(bestCombo, jets, *genEvent ) && fIsMCTop ) {
 	     hjets_->Fill1d(TString("MCjet_combinations_ProbChi2_cut1"), TMath::Prob(bestCombo.GetChi2(),3));
 	     hjets_->Fill1d(TString("MCjet_combinations_NormChi2_cut1"), bestCombo.GetChi2()/3.);
 	     hmass_->Fill1d(TString("MCLeptonicTop_mass")+"_cut1", lepTopP4.M());
@@ -1354,13 +1427,13 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   delete newWp;
 		   delete newWq;
 
-		   if ( IsTruthMatch(bestCombo, jets, *genEvent, true) ) {
+		   if ( IsTruthMatch(bestCombo, jets, *genEvent, true) && fIsMCTop ) {
 			   MCAllmatch_chi2_++;
 			   hcounter->Counter("M3PrimeMatchedAllJets");
 			   hjets_->Fill1d("jet_Wmass_sigmas_cut2", Wsigmas ); //Wsigmas*resolution1/bestCombo.GetWp().E() );
 		   }
 		   
-		   if ( IsTruthMatch(bestCombo, jets, *genEvent) ) {
+		   if ( IsTruthMatch(bestCombo, jets, *genEvent) && fIsMCTop ) {
 		     
 		     hjets_->Fill1d(TString("MCjet_combinations_ProbChi2_cut2"), TMath::Prob(bestCombo.GetChi2(),3));
 		     hjets_->Fill1d(TString("MCjet_combinations_NormChi2_cut2"), bestCombo.GetChi2()/Ndof);
@@ -1390,7 +1463,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   hmass_->Fill2d(TString("LepTop_vs_LepW")+"_cut3", lepTopP4.M(), lepWP4.M());
 		   hmass_->Fill2d(TString("HadTop_vs_HadW")+"_cut3", hadTopP4.M(), hadWP4.M());
 
-		   if ( IsTruthMatch(Combo3, jets, *genEvent) ) {
+		   if ( IsTruthMatch(Combo3, jets, *genEvent) && fIsMCTop ) {
 
 		     hjets_->Fill1d(TString("MCjet_combinations_ProbChi2_cut3"), TMath::Prob(Combo3.GetChi2(),3));
 		     hjets_->Fill1d(TString("MCjet_combinations_NormChi2_cut3"), Combo3.GetChi2()/Ndof);
@@ -1419,7 +1492,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   hmass_->Fill2d(TString("LepTop_vs_LepW")+"_cut4", lepTopP4.M(), lepWP4.M());
 		   hmass_->Fill2d(TString("HadTop_vs_HadW")+"_cut4", hadTopP4.M(), hadWP4.M());
 
-		   if ( IsTruthMatch(bestComboCut, jets, *genEvent) ) {
+		   if ( IsTruthMatch(bestComboCut, jets, *genEvent) && fIsMCTop ) {
 		     hjets_->Fill1d(TString("MCjet_combinations_ProbChi2_cut4"), TMath::Prob(bestComboCut.GetChi2(),3));
 		     hjets_->Fill1d(TString("MCjet_combinations_NormChi2_cut4"), bestComboCut.GetChi2()/3.);
 		     hmass_->Fill1d(TString("MCLeptonicTop_mass")+"_cut4", lepTopP4.M());
@@ -1449,7 +1522,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   hmass_->Fill2d(TString("HadTop_vs_HadW")+"_cut5", hadTopP4.M(), hadWP4.M());
 
 
-		   if ( IsTruthMatch(Combo3Cut, jets, *genEvent) ) {
+		   if ( IsTruthMatch(Combo3Cut, jets, *genEvent) && fIsMCTop ) {
 		     hjets_->Fill1d(TString("MCjet_combinations_ProbChi2_cut5"), TMath::Prob(Combo3Cut.GetChi2(),3));
 		     hjets_->Fill1d(TString("MCjet_combinations_NormChi2_cut5"), Combo3Cut.GetChi2()/3.);
 		     hmass_->Fill1d(TString("MCLeptonicTop_mass")+"_cut5", lepTopP4.M());

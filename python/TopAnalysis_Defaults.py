@@ -18,7 +18,7 @@ TopAnalyzer = cms.EDAnalyzer("BooLowMAnalyzer",
                              muonCuts = cms.PSet(
                                        MinPt  = cms.double( 20. ),
                                        MinEta = cms.double( 2.1 ),
-                                       RelIso = cms.double( 0.95 ),
+                                       RelIso = cms.double( 0.1 ),
                                        MinCaloEnergy = cms.double( 0. )
                                        ),
                              muonIsolation = cms.PSet(
@@ -29,10 +29,11 @@ TopAnalyzer = cms.EDAnalyzer("BooLowMAnalyzer",
                              electronCuts = cms.PSet(
                                        MinPt  = cms.double( 20. ),
                                        MinEta = cms.double( 2.4 ),
-                                       RelIso = cms.double( 0.95 )
+                                       RelIso = cms.double( 0.1 )
                                        ),
                              METCuts = cms. PSet(
-                                       MinMET = cms.double( 0. )
+                                       MinMET = cms.double( 0. ),
+                                       Recalculate = cms.bool(False)
                                        ),
                              UsebTagging = cms.bool(False),
                              writeAscii = cms.bool( False),

@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: BooHistograms.cc,v 1.1.2.3 2009/03/08 03:26:22 yumiceva Exp $
+ version $Id: BooHistograms.cc,v 1.1.2.4 2009/03/08 06:54:11 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -150,10 +150,12 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h2["muons_vsJets"+suffix1]         = new TH2D("muons_vsJets"+suffix1,"Number of muons vs Jets",4,1,5,4,1,5);
 		h1["muons"+suffix1]                = new TH1D("muons"+suffix1,"Number of muons",4,1,5);
 		h1["muon_normchi2"+suffix1]        = new TH1D("muon_normchi2"+suffix1,"#chi^{2}/ndof",40,0,30);
-		h1["muon_pt"+suffix1]              = new TH1D("muon_pt"+suffix1,"Muon p_{T} [GeV/c]",80,0.0,200.0);
-                h1["muon_d0"+suffix1]              = new TH1D("muon_d0"+suffix1,"Muon d_{0} [cm]",40,-2,2);
-		h1["muon_eta"+suffix1]              = new TH1D("muon_eta"+suffix1,"Muon #eta",50,-3.,3.);
-		h1["muon_phi"+suffix1]              = new TH1D("muon_phi"+suffix1,"Muon #phi",30,-3.15,3.15);
+		h1["muon_pt"+suffix1]              = new TH1D("muon_pt"+suffix1,"Muon p_{T} [GeV/c]",60,0.0,150);
+		h2["muon_pt_vsJets"+suffix1]         = new TH2D("muon_pt_vsJets"+suffix1,"Muon p_{T} [GeV/c] vs Jets",60,0,150,4,1,5);
+		h1["muon_d0"+suffix1]              = new TH1D("muon_d0"+suffix1,"Muon d_{0} [cm]",40,-2,2);
+		h2["muon_phi_vs_d0"+suffix1]       = new TH2D("muon_phi_vs_d0"+suffix1,"Muon d_{0} [cm] vs #phi",100,-3.2,3.2,100,-0.4,0.4);
+		h1["muon_eta"+suffix1]             = new TH1D("muon_eta"+suffix1,"Muon #eta",50,-3.,3.);
+		h1["muon_phi"+suffix1]             = new TH1D("muon_phi"+suffix1,"Muon #phi",30,-3.15,3.15);
 		h1["muon_caloIso"+suffix1]       = new TH1D("muon_caloIso"+suffix1,"caloIsolation",80,0.0,300.0);
 		h1["muon_trackIso"+suffix1]       = new TH1D("muon_trackIso"+suffix1,"trackIsolation",80,0.0,100.0);
 		h1["muon_leptonID"+suffix1]       = new TH1D("muon_leptonID"+suffix1,"leptonID",80,0.0,1.0);
@@ -163,7 +165,8 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h1["muon_RelIso"+suffix1]       = new TH1D("muon_RelIso"+suffix1,"RelIsolation",80,0.0,5.0);
 		h1["muon_vetoEm"+suffix1]          = new TH1D("muon_vetoEM"+suffix1,"EM Energy in veto cone",35,0,25);
 		h1["muon_vetoHad"+suffix1]          = new TH1D("muon_vetoHad"+suffix1,"Had Energy in veto cone",35,0,25);
-		
+		h2["muon_RelIso_vs_MET"+suffix1]       = new TH2D("muon_RelIso_vs_MET"+suffix1,"muon RelIso vs MET",100,0,2,100,0,300);
+		h2["muon_RelIso_vs_Htl"+suffix1]       = new TH2D("muon_RelIso_vs_Htl"+suffix1,"muon RelIso vs Htl",100,0,2,100,0,1500);
 	}
 	else if ( type == "Electrons") {
 		h1["electrons"+suffix1]            = new TH1D("electrons"+suffix1, "Number of electrons",4,1,5);
@@ -173,15 +176,16 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 	}
 	else if ( type == "MET") {
 
-		h2["MET_vsJets"+suffix1] = new TH2D("MET_vsJets"+suffix1,"MET [GeV] vs Jets",100,0.0,1500.0,4,0,4);
-		h1["MET"+suffix1] = new TH1D("MET"+suffix1,"MET [GeV]",100,0.0,1500.0);
+		h2["MET_vsJets"+suffix1] = new TH2D("MET_vsJets"+suffix1,"MET [GeV] vs Jets",100,0.0,400,4,1,5);
+		h1["MET"+suffix1] = new TH1D("MET"+suffix1,"MET [GeV]",100,0.0,400);
 		h1["MET_eta"+suffix1] = new TH1D("MET_eta"+suffix1,"#eta_{MET}",50,-3.,3.);
 		h1["MET_phi"+suffix1] = new TH1D("MET_phi"+suffix1,"#phi_{MET}",30,-3.15,3.15);
 
 		h1["Ht"+suffix1] = new TH1D("Ht"+suffix1,"Ht [GeV]",100,0,2500);
 		h2["Ht_vsJets"+suffix1] = new TH2D("Ht_vsJets"+suffix1,"Ht [GeV] vs Jets",100,0,2500,4,0,4);
-		
-		h1["myMET"+suffix1] = new TH1D("myMET"+suffix1,"MET [GeV]",100,0.0,1500.0);
+		h1["Htl"+suffix1] = new TH1D("Htl"+suffix1,"Htl [GeV]",100,0,2500);
+
+		h1["myMET"+suffix1] = new TH1D("myMET"+suffix1,"MET [GeV]",100,0.0,400);
 		h1["MET_deltaR_muon"+suffix1] = new TH1D("MET_deltaR_muon"+suffix1,"#DeltaR(MET,#mu)",35,0.,7.);
 		//h1["nu_pz_complex"+suffix1] = new TH1D("nu_pz_complex"+suffix1,"Number of complex solutions",80,0.0,300.0);
 		h1["nu_pz"+suffix1] = new TH1D("nu_pz"+suffix1,"Neutrino p_{z} [GeV/c]",50,-500.0,500.0);
