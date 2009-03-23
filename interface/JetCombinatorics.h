@@ -8,7 +8,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: JetCombinatorics.h,v 1.1.4.5 2009/03/08 03:26:21 yumiceva Exp $
+ version $Id: JetCombinatorics.h,v 1.1.4.6 2009/03/13 20:51:23 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -74,7 +74,7 @@ class Combo {
 
 		chi2_ = chiHadW*chiHadW + chiHadt*chiHadt + chiLept*chiLept;
 
-		SumEt_ = HadTop_.Et();//HadTop_.Pt();
+		SumEt_ = HadTop_.Pt();
 
 		if ( usebtag_ ) {
 

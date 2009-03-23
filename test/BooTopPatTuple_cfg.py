@@ -31,7 +31,7 @@ process.source = cms.Source("PoolSource",
 
 ## define maximal number of events to loop over
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(50)
 )
 
 ## configure process options
@@ -170,7 +170,7 @@ process.out = cms.OutputModule("PoolOutputModule",
 process.out.outputCommands.extend(["keep *_selectedLayer1Jets*_*_*"])
 
 process.configurationMetadata = cms.untracked.PSet(
-    version = cms.untracked.string('$Revision: 1.1.2.3 $'),
+    version = cms.untracked.string('$Revision: 1.1.2.4 $'),
     annotation = cms.untracked.string('PAT tuple creation'),
     name = cms.untracked.string('$Source: /cvs_server/repositories/CMSSW/CMSSW/TopQuarkAnalysis/TopPairBSM/test/Attic/BooTopPatTuple_cfg.py,v $')
 )

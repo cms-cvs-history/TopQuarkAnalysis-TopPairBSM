@@ -13,12 +13,13 @@ TopAnalyzer = cms.EDAnalyzer("BooLowMAnalyzer",
                              rootFilename = cms.string('TopAnalysis.root'),
                              jetCuts = cms.PSet(
                                        MinJetEt        = cms.double( 30. ),
-                                       MinJetEta       = cms.double( 2.4)
+                                       MinJetEta       = cms.double( 2.4),
+                                       ApplyAsymmetricCuts = cms.bool(False)
                                        ),
                              muonCuts = cms.PSet(
                                        MinPt  = cms.double( 20. ),
                                        MinEta = cms.double( 2.1 ),
-                                       RelIso = cms.double( 0.1 ),
+                                       RelIso = cms.double( 0.95 ),
                                        MinCaloEnergy = cms.double( 0. )
                                        ),
                              muonIsolation = cms.PSet(
@@ -29,7 +30,7 @@ TopAnalyzer = cms.EDAnalyzer("BooLowMAnalyzer",
                              electronCuts = cms.PSet(
                                        MinPt  = cms.double( 20. ),
                                        MinEta = cms.double( 2.4 ),
-                                       RelIso = cms.double( 0.1 )
+                                       RelIso = cms.double( 0.95 )
                                        ),
                              METCuts = cms. PSet(
                                        MinMET = cms.double( 0. ),

@@ -141,6 +141,7 @@ class BooLowMAnalyzer : public edm::EDAnalyzer {
 	double fMinHt;
 	double fMinMET;
 	bool fUseMyMET;
+	bool fApplyJetAsymmetricCuts;
 };
 
 

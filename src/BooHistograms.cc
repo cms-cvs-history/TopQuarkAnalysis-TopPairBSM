@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: BooHistograms.cc,v 1.1.2.4 2009/03/08 06:54:11 yumiceva Exp $
+ version $Id: BooHistograms.cc,v 1.1.2.5 2009/03/13 20:51:24 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -153,6 +153,7 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h1["muon_pt"+suffix1]              = new TH1D("muon_pt"+suffix1,"Muon p_{T} [GeV/c]",60,0.0,150);
 		h2["muon_pt_vsJets"+suffix1]         = new TH2D("muon_pt_vsJets"+suffix1,"Muon p_{T} [GeV/c] vs Jets",60,0,150,4,1,5);
 		h1["muon_d0"+suffix1]              = new TH1D("muon_d0"+suffix1,"Muon d_{0} [cm]",40,-2,2);
+                h1["muon_IPS"+suffix1]              = new TH1D("muon_IPS"+suffix1,"Muon d_{0}/\sigma_{d0}",40,0,15);
 		h2["muon_phi_vs_d0"+suffix1]       = new TH2D("muon_phi_vs_d0"+suffix1,"Muon d_{0} [cm] vs #phi",100,-3.2,3.2,100,-0.4,0.4);
 		h1["muon_eta"+suffix1]             = new TH1D("muon_eta"+suffix1,"Muon #eta",50,-3.,3.);
 		h1["muon_phi"+suffix1]             = new TH1D("muon_phi"+suffix1,"Muon #phi",30,-3.15,3.15);
