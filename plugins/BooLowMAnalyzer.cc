@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooLowMAnalyzer.cc,v 1.1.2.6 2009/03/13 20:51:23 yumiceva Exp $
+// $Id: BooLowMAnalyzer.cc,v 1.1.2.7 2009/03/23 20:39:25 yumiceva Exp $
 //
 //
 
@@ -515,7 +515,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	if (debug) std::cout << "got generator candidates" << std::endl;
 	double genNupz = 0;
    
-	if (genTop || genTopBar) {
+	if (genTop && genTopBar) {
 		LorentzVector gentoppairP4;
 		gentoppairP4 = genTop->p4() + genTopBar->p4();
 		hgen_->Fill1d("gen_toppair_mass", gentoppairP4.M() );
@@ -599,17 +599,44 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 														  TLorentzVector(tmpgennu.Px(),tmpgennu.Py(),tmpgennu.Pz(),tmpgennu.E()),
 														  tmpgenLepW.M()));
 
+			double theminGenDeltaR = 999.;
+
+			if ( DeltaR<reco::Candidate>()(*genHadWp, *genHadWq ) < theminGenDeltaR ) theminGenDeltaR = DeltaR<reco::Candidate>()(*genHadWp, *genHadWq );
+			if ( DeltaR<reco::Candidate>()(*genHadWp, *genHadb ) < theminGenDeltaR ) theminGenDeltaR = DeltaR<reco::Candidate>()(*genHadWp, *genHadb );
+			if ( DeltaR<reco::Candidate>()(*genHadWp, *genLepb ) < theminGenDeltaR ) theminGenDeltaR = DeltaR<reco::Candidate>()(*genHadWp, *genLepb );
+			if ( DeltaR<reco::Candidate>()(*genHadWq, *genHadb ) < theminGenDeltaR ) theminGenDeltaR = DeltaR<reco::Candidate>()(*genHadWq, *genHadb );
+			if ( DeltaR<reco::Candidate>()(*genHadWq, *genLepb ) < theminGenDeltaR ) theminGenDeltaR = DeltaR<reco::Candidate>()(*genHadWq, *genLepb );
+			if ( DeltaR<reco::Candidate>()(*genHadb, *genLepb ) < theminGenDeltaR ) theminGenDeltaR = DeltaR<reco::Candidate>()(*genHadb, *genLepb );
+			
+				 
 			// count gen events in the fidutial region
-			if ( ( fabs(genMuon->eta()) < fMinMuonEta ) &&
-				 ( genMuon->et()  > fMinMuonPt*0.9) &&
-				 ( genHadWp->et() > fMinJetEt*0.8 ) &&
-				 ( genHadWq->et() > fMinJetEt*0.8 ) &&
-				 ( genHadb->et()  > fMinJetEt*0.8 ) &&
-				 ( genLepb->et()  > fMinJetEt*0.8 ) &&
-				 ( fabs(genHadWp->eta()) < fMinJetEta ) &&
-				 ( fabs(genHadWq->eta()) < fMinJetEta ) &&
-				 ( fabs(genHadb->eta() ) < fMinJetEta ) &&
-				 ( fabs(genLepb->eta() ) < fMinJetEta ) ) hcounter->Counter("GenFidutial");
+			if ( ( genHadWp->et() > fMinJetEt ) &&
+				 ( genHadWq->et() > fMinJetEt ) &&
+				 ( genHadb->et()  > fMinJetEt ) &&
+				 ( genLepb->et()  > fMinJetEt ) ) {
+
+				hcounter->Counter("GenJetPt");
+
+				if ( ( fabs(genHadWp->eta()) < fMinJetEta ) &&
+					 ( fabs(genHadWq->eta()) < fMinJetEta ) &&
+					 ( fabs(genHadb->eta() ) < fMinJetEta ) &&
+					 ( fabs(genLepb->eta() ) < fMinJetEta ) ) {
+
+					hcounter->Counter("GenJetEta");
+
+					// deltaR
+					if ( theminGenDeltaR > 0.5 ) {
+
+						hcounter->Counter("GenJetDeltaR");
+										
+						if ( ( fabs(genMuon->eta()) < fMinMuonEta ) &&
+							 ( genMuon->et()  > fMinMuonPt) ) hcounter->Counter("GenJetDeltaRMuon");
+					}
+					if ( ( fabs(genMuon->eta()) < fMinMuonEta ) &&
+						 ( genMuon->et()  > fMinMuonPt) ) hcounter->Counter("GenMuon");
+				}
+			}
+						 
 				 
 		} else {
 			edm::LogWarning ( "BooLowMAnalyzer" ) << " No top decay generator info, what happen here?";
@@ -912,11 +939,11 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   double d0 = -1.* muons[imu].innerTrack()->dxy(point);
 		   hmuons_->Fill2d("muon_phi_vs_d0_cut0", muons[imu].innerTrack()->phi(), muons[imu].innerTrack()->d0() );
 		   hmuons_->Fill2d("muon_phi_vs_d0_cut1", muons[imu].innerTrack()->phi(), d0 );
-		   double d0sigma = muons[imu].innerTrack()->d0Error();
+		   double d0sigma = sqrt( muons[imu].innerTrack()->d0Error() * muons[imu].innerTrack()->d0Error() + beamSpot.BeamWidth()*beamSpot.BeamWidth());
 
 		   hmuons_->Fill1d("muon_IPS_cut1", d0/d0sigma );
 
-		   if ( nhit > 10 && normChi2 < 10 && fabs(d0/d0sigma)<3 ) {
+		   if ( nhit >= 11 && normChi2 < 10 && fabs(d0/d0sigma)<5 ) {
 
 			   NgoodMuonsID++;
 			   hmuons_->Fill1d("muon_pt_cut2", muonpt );
@@ -1140,6 +1167,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   hmet_->FillvsJets2d(TString("MET_vsJets")+"_cut0",met[imet].et(), vectorjets);
 	   hmet_->Fill1d(TString("Ht")+"_cut0", met[imet].sumEt());
 	   hmet_->FillvsJets2d(TString("Ht_vsJets")+"_cut0",met[imet].sumEt(), vectorjets);
+	   hmet_->Fill1d("MET_resolution_cut0",(met[imet].et() - met[imet].genMET()->et())/ met[imet].genMET()->et() );
    }
 
    METP4.SetPxPyPzE(met[0].px(), met[0].py(), met[0].pz(), met[0].energy());
@@ -1255,7 +1283,17 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    //
    //  T O P    R E C O N S T R U C T I O N
    //
+
+   int topdecay = 0;
+   if ( genEvent->isFullHadronic() ) topdecay =1;
+   if ( genEvent->isFullLeptonic() ) topdecay =2;
+   if ( genEvent->isSemiLeptonic() && genEvent->semiLeptonicChannel()==1 ) topdecay = 3;
+   if ( genEvent->isSemiLeptonic() && genEvent->semiLeptonicChannel()==2 ) topdecay = 4;
+   if ( genEvent->isSemiLeptonic() && genEvent->semiLeptonicChannel()==3 ) topdecay = 5;
    
+   //hgen_->Fill1d("gen_top_decays", topdecay );
+   hgen_->FillvsJets2d("gen_top_decays_vsJets", topdecay, vectorjets);
+	   
    // OK now let's repeat the TOP loose selection
    if (NgoodJets >=4 ) {
 
@@ -1318,14 +1356,6 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    
    // now do my magic
    if ( found_goodMET) {
-
-	   int topdecay = 0;
-	   if ( genEvent->isFullHadronic() ) topdecay =1;
-	   if ( genEvent->isFullLeptonic() ) topdecay =2;
-	   if ( genEvent->isSemiLeptonic() && genEvent->semiLeptonicChannel()==1 ) topdecay = 3;
-	   if ( genEvent->isSemiLeptonic() && genEvent->semiLeptonicChannel()==2 ) topdecay = 4;
-	   if ( genEvent->isSemiLeptonic() && genEvent->semiLeptonicChannel()==3 ) topdecay = 5;
-	   hgen_->Fill1d("gen_top_decays", topdecay );
 	   
 	   if (NgoodJets >= 4 ) {
 

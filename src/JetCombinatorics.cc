@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: JetCombinatorics.cc,v 1.1.4.3 2009/02/16 23:00:26 yumiceva Exp $
+ version $Id: JetCombinatorics.cc,v 1.1.4.4 2009/02/25 05:45:37 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -40,6 +40,7 @@ JetCombinatorics::JetCombinatorics() {
 	maxNJets_ = 9999;
 	verbosef = false;
 	UsebTagging_ = false;
+	UseMtop_ = true;
 	
 	Template4jCombos_ = NestedCombinatorics(); // 12 combinations
 	Template5jCombos_ = Combinatorics(4,5); // 5 combinations of 4 combos
@@ -286,6 +287,8 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets, st
 				acombo.SetLepb_disc( thebdisc[atoi((a4template.substr(3,1)).c_str())] );
 				
 			}
+
+			acombo.UseMtopConstraint(UseMtop_);
 			
 			acombo.analyze();
 

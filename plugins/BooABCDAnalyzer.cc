@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooABCDAnalyzer.cc,v 1.1.2.5 2009/03/08 06:54:10 yumiceva Exp $
+// $Id: BooABCDAnalyzer.cc,v 1.1.2.1 2009/03/13 20:51:23 yumiceva Exp $
 //
 //
 
@@ -102,6 +102,14 @@ BooABCDAnalyzer::BooABCDAnalyzer(const edm::ParameterSet& iConfig)
 
   // Create a root file
   theFile = new TFile(rootFileName.c_str(), "RECREATE");
+
+  // create tree
+  ftree = new TTree("top","top");
+  ftree->AutoSave();
+
+  fntuple = new BooEventNtuple();
+  ftree->Branch("top.","BooEventNtuple",&fntuple,64000,1); 
+  
   // make diretories
   theFile->mkdir("Generator");
   theFile->cd();
@@ -197,6 +205,9 @@ BooABCDAnalyzer::~BooABCDAnalyzer()
 
 	// save all histograms
 	theFile->cd();
+
+	ftree->Write();
+
 	hcounter->Save();
 	
 	theFile->cd();
@@ -234,11 +245,21 @@ BooABCDAnalyzer::~BooABCDAnalyzer()
    //Close the Root file
    theFile->Close();
 
+   delete fntuple;
+   
    if (debug) std::cout << "************* Finished writing histograms to file in destructor" << std::endl;
 
 }
 
+double
+BooABCDAnalyzer::PtRel(TLorentzVector p, TLorentzVector paxis) {
 
+	TVector3 p3 = p.Vect();
+	TVector3 p3axis = paxis.Vect();
+
+	return p3.Perp(p3axis);
+
+}
 
 
 void
@@ -248,6 +269,10 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	using namespace edm;
        	
 	if (debug) std::cout << " nevents = " << nevents << std::endl;
+
+	fntuple->Reset();
+	fntuple->event = iEvent.id().event();
+	fntuple->run = iEvent.id().run();
 
 	//check if we process one event
 	bool processthis = false;
@@ -447,7 +472,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    
    if (debug) std::cout << "Jet section done. Number of good jets: " << NgoodJets << std::endl;
    
-   if ( NgoodJets == 0 ) { nevents++; return; }
+   //if ( NgoodJets < 4 ) { nevents++; return; }
 
    if ( NgoodJets >= 1 ) hcounter->Counter("Njets>1");
    if ( NgoodJets >= 4 ) hcounter->Counter("Njets>3");
@@ -455,9 +480,16 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    std::vector< TLorentzVector > vectorjets;
    size_t cutNgoodJets = NgoodJets;
    if (NgoodJets > 6) cutNgoodJets = 6; // use only 6 good jets
-   for( size_t ijet=0; ijet != cutNgoodJets; ++ijet) vectorjets.push_back(jetP4[ijet]);
-   
+   for( size_t ijet=0; ijet != cutNgoodJets; ++ijet) {
+	   vectorjets.push_back(jetP4[ijet]);
+	   fntuple->jet_e.push_back( jetP4[ijet].E() );
+	   fntuple->jet_pt.push_back( jetP4[ijet].Pt() );
+	   fntuple->jet_eta.push_back( jetP4[ijet].Eta() );
+	   fntuple->jet_phi.push_back( jetP4[ijet].Phi() );
+   }
 
+   fntuple->njets = cutNgoodJets;
+   
    ////////////////////////////////////////
    //
    // P R I M A R Y   V E R T E X
@@ -492,7 +524,9 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    double muonRelIso = 0;
    double muonVetoEm = 0;
    double muonVetoHad = 0;
-    
+
+   double muonIPsig = 0;
+   
    for( size_t imu=0; imu != muons.size(); ++imu) {
 
 	   // require Global muons
@@ -521,17 +555,22 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   hmuons_->Fill2d("muon_phi_vs_d0_cut0", muons[imu].innerTrack()->phi(), muons[imu].innerTrack()->d0() );
 		   hmuons_->Fill2d("muon_phi_vs_d0_cut1", muons[imu].innerTrack()->phi(), d0 );
 
-		   if ( nhit > 10 && normChi2 < 10 && fabs(d0)< 0.2 ) {
+		   double d0sigma = sqrt( muons[imu].innerTrack()->d0Error() * muons[imu].innerTrack()->d0Error() + beamSpot.BeamWidth()*beamSpot.BeamWidth());
+		   
+		   if ( nhit >= 11 && normChi2 < 10 ) {
 
 			   NgoodMuonsID++;
 			   hmuons_->Fill1d("muon_pt_cut2", muonpt );
 			   //hmuons_->Fill1d("muon_d0_cut2", d0 );
 			   
 			   // ISOLATION	   
-			   //double RelIso = ( muonpt/(muonpt + muons[imu].caloIso() + muons[imu].trackIso()) );
+			   double oldRelIso = ( muonpt/(muonpt + muons[imu].caloIso() + muons[imu].trackIso()) );
 			   double RelIso = muons[imu].caloIso()/muons[imu].et() + muons[imu].trackIso()/muonpt;
-			   hmuons_->Fill1d("muon_RelIso_cut2", RelIso);
+			   double newRelIso = RelIso;
 			   
+			   hmuons_->Fill1d("muon_RelIso_cut2", RelIso);
+
+			   			   
 			   if ( RelIso < fMuonRelIso ) {
 
 				   NgoodIsoMuons++;
@@ -550,7 +589,8 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 					   muonP4.SetPxPyPzE(muons[imu].px(),muons[imu].py(),muons[imu].pz(),energymu );
 					   muonCharge = muons[imu].charge();
 					   muonRelIso = RelIso;
-
+					   muonIPsig = d0/d0sigma;
+					   
 					   muonVetoEm = muons[imu].ecalIsoDeposit()->candEnergy();
 					   muonVetoHad = muons[imu].hcalIsoDeposit()->candEnergy();
 
@@ -558,7 +598,19 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 					   hmuons_->Fill1d("muon_vetoHad_cut3", muonVetoHad);
 
 					 
-					   if (muonVetoEm < fMaxMuonEm  && muonVetoHad < fMaxMuonHad )hmuons_->Fill1d("muon_pt_cut4", muonpt );
+					   if (muonVetoEm < fMaxMuonEm  && muonVetoHad < fMaxMuonHad ) {
+						   hmuons_->Fill1d("muon_pt_cut4", muonpt );
+
+						   fntuple->muon_px.push_back( muons[imu].px() );
+						   fntuple->muon_py.push_back( muons[imu].py() );
+						   fntuple->muon_pz.push_back( muons[imu].pz() );
+						   fntuple->muon_e.push_back( muons[imu].energy() );
+						   fntuple->muon_old_reliso.push_back( oldRelIso );
+						   fntuple->muon_new_reliso.push_back( newRelIso );
+						   fntuple->muon_d0.push_back( d0 );
+						   fntuple->muon_d0Error.push_back( d0sigma );
+						   
+					   }
 					   
 			   }
 
@@ -589,7 +641,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 	
    // select events with only ONE muon otherwise skip the event
-   if ( NgoodIsoMuons != 1 ) {
+   if ( NgoodMuonsID != 1 ) {
 	   nbadmuons++;
 	   //edm::LogWarning ("BooABCDAnalyzer") << "Event with number of good muons: "<< NgoodIsoMuons << ", skip this event since we request one good muon.";
 	   return;
@@ -644,6 +696,8 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    if (theJetClosestMu != -1 ) {
 //	   hjets_->Fill1d(TString("jet_pTrel_muon")+"_cut0",PtRel(muonP4,muonP4+closestJet));
+	   fntuple->muon_ptrel.push_back( PtRel(muonP4,muonP4+closestJet));
+	   
 	   hjets_->Fill1d(TString("jet_pT_closest_muon")+"_cut0", closestJet.Pt());
 	   //hjets_->Fill1d(TString("jet_pT_closest_muon")+"_cut2", closestJet2.Pt());
 	   hjets_->Fill1d(TString("jet_emFrac_cut1"), closestEMFrac );
@@ -715,6 +769,8 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    //
    // M E T
    //
+
+   double Ht = 0;
    
    // plot my MET
    hmet_->Fill1d(TString("myMET")+"_cut0", myMETP4.Pt());
@@ -726,6 +782,8 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    if (met.size() != 1 ) edm::LogWarning ("BooABCDAnalyzer") << "MET collection has size different from ONE! size: "<< met.size() << std::endl;
       
    for( size_t imet=0; imet != met.size(); ++imet) {
+	   Ht = met[imet].sumEt();
+	   
 	   hmet_->Fill1d(TString("MET")+"_"+"cut0", met[imet].et());
 	   hmet_->Fill1d(TString("MET_eta")+"_"+"cut0", met[imet].eta());
 	   hmet_->Fill1d(TString("MET_phi")+"_"+"cut0", met[imet].phi());
@@ -741,10 +799,21 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    if (debug) std::cout << "MET section done" << std::endl;
       
    if (NgoodJets >=4 ) {
-     hmuons_->Fill2d("muon_RelIso_vs_MET_cut4", muonRelIso, METP4.Pt() );
+	   //hmuons_->Fill2d("muon_RelIso_vs_MET_cut4", muonRelIso, METP4.Et() );
      double Htl = muonP4.Pt();
      for( size_t ijet=0; ijet != NgoodJets; ++ijet) Htl += jetP4[ijet].Et();
-     hmuons_->Fill2d("muon_RelIso_vs_Htl_cut4", muonRelIso, Htl );
+
+	 //hmuons_->Fill2d("muon_RelIso_vs_Htl_cut4", muonRelIso, Htl );
+
+	 //hmuons_->Fill2d("muon_RelIso_vs_Ht_cut4", muonRelIso, Ht );
+
+	 //hmuons_->Fill2d("muon_ptrel_vs_Ht_cut4", muonptrel, Ht );
+
+	 //hmuons_->Fill2d("muon_RelIso_vs_IPsig_cut4", muonRelIso, muonIPsig );
+
+	 fntuple->MET.push_back( METP4.Et() );
+	 fntuple->Ht.push_back( Ht );
+	 
    }
 
    if (debug) std::cout << "done." << std::endl;
@@ -752,6 +821,10 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     
    // count all events
    nevents++;
+
+   // fill tree
+   ftree->Fill();
+
 }
 
 

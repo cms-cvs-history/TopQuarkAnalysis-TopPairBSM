@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-TopAnalyzer = cms.EDAnalyzer("BooLowMAnalyzer",
+ABCDAnalyzer = cms.EDAnalyzer("BooABCDAnalyzer",
                              debug = cms.bool( False ),
                              IsMCTop = cms.bool( True ),
                              genEventSource = cms.InputTag('genEvt'),
@@ -8,7 +8,7 @@ TopAnalyzer = cms.EDAnalyzer("BooLowMAnalyzer",
                              electronSource = cms.InputTag('selectedLayer1Electrons'),
                              metSource      = cms.InputTag('selectedLayer1METs'),
                              jetSource      = cms.InputTag('selectedLayer1Jets'),
-                             rootFilename = cms.string('TopAnalysis.root'),
+                             rootFilename = cms.string('ABCDAnalysis.root'),
                              jetCuts = cms.PSet(
                                        MinJetEt        = cms.double( 30. ),
                                        MinJetEta       = cms.double( 2.4),

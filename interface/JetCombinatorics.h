@@ -8,7 +8,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: JetCombinatorics.h,v 1.1.4.6 2009/03/13 20:51:23 yumiceva Exp $
+ version $Id: JetCombinatorics.h,v 1.1.4.7 2009/03/23 20:39:24 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -32,6 +32,7 @@ class Combo {
 		Mtop = 175.;
 		SumEt_ = 0.;
 		usebtag_ = false;
+		useMtop_ = true;
 	}
 	~Combo(){};
 
@@ -56,7 +57,8 @@ class Combo {
 	void SetMaxMassHadW( double mass ) { maxMassHadW_ = mass; }
 	void SetMinMassLepTop( double mass ) { minMassLepTop_ = mass; }
 	void SetMaxMassLepTop( double mass ) { maxMassLepTop_ = mass; }
-	
+	void UseMtopConstraint(bool option=true) { useMtop_ = option; }
+		
 	void analyze() {
 
 		HadW_ = Wp_ + Wq_;
@@ -72,8 +74,14 @@ class Combo {
 		double chiHadt = (HadTop_.M() - Mtop)/sigmaHadt;
 		double chiLept = (LepTop_.M() - Mtop)/sigmaLept;
 
-		chi2_ = chiHadW*chiHadW + chiHadt*chiHadt + chiLept*chiLept;
-
+		if ( useMtop_ ) {
+			chi2_ = chiHadW*chiHadW + chiHadt*chiHadt + chiLept*chiLept;
+			Ndof_ = 3;
+		} else {
+			chi2_ = chiHadW*chiHadW + (HadTop_.M() - LepTop_.M())*(HadTop_.M() - LepTop_.M())/(sigmaHadt*sigmaHadt+sigmaLept*sigmaLept);
+			Ndof_ = 2;
+		}
+		
 		SumEt_ = HadTop_.Pt();
 
 		if ( usebtag_ ) {
@@ -105,7 +113,7 @@ class Combo {
 			double btag_N2LL = btag_norm*4.*( LR_Wp * TMath::Log(LR_Wp/4) + LR_Wq*TMath::Log(LR_Wq/4) + LR_Hadb*TMath::Log(LR_Hadb/4) + LR_Lepb*TMath::Log(LR_Lepb/4) );
 		  
 			chi2_ += btag_N2LL + gauss_norm;
-			
+			Ndof_ += 3;
 			pdffile_->Close();
 		}
 	}
@@ -120,6 +128,7 @@ class Combo {
 	TLorentzVector GetLepTop() { return LepTop_; }
 	TLorentzVector GetTopPair() { return TopPair_; }
 	double GetChi2() { return chi2_; }
+	double GetNdof() { return Ndof_; }
 	double GetSumEt() { return SumEt_; }
 	int GetIdHadb() { return IdHadb_;}
 	int GetIdWp() { return IdWp_; }
@@ -161,6 +170,7 @@ class Combo {
 	TLorentzVector TopPair_;
 	
 	bool usebtag_;
+	bool useMtop_;
 	double Wp_disc_;
 	double Wq_disc_;
 	double Hadb_disc_;
@@ -170,6 +180,7 @@ class Combo {
 	TH1F *hdisc_cl_;
 
 	double chi2_;
+	double Ndof_;
 	double SumEt_;
 	double minMassLepW_;
 	double maxMassLepW_;
@@ -237,6 +248,7 @@ class JetCombinatorics {
 	void SetMaxMassLepTop( double mass ) { maxMassLepTop_ = mass; }
 
 	void UsebTagging( bool option = true ) { UsebTagging_ = option; }
+	void UseMtopConstraint( bool option = true) { UseMtop_ = option; }
 	void SetbTagPdf( TString name ) { bTagPdffilename_ = name; }
 	void Clear();
 
@@ -261,6 +273,7 @@ class JetCombinatorics {
 
 	int maxNJets_;
 	bool UsebTagging_;
+	bool UseMtop_;
 	TString bTagPdffilename_;
 	
 	TLorentzVector theLepW_;

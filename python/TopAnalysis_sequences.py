@@ -21,6 +21,7 @@ from TopQuarkAnalysis.TopPairBSM.BooTopHLTFilter import *
 
 ## Analyzer and setup default selection
 from TopQuarkAnalysis.TopPairBSM.TopAnalysis_Defaults import *
+from TopQuarkAnalysis.TopPairBSM.ABCDAnalysis_Defaults import *
 
 
 TopAnalysisMuFilter = cms.Sequence(makeGenEvt+
@@ -36,3 +37,6 @@ TopAnalysisNoMuFilter = cms.Sequence(makeGenEvt+
 TopAnalysis = cms.Sequence(makeGenEvt+
                            BooTopHLTFilter+
                            TopAnalyzer)
+
+ABCDAnalysis = cms.Sequence(makeGenEvt+
+                            ABCDAnalyzer)

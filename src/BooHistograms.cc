@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: BooHistograms.cc,v 1.1.2.5 2009/03/13 20:51:24 yumiceva Exp $
+ version $Id: BooHistograms.cc,v 1.1.2.6 2009/03/23 20:39:25 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -44,7 +44,8 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h1["gen_top_eta1"] = new TH1D("gen_top_eta1","top quark #eta",60,-4,4);
 		h1["gen_top_eta2"] = new TH1D("gen_top_eta2","top quark #eta",60,-4,4);
 		h1["gen_top_eta3"] = new TH1D("gen_top_eta3","top quark #eta",60,-4,4);
-		h1["gen_top_decays"] = new TH1D("gen_top_decays","top decays",6,0,6);
+		//h1["gen_top_decays"] = new TH1D("gen_top_decays","top decays",6,0,6);
+		h2["gen_top_decays_vsJets"+suffix1] = new TH2D("gen_top_decays_vsJets"+suffix1,"top decays vs Jets",6,0,6,4,1,5);
 		
 		h2["gentop_rapidities"] = new TH2D("gentop_rapidities","y_{t} vs y_{T}",50,-3,3,50,-3,3);
 		h1["gen_toppair_mass"] = new TH1D("gen_toppair_mass","top pair Mass [Gev/c^{2}]",100,100,4500);
@@ -153,7 +154,7 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h1["muon_pt"+suffix1]              = new TH1D("muon_pt"+suffix1,"Muon p_{T} [GeV/c]",60,0.0,150);
 		h2["muon_pt_vsJets"+suffix1]         = new TH2D("muon_pt_vsJets"+suffix1,"Muon p_{T} [GeV/c] vs Jets",60,0,150,4,1,5);
 		h1["muon_d0"+suffix1]              = new TH1D("muon_d0"+suffix1,"Muon d_{0} [cm]",40,-2,2);
-                h1["muon_IPS"+suffix1]              = new TH1D("muon_IPS"+suffix1,"Muon d_{0}/\sigma_{d0}",40,0,15);
+		h1["muon_IPS"+suffix1]              = new TH1D("muon_IPS"+suffix1,"Muon d_{0}/#sigma_{d0}",40,0,15);
 		h2["muon_phi_vs_d0"+suffix1]       = new TH2D("muon_phi_vs_d0"+suffix1,"Muon d_{0} [cm] vs #phi",100,-3.2,3.2,100,-0.4,0.4);
 		h1["muon_eta"+suffix1]             = new TH1D("muon_eta"+suffix1,"Muon #eta",50,-3.,3.);
 		h1["muon_phi"+suffix1]             = new TH1D("muon_phi"+suffix1,"Muon #phi",30,-3.15,3.15);
@@ -181,7 +182,8 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h1["MET"+suffix1] = new TH1D("MET"+suffix1,"MET [GeV]",100,0.0,400);
 		h1["MET_eta"+suffix1] = new TH1D("MET_eta"+suffix1,"#eta_{MET}",50,-3.,3.);
 		h1["MET_phi"+suffix1] = new TH1D("MET_phi"+suffix1,"#phi_{MET}",30,-3.15,3.15);
-
+		h1["MET_resolution"+suffix1] = new TH1D("MET_resolution"+suffix1,"MET_{reco}-MET_{gen}/MET_{gen}",30,-10,10);
+		
 		h1["Ht"+suffix1] = new TH1D("Ht"+suffix1,"Ht [GeV]",100,0,2500);
 		h2["Ht_vsJets"+suffix1] = new TH2D("Ht_vsJets"+suffix1,"Ht [GeV] vs Jets",100,0,2500,4,0,4);
 		h1["Htl"+suffix1] = new TH1D("Htl"+suffix1,"Htl [GeV]",100,0,2500);

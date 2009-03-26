@@ -25,9 +25,12 @@
 
 #include "TopQuarkAnalysis/TopPairBSM/interface/BooHistograms.h"
 #include "TopQuarkAnalysis/TopPairBSM/interface/JetCombinatorics.h"
+#include "TopQuarkAnalysis/TopPairBSM/interface/BooEventNtuple.h"
+
 #include "AnalysisDataFormats/TopObjects/interface/TtGenEvent.h"
 
 #include "TFile.h"
+#include "TTree.h"
 #include "TLorentzVector.h"
 #include <vector>
 #include <map>
@@ -49,6 +52,8 @@ class BooABCDAnalyzer : public edm::EDAnalyzer {
 
     /// Perform the real analysis
     void analyze(const edm::Event & iEvent, const edm::EventSetup& iSetup);
+
+	double PtRel(TLorentzVector p, TLorentzVector paxis);
 	
 	typedef math::XYZTLorentzVector LorentzVector;
 
@@ -69,6 +74,11 @@ class BooABCDAnalyzer : public edm::EDAnalyzer {
 		    
     // The file which will store the histos
     TFile *theFile;
+
+	// ntuple
+	TTree *ftree;
+    BooEventNtuple *fntuple;
+	
     // ascii outpur filename
 	std::ofstream fasciiFile;
 
