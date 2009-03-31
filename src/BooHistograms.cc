@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: BooHistograms.cc,v 1.1.2.6 2009/03/23 20:39:25 yumiceva Exp $
+ version $Id: BooHistograms.cc,v 1.1.2.7 2009/03/26 22:39:34 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -213,6 +213,12 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h1["MCHadronicW_mass"+suffix1] = new TH1D("MCHadronicW_mass"+suffix1, "Mass(j_{1}j_{2}) [GeV/c^{2}]",20,0,300);
 		h2["MCLepTop_vs_LepW"+suffix1] = new TH2D("MCLepTop_vs_LepW"+suffix1, "Mass LepTop vs LepW [GeV/c^{2}]",20,100,500,20,0.,300.);
 		h2["MCHadTop_vs_HadW"+suffix1] = new TH2D("MCHadTop_vs_HadW"+suffix1, "Mass HadTop vs HadW [GeV/c^{2}]",20,100,500,20,0.,300.);
+		h1["recLeptonicTop_mass"+suffix1] = new TH1D("recLeptonicTop_mass"+suffix1, "Mass (jet+W_{#mu+#nu}) [GeV/c^{2}]",20,100.,500.);
+		h1["recHadronicTop_mass"+suffix1] = new TH1D("recHadronicTop_mass"+suffix1, "Mass (j_{1}j_{2}j_{3}) [GeV/c^{2}]",20,100.,500.);
+		h1["recLeptonicW_mass"+suffix1] = new TH1D("recLeptonicW_mass"+suffix1, "Mass(#mu + #nu) [GeV/c^{2}]",20,0,300);
+		h1["recHadronicW_mass"+suffix1] = new TH1D("recHadronicW_mass"+suffix1, "Mass(j_{1}j_{2}) [GeV/c^{2}]",20,0,300);
+		h2["recLepTop_vs_LepW"+suffix1] = new TH2D("recLepTop_vs_LepW"+suffix1, "Mass LepTop vs LepW [GeV/c^{2}]",20,100,500,20,0.,300.);
+		h2["recHadTop_vs_HadW"+suffix1] = new TH2D("recHadTop_vs_HadW"+suffix1, "Mass HadTop vs HadW [GeV/c^{2}]",20,100,500,20,0.,300.);
 
 		h1["fitHadronicW_mass"+suffix1] = new TH1D("fitHadronicW_mass"+suffix1, "Mass(j_{1}j_{2}) [GeV/c^{2}]",20,0,300);
 		h1["fitHadronicTop_mass"+suffix1] = new TH1D("fitHadronicTop_mass"+suffix1, "Mass (j_{1}j_{2}j_{3}) [GeV/c^{2}]",20,100.,500.);

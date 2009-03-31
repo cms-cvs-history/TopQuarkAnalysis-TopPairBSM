@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooLowMAnalyzer.cc,v 1.1.2.7 2009/03/23 20:39:25 yumiceva Exp $
+// $Id: BooLowMAnalyzer.cc,v 1.1.2.8 2009/03/26 22:39:33 yumiceva Exp $
 //
 //
 
@@ -495,6 +495,8 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	// G E N E R A T O R
 	//
 	//
+	bool IsEventReconstructable = false;
+	
 	if (debug) {
 		//std::cout << "GenEvent = " << genEvent << std::endl;
 		TtGenEvent gevent=*genEvent;
@@ -630,7 +632,10 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 						hcounter->Counter("GenJetDeltaR");
 										
 						if ( ( fabs(genMuon->eta()) < fMinMuonEta ) &&
-							 ( genMuon->et()  > fMinMuonPt) ) hcounter->Counter("GenJetDeltaRMuon");
+							 ( genMuon->et()  > fMinMuonPt) ) {
+							hcounter->Counter("GenJetDeltaRMuon");
+							IsEventReconstructable = true;
+						}
 					}
 					if ( ( fabs(genMuon->eta()) < fMinMuonEta ) &&
 						 ( genMuon->et()  > fMinMuonPt) ) hcounter->Counter("GenMuon");
@@ -1330,7 +1335,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   hmass_->Fill2d(TString("LepTop_vs_LepW")+"_cut1", lepTopP4.M(), lepWP4.M());
 	   hmass_->Fill2d(TString("HadTop_vs_HadW")+"_cut1", hadTopP4.M(), hadWP4.M());
 
-
+	   
 	   // check MC truth
 	   //std::cout << "check gen matching" << std::endl;
 	   if (fIsMCTop) {
@@ -1338,7 +1343,16 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	       MCAllmatch_sumEt_++;
 	       hcounter->Counter("M3MatchedAllJets");
 	     }
-	   
+
+		 if ( IsEventReconstructable ) {
+
+			 hmass_->Fill1d("recLeptonicTop_mass_cut1", lepTopP4.M());
+			 hmass_->Fill1d("recHadronicTop_mass_cut1", hadTopP4.M());
+			 hmass_->Fill1d("recHadronicW_mass_cut1", hadWP4.M());
+			 hmass_->Fill2d("recLepTop_vs_LepW_cut1", lepTopP4.M(), lepWP4.M());
+			 hmass_->Fill2d("recHadTop_vs_HadW_cut1", hadTopP4.M(), hadWP4.M());
+		 }
+
 	     //std::cout << "check gen matching2"<< std::endl;
 	     if ( IsTruthMatch(bestCombo, jets, *genEvent ) ) {
 	       hjets_->Fill1d(TString("MCjet_combinations_ProbChi2_cut1"), TMath::Prob(bestCombo.GetChi2(),3));
@@ -1494,7 +1508,16 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		       hcounter->Counter("M3PrimeMatchedAllJets");
 		       hjets_->Fill1d("jet_Wmass_sigmas_cut2", Wsigmas ); //Wsigmas*resolution1/bestCombo.GetWp().E() );
 		     }
-		   
+
+			 if ( IsEventReconstructable ) {
+
+				 hmass_->Fill1d("recLeptonicTop_mass_cut2", lepTopP4.M());
+				 hmass_->Fill1d("recHadronicTop_mass_cut2", hadTopP4.M());
+				 hmass_->Fill1d("recHadronicW_mass_cut2", hadWP4.M());
+				 hmass_->Fill2d("recLepTop_vs_LepW_cut2", lepTopP4.M(), lepWP4.M());
+				 hmass_->Fill2d("recHadTop_vs_HadW_cut2", hadTopP4.M(), hadWP4.M());
+			 }
+
 		     if ( IsTruthMatch(bestCombo, jets, *genEvent) ) {
 		     
 		       hjets_->Fill1d(TString("MCjet_combinations_ProbChi2_cut2"), TMath::Prob(bestCombo.GetChi2(),3));
