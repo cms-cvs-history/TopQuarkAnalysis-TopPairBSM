@@ -68,15 +68,6 @@ run22XonSummer08AODSIM(process)
 #usePhotonRecHitIsolation(process)
 
 
-#-------------------------------------------------
-# process paths;
-#-------------------------------------------------
-
-#**************************Load the ZPT_cff file here************************************
-process.load("TopQuarkAnalysis.TopPairBSM.ZPT_cff")
-
-## process path
-process.p = cms.Path(process.recoJPTJets+process.BooTopPatTuple)
 
 #-------------------------------------------------
 # pat tuple event content; first ALL objects
@@ -88,7 +79,9 @@ process.p = cms.Path(process.recoJPTJets+process.BooTopPatTuple)
 from TopQuarkAnalysis.TopObjectProducers.patTuple_EventContent_cff import *
 makePatTupleEventContent(process)
 
-## change jet collection
+##----------------------------------
+## Switch jet collection to SC5
+##----------------------------------
 from PhysicsTools.PatAlgos.tools.jetTools import *
 
 switchJetCollection(process, 
@@ -101,41 +94,83 @@ switchJetCollection(process,
                     doType1MET   = False             # recompute Type1 MET using these jets
                     )
 
-# now set JEC by hand
-process.jetCorrFactors.jetSource = cms.InputTag("sisCone5CaloJets")
-process.jetCorrFactors.L1Offset  = cms.string('none')
-process.jetCorrFactors.L2Relative= cms.string('Summer08_L2Relative_SC5Calo')
-process.jetCorrFactors.L3Absolute= cms.string('Summer08_L3Absolute_SC5Calo')
-process.jetCorrFactors.L4EMF     = cms.string('none')
-process.jetCorrFactors.L5Flavor  = cms.string('none')
-process.jetCorrFactors.L6UE      = cms.string('none')
-process.jetCorrFactors.L7Parton  = cms.string('none')
+# if you need to change JEC use the following
+# switchJECSet(process, newName='Winter09', oldName='Summer08Redigi')
 
 
-# selection
-#
-from PhysicsTools.PatAlgos.selectionLayer1.electronSelector_cfi  import selectedLayer1Electrons
-from PhysicsTools.PatAlgos.selectionLayer1.muonSelector_cfi      import selectedLayer1Muons
-from PhysicsTools.PatAlgos.selectionLayer1.tauSelector_cfi       import selectedLayer1Taus
-from PhysicsTools.PatAlgos.selectionLayer1.jetSelector_cfi       import selectedLayer1Jets
-from PhysicsTools.PatAlgos.selectionLayer1.metSelector_cfi       import selectedLayer1METs
-#from PhysicsTools.PatAlgos.selectionLayer1.leptonCountFilter_cfi import countLayer1Leptons
-from PhysicsTools.PatAlgos.selectionLayer1.jetMinFilter_cfi      import minLayer1Jets
-from PhysicsTools.PatAlgos.selectionLayer1.muonMinFilter_cfi     import minLayer1Muons
+#--------------------------------------
+# PRE SELECTION
 #
 
+process.selectedLayer1Electrons.cut  = cms.string('pt > 15. & abs(eta) < 2.4')
+process.selectedLayer1Muons.cut      = cms.string('pt > 15. & abs(eta) < 2.4')
+process.selectedLayer1Jets.cut       = cms.string('pt > 20. & abs(eta) < 2.4 & nConstituents > 0')
+process.selectedLayer1METs.cut       = cms.string('et >= 0.')
+#proces..countLayer1Leptons.minNumber = 1
+process.minLayer1Jets.minNumber      = 2
+process.minLayer1Muons.minNumber     = 1
+
+#-----------------------------------------
+# Add JPT collection
+
+process.load("TopQuarkAnalysis.TopPairBSM.ZPT_cff")
+
+addJetCollection(process,
+                 'JetPlusTrackZSPCorJetIcone5',
+                 'JPT',
+                 runCleaner='CaloJet',
+                 doJTA=True,
+                 doBTagging=True,
+                 jetCorrLabel=None,
+                 doType1MET=False,
+                 doL1Counters=False)
+
+#------------------------------------------------
+# Add tcMET collection
+
+# load muon corrections for !MET module
+process.load("JetMETCorrections.Type1MET.MetMuonCorrections_cff")
+
+# load track-corrected MET module
+process.load("RecoMET.METProducers.TCMET_cfi")
+
+def addAlso (label,value):
+        existing = getattr(process, label)
+        setattr( process, label + "tcMET", value)
+        process.patLayer0.replace( existing, existing * value )
+        process.patLayer1.replace( existing, existing * value )
+
+def addClone(label,**replaceStatements):
+        new      = getattr(process, label).clone(**replaceStatements)
+        addAlso(label, new)
+
+#addClone('allLayer0METs', metSource = cms.InputTag('tcMet'))
+# by hand
+process.allLayer0METstcMET = cms.EDFilter("PATBaseMETCleaner",
+    ## Input MET from AOD
+    metSource = cms.InputTag('tcMet'), ## met corrected for jets and for muons
+    #metSource = cms.InputTag('met'),                     ## NO MET CORRECTIONS
+
+    markItems = cms.bool(True),    ## write the status flags in the output items
+    bitsToIgnore = cms.vstring(),  ## You can specify some bit names, e.g. "Overflow/User1", "Core/Duplicate", "Isolation/All".
+    saveRejected = cms.string(''), ## set this to a non empty label to save the list of items which fail
+    saveAll = cms.string(''),      ## set this to a non empty label to save a list of all items both passing and failing
+)
+
+l0met = getattr(process, 'allLayer0METs'+'tcMET')
+addAlso('allLayer0METs', l0met)
+
+addClone('allLayer1METs', metSource = cms.InputTag('allLayer0METs'+'tcMET'))
+#l1MET = getattr(process, 'allLayer1METs'+'tcMET')
+addClone('selectedLayer1METs', src=cms.InputTag('allLayer1METs'+'tcMET'))
 
 
-selectedLayer1Electrons.cut  = cms.string('pt > 15. & abs(eta) < 2.4')
-selectedLayer1Muons.cut      = cms.string('pt > 15. & abs(eta) < 2.4')
-selectedLayer1Jets.cut       = cms.string('et > 20. & abs(eta) < 2.4 & nConstituents > 0')
-selectedLayer1METs.cut       = cms.string('et >= 0.')
-#countLayer1Leptons.minNumber = 1
-minLayer1Jets.minNumber      = 2
-minLayer1Muons               = 1
+#--------------------------------------------------
+# PATH
 
-addJetCollection(process,'JetPlusTrackZSPCorJetIcone5','JPT',runCleaner='CaloJet',doJTA=True,doBTagging=False,jetCorrLabel=None,doType1MET=False,doL1Counters=False)
-
+process.p = cms.Path(process.recoJPTJets+
+                     process.MetMuonCorrections*process.tcMet+
+                     process.BooTopPatTuple)
 
 
 #-------------------------------------------------
@@ -168,9 +203,10 @@ process.out = cms.OutputModule("PoolOutputModule",
 )
 
 process.out.outputCommands.extend(["keep *_selectedLayer1Jets*_*_*"])
+process.out.outputCommands.extend(["keep *_selectedLayer1METs*_*_*"])
 
 process.configurationMetadata = cms.untracked.PSet(
-    version = cms.untracked.string('$Revision: 1.1.2.4 $'),
+    version = cms.untracked.string('$Revision: 1.1.2.5 $'),
     annotation = cms.untracked.string('PAT tuple creation'),
     name = cms.untracked.string('$Source: /cvs_server/repositories/CMSSW/CMSSW/TopQuarkAnalysis/TopPairBSM/test/Attic/BooTopPatTuple_cfg.py,v $')
 )
