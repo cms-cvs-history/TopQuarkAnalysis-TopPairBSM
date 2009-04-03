@@ -10,15 +10,13 @@ TopAnalyzer = cms.EDAnalyzer("BooLowMAnalyzer",
                              jetSource      = cms.InputTag('selectedLayer1Jets'),
                              rootFilename = cms.string('TopAnalysis.root'),
                              jetCuts = cms.PSet(
-                                       MinJetEt        = cms.double( 30. ),
-                                       MinJetEta       = cms.double( 2.4),
+                                       MinJetPt        = cms.double( 30. ),
+                                       MaxJetEta       = cms.double( 2.4),
                                        ApplyAsymmetricCuts = cms.bool(False)
                                        ),
                              muonCuts = cms.PSet(
                                        MinPt  = cms.double( 20. ),
-                                       MinEta = cms.double( 2.1 ),
-                                       RelIso = cms.double( 0.9 ),
-                                       MinCaloEnergy = cms.double( 0. )
+                                       MaxEta = cms.double( 2.1 ),
                                        ),
                              muonIsolation = cms.PSet(
                                        RelIso = cms.double( 0.95 ),
@@ -27,7 +25,7 @@ TopAnalyzer = cms.EDAnalyzer("BooLowMAnalyzer",
                                        ),
                              electronCuts = cms.PSet(
                                        MinPt  = cms.double( 20. ),
-                                       MinEta = cms.double( 2.4 ),
+                                       MaxEta = cms.double( 2.4 ),
                                        RelIso = cms.double( 0.9 )
                                        ),
                              METCuts = cms. PSet(

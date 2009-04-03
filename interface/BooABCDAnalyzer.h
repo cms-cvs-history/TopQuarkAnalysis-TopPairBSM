@@ -119,18 +119,18 @@ class BooABCDAnalyzer : public edm::EDAnalyzer {
 	int MCAllmatch_sumEt_;
 		
 	double fMinMuonPt;
-	double fMinMuonEta;
+	double fMaxMuonEta;
 	double fMuonRelIso;
 	double fMaxMuonEm;
 	double fMaxMuonHad;
 	
 	double fMinElectronPt;
-	double fMinElectronEta;
+	double fMaxElectronEta;
 	double fElectronRelIso;
 	
-	double fMinLeadingJetEt;
-	double fMinJetEt;
-	double fMinJetEta;
+	double fMinLeadingJetPt;
+	double fMinJetPt;
+	double fMaxJetEta;
 	double fMinHt;
 	double fMinMET;
 	

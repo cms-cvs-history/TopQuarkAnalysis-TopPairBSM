@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: BooHistograms.cc,v 1.1.2.7 2009/03/26 22:39:34 yumiceva Exp $
+ version $Id: BooHistograms.cc,v 1.1.2.8 2009/03/31 21:57:31 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -153,9 +153,9 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h1["muon_normchi2"+suffix1]        = new TH1D("muon_normchi2"+suffix1,"#chi^{2}/ndof",40,0,30);
 		h1["muon_pt"+suffix1]              = new TH1D("muon_pt"+suffix1,"Muon p_{T} [GeV/c]",60,0.0,150);
 		h2["muon_pt_vsJets"+suffix1]         = new TH2D("muon_pt_vsJets"+suffix1,"Muon p_{T} [GeV/c] vs Jets",60,0,150,4,1,5);
-		h1["muon_d0"+suffix1]              = new TH1D("muon_d0"+suffix1,"Muon d_{0} [cm]",40,-2,2);
+		h1["muon_d0"+suffix1]              = new TH1D("muon_d0"+suffix1,"Muon d_{0} [cm]",40,-0.2,0.2);
 		h1["muon_IPS"+suffix1]              = new TH1D("muon_IPS"+suffix1,"Muon d_{0}/#sigma_{d0}",40,0,15);
-		h2["muon_phi_vs_d0"+suffix1]       = new TH2D("muon_phi_vs_d0"+suffix1,"Muon d_{0} [cm] vs #phi",100,-3.2,3.2,100,-0.4,0.4);
+		h2["muon_phi_vs_d0"+suffix1]       = new TH2D("muon_phi_vs_d0"+suffix1,"Muon d_{0} [cm] vs #phi",100,-3.2,3.2,100,-0.2,0.2);
 		h1["muon_eta"+suffix1]             = new TH1D("muon_eta"+suffix1,"Muon #eta",50,-3.,3.);
 		h1["muon_phi"+suffix1]             = new TH1D("muon_phi"+suffix1,"Muon #phi",30,-3.15,3.15);
 		h1["muon_caloIso"+suffix1]       = new TH1D("muon_caloIso"+suffix1,"caloIsolation",80,0.0,300.0);
@@ -175,6 +175,7 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h1["electron_pt"+suffix1]              = new TH1D("electron_pt"+suffix1,"Electron p_{T} [GeV/c]",80,0.0,200.0);
 		h1["electron_eta"+suffix1]              = new TH1D("electron_eta"+suffix1,"Electron #eta",50,-3.,3.);
 		h1["electron_phi"+suffix1]              = new TH1D("electron_phi"+suffix1,"Electron #phi",30,-3.15,3.15);
+		h2["electron_phi_vs_d0"+suffix1]       = new TH2D("electron_phi_vs_d0"+suffix1,"Electron d_{0} [cm] vs #phi",100,-3.2,3.2,100,-0.2,0.2);
 	}
 	else if ( type == "MET") {
 

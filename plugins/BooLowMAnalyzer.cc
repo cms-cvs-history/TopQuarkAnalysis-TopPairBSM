@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooLowMAnalyzer.cc,v 1.1.2.8 2009/03/26 22:39:33 yumiceva Exp $
+// $Id: BooLowMAnalyzer.cc,v 1.1.2.9 2009/03/31 21:57:31 yumiceva Exp $
 //
 //
 
@@ -72,18 +72,18 @@ BooLowMAnalyzer::BooLowMAnalyzer(const edm::ParameterSet& iConfig)
   fIsMCTop          = iConfig.getParameter<bool>  ("IsMCTop");
 
   fMinMuonPt        = iConfig.getParameter<edm::ParameterSet>("muonCuts").getParameter<double>("MinPt");
-  fMinMuonEta       = iConfig.getParameter<edm::ParameterSet>("muonCuts").getParameter<double>("MinEta");
+  fMaxMuonEta       = iConfig.getParameter<edm::ParameterSet>("muonCuts").getParameter<double>("MaxEta");
   
   fMuonRelIso       = iConfig.getParameter<edm::ParameterSet>("muonIsolation").getParameter<double>("RelIso");
   fMaxMuonEm        = iConfig.getParameter<edm::ParameterSet>("muonIsolation").getParameter<double>("MaxVetoEm");
   fMaxMuonHad       = iConfig.getParameter<edm::ParameterSet>("muonIsolation").getParameter<double>("MaxVetoHad");
 
   fMinElectronPt    = iConfig.getParameter<edm::ParameterSet>("electronCuts").getParameter<double>("MinPt");
-  fMinElectronEta   = iConfig.getParameter<edm::ParameterSet>("electronCuts").getParameter<double>("MinEta");
+  fMaxElectronEta   = iConfig.getParameter<edm::ParameterSet>("electronCuts").getParameter<double>("MaxEta");
   fElectronRelIso      = iConfig.getParameter<edm::ParameterSet>("electronCuts").getParameter<double>("RelIso");
   
-  fMinJetEt         = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<double>("MinJetEt");
-  fMinJetEta        = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<double>("MinJetEta");
+  fMinJetPt         = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<double>("MinJetPt");
+  fMaxJetEta        = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<double>("MaxJetEta");
   fApplyJetAsymmetricCuts = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<bool>("ApplyAsymmetricCuts");
 
   fUsebTagging      = iConfig.getParameter<bool>  ("UsebTagging");
@@ -612,17 +612,17 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			
 				 
 			// count gen events in the fidutial region
-			if ( ( genHadWp->et() > fMinJetEt ) &&
-				 ( genHadWq->et() > fMinJetEt ) &&
-				 ( genHadb->et()  > fMinJetEt ) &&
-				 ( genLepb->et()  > fMinJetEt ) ) {
+			if ( ( genHadWp->pt() > fMinJetPt ) &&
+				 ( genHadWq->pt() > fMinJetPt ) &&
+				 ( genHadb->pt()  > fMinJetPt ) &&
+				 ( genLepb->pt()  > fMinJetPt ) ) {
 
 				hcounter->Counter("GenJetPt");
 
-				if ( ( fabs(genHadWp->eta()) < fMinJetEta ) &&
-					 ( fabs(genHadWq->eta()) < fMinJetEta ) &&
-					 ( fabs(genHadb->eta() ) < fMinJetEta ) &&
-					 ( fabs(genLepb->eta() ) < fMinJetEta ) ) {
+				if ( ( fabs(genHadWp->eta()) < fMaxJetEta ) &&
+					 ( fabs(genHadWq->eta()) < fMaxJetEta ) &&
+					 ( fabs(genHadb->eta() ) < fMaxJetEta ) &&
+					 ( fabs(genLepb->eta() ) < fMaxJetEta ) ) {
 
 					hcounter->Counter("GenJetEta");
 
@@ -631,13 +631,13 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 						hcounter->Counter("GenJetDeltaR");
 										
-						if ( ( fabs(genMuon->eta()) < fMinMuonEta ) &&
+						if ( ( fabs(genMuon->eta()) < fMaxMuonEta ) &&
 							 ( genMuon->et()  > fMinMuonPt) ) {
 							hcounter->Counter("GenJetDeltaRMuon");
 							IsEventReconstructable = true;
 						}
 					}
-					if ( ( fabs(genMuon->eta()) < fMinMuonEta ) &&
+					if ( ( fabs(genMuon->eta()) < fMaxMuonEta ) &&
 						 ( genMuon->et()  > fMinMuonPt) ) hcounter->Counter("GenMuon");
 				}
 			}
@@ -753,7 +753,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   myMETP4 = myMETP4 + TLorentzVector(jets[ijet].px(),jets[ijet].py(),0,jets[ijet].pt());
 	   
 	   // jet cuts
-	   if (jets[ijet].pt() <= fMinJetEt || fabs(jets[ijet].eta()) >= fMinJetEta ) continue;
+	   if (jets[ijet].pt() <= fMinJetPt || fabs(jets[ijet].eta()) >= fMaxJetEta ) continue;
 
 	   NgoodJets++;
 	   	   
@@ -932,7 +932,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   hmuons_->Fill1d("muon_eta_cut1", muoneta );
 	   }
 	   
-	   if ( (muonpt > fMinMuonPt) && fabs(muons[imu].eta()) < fMinMuonEta ) {
+	   if ( (muonpt > fMinMuonPt) && fabs(muons[imu].eta()) < fMaxMuonEta ) {
 
 		   NgoodMuons++;
 		   
@@ -948,7 +948,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 		   hmuons_->Fill1d("muon_IPS_cut1", d0/d0sigma );
 
-		   if ( nhit >= 11 && normChi2 < 10 && fabs(d0/d0sigma)<5 ) {
+		   if ( nhit >= 11 && normChi2 < 10 && fabs(d0) < 0.02 ) {
 
 			   NgoodMuonsID++;
 			   hmuons_->Fill1d("muon_pt_cut2", muonpt );
@@ -1039,7 +1039,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    
    for( size_t ijet=0; ijet < jets.size(); ++ijet ) {
 
-	   if (jets[ijet].pt() <= fMinJetEt || fabs(jets[ijet].eta()) >= fMinJetEta ) continue;
+	   if (jets[ijet].pt() <= fMinJetPt || fabs(jets[ijet].eta()) >= fMaxJetEta ) continue;
 	   
 	   TLorentzVector tmpP4;
 	   tmpP4.SetPxPyPzE(jets[ijet].px(),jets[ijet].py(),jets[ijet].pz(),jets[ijet].energy());
@@ -1127,13 +1127,18 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    for( size_t ie=0; ie != electrons.size(); ++ie) {
 
 	   double ept = electrons[ie].pt();
+
+	   math::XYZPoint point(beamSpot.x0(),beamSpot.y0(), beamSpot.z0());
+	   double ed0 = -1.* electrons[ie].track()->dxy(point);
+		   
 	   helectrons_->Fill1d("electron_pt_cut0", ept );
 	   helectrons_->Fill1d("electron_eta_cut0", electrons[ie].eta() );
-	   
-	   if ( ept > fMinElectronPt && fabs(electrons[ie].eta()) < fMinElectronEta &&
+	   helectrons_->Fill2d("electron_phi_vs_d0_cut1", electrons[ie].track()->phi(), ed0 );
+
+	   if ( ept > fMinElectronPt && fabs(electrons[ie].eta()) < fMaxElectronEta &&
 		   electrons[ie].electronID("eidTight")>0) {
 
-	     double relIso = ( ept/(ept + electrons[ie].caloIso() + electrons[ie].trackIso()) );
+	     double relIso = ( 1./(1. + electrons[ie].caloIso()/electrons[ie].et() + electrons[ie].trackIso()/ept) );
 
 	     //double relIso = electrons[ie].trackIso() /ept + electrons[ie].caloIso()/electrons[ie].et();
 	     
@@ -1250,7 +1255,6 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   }
 
 	   
-	   
    }
    
    if (debug) std::cout << "got neutrino? " << found_nu << std::endl;
@@ -1271,7 +1275,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   // dump jets with pt>20
 	   for( size_t ijet=0; ijet != jets.size(); ++ijet) {
 
-		   if (jets[ijet].pt() <= fMinJetEt || fabs(jets[ijet].eta()) >= fMinJetEta ) continue;
+		   if (jets[ijet].pt() <= fMinJetPt || fabs(jets[ijet].eta()) >= fMaxJetEta ) continue;
 		   
 		   fasciiFile << jets[ijet].energy() <<" "<< jets[ijet].px() <<" "<<jets[ijet].py()<<" "<<jets[ijet].pz()<< " " << jets[ijet].bDiscriminator("trackCountingHighEffBJetTags") << std::endl;
 		       

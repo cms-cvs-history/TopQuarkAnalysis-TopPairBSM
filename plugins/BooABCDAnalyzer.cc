@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooABCDAnalyzer.cc,v 1.1.2.1 2009/03/13 20:51:23 yumiceva Exp $
+// $Id: BooABCDAnalyzer.cc,v 1.1.2.2 2009/03/26 22:39:33 yumiceva Exp $
 //
 //
 
@@ -72,18 +72,18 @@ BooABCDAnalyzer::BooABCDAnalyzer(const edm::ParameterSet& iConfig)
   fIsMCTop          = iConfig.getParameter<bool>  ("IsMCTop");
 
   fMinMuonPt        = iConfig.getParameter<edm::ParameterSet>("muonCuts").getParameter<double>("MinPt");
-  fMinMuonEta       = iConfig.getParameter<edm::ParameterSet>("muonCuts").getParameter<double>("MinEta");
+  fMaxMuonEta       = iConfig.getParameter<edm::ParameterSet>("muonCuts").getParameter<double>("MaxEta");
   
   fMuonRelIso       = iConfig.getParameter<edm::ParameterSet>("muonIsolation").getParameter<double>("RelIso");
   fMaxMuonEm        = iConfig.getParameter<edm::ParameterSet>("muonIsolation").getParameter<double>("MaxVetoEm");
   fMaxMuonHad       = iConfig.getParameter<edm::ParameterSet>("muonIsolation").getParameter<double>("MaxVetoHad");
 
   fMinElectronPt    = iConfig.getParameter<edm::ParameterSet>("electronCuts").getParameter<double>("MinPt");
-  fMinElectronEta   = iConfig.getParameter<edm::ParameterSet>("electronCuts").getParameter<double>("MinEta");
+  fMaxElectronEta   = iConfig.getParameter<edm::ParameterSet>("electronCuts").getParameter<double>("MaxEta");
   fElectronRelIso      = iConfig.getParameter<edm::ParameterSet>("electronCuts").getParameter<double>("RelIso");
   
-  fMinJetEt         = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<double>("MinJetEt");
-  fMinJetEta        = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<double>("MinJetEta");
+  fMinJetPt         = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<double>("MinJetPt");
+  fMaxJetEta        = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<double>("MaxJetEta");
 
   fUsebTagging      = iConfig.getParameter<bool>  ("UsebTagging");
   
@@ -444,7 +444,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    for( size_t ijet=0; ijet != jets.size(); ++ijet) {
 
 	   // jet cuts
-	   if (jets[ijet].pt() <= fMinJetEt || fabs(jets[ijet].eta()) >= fMinJetEta ) continue;
+	   if (jets[ijet].pt() <= fMinJetPt || fabs(jets[ijet].eta()) >= fMaxJetEta ) continue;
 
 	   NgoodJets++;
 	   	   
@@ -526,6 +526,9 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    double muonVetoHad = 0;
 
    double muonIPsig = 0;
+
+   size_t ithleadingmuon = 0;
+   size_t ithisolatedmuon = 0;
    
    for( size_t imu=0; imu != muons.size(); ++imu) {
 
@@ -539,7 +542,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   hmuons_->Fill1d("muon_pt_cut0", muonpt );
 	   hmuons_->Fill1d("muon_eta_cut0", muoneta );
 	   
-	   if ( (muonpt > fMinMuonPt) && fabs(muons[imu].eta()) < fMinMuonEta ) {
+	   if ( (muonpt > fMinMuonPt) && fabs(muons[imu].eta()) < fMaxMuonEta ) {
 
 		   NgoodMuons++;
 		   hmuons_->Fill1d("muon_pt_cut1", muonpt );
@@ -570,10 +573,16 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			   
 			   hmuons_->Fill1d("muon_RelIso_cut2", RelIso);
 
-			   			   
+			   			   			   
 			   if ( RelIso < fMuonRelIso ) {
 
 				   NgoodIsoMuons++;
+				   if ( NgoodIsoMuons==1 ) {
+					   ithisolatedmuon = imu;
+					   // energy in veto cone
+					   muonVetoEm = muons[imu].ecalIsoDeposit()->candEnergy();
+					   muonVetoHad = muons[imu].hcalIsoDeposit()->candEnergy();
+				   }
 				   hmuons_->Fill1d("muon_pt_cut3", muonpt );
 			   
 				   //double energymu = sqrt(muons[imu].innerTrack()->px()*muons[imu].innerTrack()->px() +
@@ -590,33 +599,55 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 					   muonCharge = muons[imu].charge();
 					   muonRelIso = RelIso;
 					   muonIPsig = d0/d0sigma;
-					   
-					   muonVetoEm = muons[imu].ecalIsoDeposit()->candEnergy();
-					   muonVetoHad = muons[imu].hcalIsoDeposit()->candEnergy();
 
 					   hmuons_->Fill1d("muon_vetoEm_cut3", muonVetoEm);
 					   hmuons_->Fill1d("muon_vetoHad_cut3", muonVetoHad);
 
 					 
-					   if (muonVetoEm < fMaxMuonEm  && muonVetoHad < fMaxMuonHad ) {
-						   hmuons_->Fill1d("muon_pt_cut4", muonpt );
+					   
+					   hmuons_->Fill1d("muon_pt_cut4", muonpt );
 
-						   fntuple->muon_px.push_back( muons[imu].px() );
-						   fntuple->muon_py.push_back( muons[imu].py() );
-						   fntuple->muon_pz.push_back( muons[imu].pz() );
-						   fntuple->muon_e.push_back( muons[imu].energy() );
-						   fntuple->muon_old_reliso.push_back( oldRelIso );
-						   fntuple->muon_new_reliso.push_back( newRelIso );
-						   fntuple->muon_d0.push_back( d0 );
-						   fntuple->muon_d0Error.push_back( d0sigma );
-						   
-					   }
+					   ithleadingmuon = imu;
+					   // energy in veto cone
+					   muonVetoEm = muons[imu].ecalIsoDeposit()->candEnergy();
+					   muonVetoHad = muons[imu].hcalIsoDeposit()->candEnergy();
+					   
 					   
 			   }
 
 		   }
 	   
 	   }
+   }
+
+   if ( NgoodIsoMuons == 1 ) {
+	   size_t imu = ithisolatedmuon;
+	   math::XYZPoint point(beamSpot.x0(),beamSpot.y0(), beamSpot.z0());
+	   double d0 = -1.* muons[imu].innerTrack()->dxy(point);
+	   double d0sigma = sqrt( muons[imu].innerTrack()->d0Error() * muons[imu].innerTrack()->d0Error() + beamSpot.BeamWidth()*beamSpot.BeamWidth());
+	   fntuple->muon_px.push_back( muons[imu].px() );
+	   fntuple->muon_py.push_back( muons[imu].py() );
+	   fntuple->muon_pz.push_back( muons[imu].pz() );
+	   fntuple->muon_e.push_back( muons[imu].energy() );
+	   fntuple->muon_old_reliso.push_back( muons[imu].pt()/(muons[imu].pt() + muons[imu].caloIso() + muons[imu].trackIso()) );
+	   fntuple->muon_new_reliso.push_back( muons[imu].caloIso()/muons[imu].et() + muons[imu].trackIso()/muons[imu].pt() );
+	   fntuple->muon_d0.push_back( d0 );
+	   fntuple->muon_d0Error.push_back( d0sigma );
+						   
+   } else if ( NgoodMuonsID >= 1 ) {
+	   size_t imu = ithleadingmuon;
+	   math::XYZPoint point(beamSpot.x0(),beamSpot.y0(), beamSpot.z0());
+	   double d0 = -1.* muons[imu].innerTrack()->dxy(point);
+	   double d0sigma = sqrt( muons[imu].innerTrack()->d0Error() * muons[imu].innerTrack()->d0Error() + beamSpot.BeamWidth()*beamSpot.BeamWidth());
+	   fntuple->muon_px.push_back( muons[imu].px() );
+	   fntuple->muon_py.push_back( muons[imu].py() );
+	   fntuple->muon_pz.push_back( muons[imu].pz() );
+	   fntuple->muon_e.push_back( muons[imu].energy() );
+	   fntuple->muon_old_reliso.push_back( muons[imu].pt()/(muons[imu].pt() + muons[imu].caloIso() + muons[imu].trackIso()) );
+	   fntuple->muon_new_reliso.push_back( muons[imu].caloIso()/muons[imu].et() + muons[imu].trackIso()/muons[imu].pt() );
+	   fntuple->muon_d0.push_back( d0 );
+	   fntuple->muon_d0Error.push_back( d0sigma );
+
    }
 
 
@@ -640,10 +671,15 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    if (debug) std::cout << "Muon section done. Number of good muons: " << NgoodIsoMuons << std::endl;
 
 	
-   // select events with only ONE muon otherwise skip the event
-   if ( NgoodMuonsID != 1 ) {
+   // select events with at least one good muon.
+   if ( NgoodMuonsID == 0 ) {
 	   nbadmuons++;
 	   //edm::LogWarning ("BooABCDAnalyzer") << "Event with number of good muons: "<< NgoodIsoMuons << ", skip this event since we request one good muon.";
+	   return;
+   }
+   // reject events with more than one isolated good muon.
+   if ( NgoodIsoMuons > 1 ) {
+
 	   return;
    }
 
@@ -662,7 +698,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    
    for( size_t ijet=0; ijet < jets.size(); ++ijet ) {
 
-	   if (jets[ijet].pt() <= fMinJetEt || fabs(jets[ijet].eta()) >= fMinJetEta ) continue;
+	   if (jets[ijet].pt() <= fMinJetPt || fabs(jets[ijet].eta()) >= fMaxJetEta ) continue;
 	   
 	   TLorentzVector tmpP4;
 	   tmpP4.SetPxPyPzE(jets[ijet].px(),jets[ijet].py(),jets[ijet].pz(),jets[ijet].energy());
@@ -747,7 +783,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   helectrons_->Fill1d("electron_pt_cut0", ept );
 	   helectrons_->Fill1d("electron_eta_cut0", electrons[ie].eta() );
 	   
-	   if ( ept > fMinElectronPt && fabs(electrons[ie].eta()) < fMinElectronEta &&
+	   if ( ept > fMinElectronPt && fabs(electrons[ie].eta()) < fMaxElectronEta &&
 		   electrons[ie].electronID("eidTight")>0) {
 
 		   double relIso = electrons[ie].trackIso()/ept + electrons[ie].caloIso()/electrons[ie].et();
