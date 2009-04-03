@@ -95,6 +95,7 @@ switchJetCollection(process,
                     )
 
 # if you need to change JEC use the following
+# FOR WINTER09 FASTSIM samples comment out the following line
 # switchJECSet(process, newName='Winter09', oldName='Summer08Redigi')
 
 
@@ -144,7 +145,7 @@ def addClone(label,**replaceStatements):
         new      = getattr(process, label).clone(**replaceStatements)
         addAlso(label, new)
 
-#addClone('allLayer0METs', metSource = cms.InputTag('tcMet'))
+#addClone('allLayer0METs', metSource = cms.InputTag('tcMet')) # this does not work need to setup
 # by hand
 process.allLayer0METstcMET = cms.EDFilter("PATBaseMETCleaner",
     ## Input MET from AOD
@@ -206,7 +207,7 @@ process.out.outputCommands.extend(["keep *_selectedLayer1Jets*_*_*"])
 process.out.outputCommands.extend(["keep *_selectedLayer1METs*_*_*"])
 
 process.configurationMetadata = cms.untracked.PSet(
-    version = cms.untracked.string('$Revision: 1.1.2.5 $'),
+    version = cms.untracked.string('$Revision: 1.1.2.6 $'),
     annotation = cms.untracked.string('PAT tuple creation'),
     name = cms.untracked.string('$Source: /cvs_server/repositories/CMSSW/CMSSW/TopQuarkAnalysis/TopPairBSM/test/Attic/BooTopPatTuple_cfg.py,v $')
 )
