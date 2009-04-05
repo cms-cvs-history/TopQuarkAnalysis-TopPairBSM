@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooLowMAnalyzer.cc,v 1.1.2.9 2009/03/31 21:57:31 yumiceva Exp $
+// $Id: BooLowMAnalyzer.cc,v 1.1.2.10 2009/04/03 20:46:27 yumiceva Exp $
 //
 //
 
@@ -680,7 +680,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    // H L T
    //
    for (int itrig = 0; itrig < ntrigs; ++itrig) {
-	   if (triggerNames_.triggerName(itrig) == "HLT_Mu15") {
+	   if (triggerNames_.triggerName(itrig) == "HLT_Mu9") {
 		   acceptHLT = hltresults->accept(itrig);
 	   }
    }

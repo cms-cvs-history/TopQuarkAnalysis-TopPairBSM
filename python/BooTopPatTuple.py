@@ -16,3 +16,10 @@ BooTopPatTuple = cms.Sequence(genEventProcID +             ## needs HepMCProduct
                         patLayer0_patTuple *         ## to be used from PhysicsTools/PatAlgos 
                         patLayer1
                         )
+
+## reduced sequence for madgraph samples which do not contain the HepMCProduct
+BooTopPatTuple_reduced = cms.Sequence(
+    patLayer0_patTuple *         ## to be used from PhysicsTools/PatAlgos
+    patLayer1# *                 ## V04-14-03 onwards
+    #                       patCaloTaus                  ## skipped as long as common taus are caloTaus
+    )
