@@ -8,7 +8,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: BooEventNtuple.h,v 1.1.2.1 2009/01/07 22:31:00 yumiceva Exp $
+ version $Id: BooEventNtuple.h,v 1.1.2.2 2009/03/26 22:39:33 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -58,22 +58,26 @@ public:
     std::vector< float > genjet_e;
 
 	//_____ muons ____________________________________
-	std::vector< float > muon_px;
-	std::vector< float > muon_py;
-	std::vector< float > muon_pz;
-	std::vector< float > muon_e;
-	std::vector< float > muon_normchi2;
-	std::vector< float > muon_d0;
-	std::vector< float > muon_d0Error;
-	std::vector< float > muon_old_reliso;
-	std::vector< float > muon_new_reliso;
-	std::vector< float > muon_ptrel;
+    std::vector< float > muon_px;
+    std::vector< float > muon_py;
+    std::vector< float > muon_pz;
+    std::vector< float > muon_e;
+    std::vector< float > muon_normchi2;
+    std::vector< float > muon_d0;
+    std::vector< float > muon_d0Error;
+    std::vector< float > muon_old_reliso;
+    std::vector< float > muon_new_reliso;
+    std::vector< float > muon_ptrel;
 	
-	std::vector< float > MET;
-	std::vector< float > Ht;
-	//std::vector
-	
-	
+    std::vector< float > MET;
+    std::vector< float > Ht;
+
+    //
+    std::vector< float > chi2;
+    //std::vector< TLorentzVector > hadronictop;
+    //std::vector< TLorentzVector > leptonictop;
+
+    // _____ gen ___
     std::vector< float > genmuon_px;
 	std::vector< float > genmuon_py;
 	std::vector< float > genmuon_pz;

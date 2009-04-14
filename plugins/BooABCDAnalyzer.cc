@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooABCDAnalyzer.cc,v 1.1.2.2 2009/03/26 22:39:33 yumiceva Exp $
+// $Id: BooABCDAnalyzer.cc,v 1.1.2.3 2009/04/03 20:46:27 yumiceva Exp $
 //
 //
 
@@ -574,7 +574,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			   hmuons_->Fill1d("muon_RelIso_cut2", RelIso);
 
 			   			   			   
-			   if ( RelIso < fMuonRelIso ) {
+			   if ( oldRelIso > fMuonRelIso ) {
 
 				   NgoodIsoMuons++;
 				   if ( NgoodIsoMuons==1 ) {

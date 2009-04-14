@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: BooHistograms.cc,v 1.1.2.8 2009/03/31 21:57:31 yumiceva Exp $
+ version $Id: BooHistograms.cc,v 1.1.2.9 2009/04/03 20:46:28 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -131,6 +131,8 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h1["jet_Hadb_flavor"+suffix1] = new TH1D("jet_Hadb_flavor"+suffix1,"Flavor",22,0,22);
 		h1["jet_Lepb_flavor"+suffix1] = new TH1D("jet_Lepb_flavor"+suffix1,"Flavor",22,0,22);
 		h1["jet_Wmass_sigmas"+suffix1] = new TH1D("jet_Wmass_sigmas"+suffix1,"#sigma",20,0,20.);
+		
+		h1["number_bjets"+suffix1] = new TH1D("number_bjets"+suffix1,"Number of b-tag jets",5,0,5);
 
 	}
 	else if ( type == "DisplayJets") {
@@ -223,6 +225,10 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 
 		h1["fitHadronicW_mass"+suffix1] = new TH1D("fitHadronicW_mass"+suffix1, "Mass(j_{1}j_{2}) [GeV/c^{2}]",20,0,300);
 		h1["fitHadronicTop_mass"+suffix1] = new TH1D("fitHadronicTop_mass"+suffix1, "Mass (j_{1}j_{2}j_{3}) [GeV/c^{2}]",20,100.,500.);
+	
+		h1["res_fitHadronicTop-recHadronicTop_mass"+suffix1] = new TH1D("res_fitHadronicTop-recHadronicTop_mass"+suffix1,"m_{fit} - m_{rec} [GeV/c]",100,-200,200);
+                h1["res_fitHadronicTop-MCHadronicTop_mass"+suffix1] = new TH1D("res_fitHadronicTop-MCHadronicTop_mass"+suffix1,"m_{fit} - m_{MC} [GeV/c]",100,-200,200);
+
 		//h1["WTolnu"+suffix1] = new TH1D("WTolnu"+suffix1,"(#mu + #nu) mass [GeV/c^{2}]",80,0.0,300.0);
 		//h1["tToWlnuj"+suffix1] = new TH1D("tToWlnuj"+suffix1,"(W_{l#nu} + jet) mass [GeV/c^{2}]",50,0.0,500.0);
 		//h1["tToWlnub"+suffix1] = new TH1D("tToWlnub"+suffix1,"(W_{l#nu} + jet) mass [GeV/c^{2}]",50,0.0,500.0);

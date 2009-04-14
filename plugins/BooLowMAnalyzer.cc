@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooLowMAnalyzer.cc,v 1.1.2.10 2009/04/03 20:46:27 yumiceva Exp $
+// $Id: BooLowMAnalyzer.cc,v 1.1.2.11 2009/04/05 18:03:23 yumiceva Exp $
 //
 //
 
@@ -708,7 +708,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    if (debug) std::cout << " HLT done" << std::endl;
    if ( !acceptHLT ) return;
-   hcounter->Counter("HLT_Mu15");
+   hcounter->Counter("HLT_Mu9");
    
 	   
    /////////////////////////////////////////
@@ -948,7 +948,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 		   hmuons_->Fill1d("muon_IPS_cut1", d0/d0sigma );
 
-		   if ( nhit >= 11 && normChi2 < 10 && fabs(d0) < 0.02 ) {
+		   if ( nhit >= 11 && normChi2 < 10 && fabs(d0/d0sigma)<3 ) {
 
 			   NgoodMuonsID++;
 			   hmuons_->Fill1d("muon_pt_cut2", muonpt );
@@ -1128,12 +1128,12 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 	   double ept = electrons[ie].pt();
 
-	   math::XYZPoint point(beamSpot.x0(),beamSpot.y0(), beamSpot.z0());
-	   double ed0 = -1.* electrons[ie].track()->dxy(point);
+	   //math::XYZPoint point(beamSpot.x0(),beamSpot.y0(), beamSpot.z0());
+	   double ed0 = 0.;//-1.* electrons[ie].track()->dxy(point);
 		   
 	   helectrons_->Fill1d("electron_pt_cut0", ept );
 	   helectrons_->Fill1d("electron_eta_cut0", electrons[ie].eta() );
-	   helectrons_->Fill2d("electron_phi_vs_d0_cut1", electrons[ie].track()->phi(), ed0 );
+	   //helectrons_->Fill2d("electron_phi_vs_d0_cut1", electrons[ie].track()->phi(), ed0 );
 
 	   if ( ept > fMinElectronPt && fabs(electrons[ie].eta()) < fMaxElectronEta &&
 		   electrons[ie].electronID("eidTight")>0) {
@@ -1339,7 +1339,14 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   hmass_->Fill2d(TString("LepTop_vs_LepW")+"_cut1", lepTopP4.M(), lepWP4.M());
 	   hmass_->Fill2d(TString("HadTop_vs_HadW")+"_cut1", hadTopP4.M(), hadWP4.M());
 
-	   
+	   // number oftag jets MediumOP
+	   int nbtags =0;
+	   if (jets[ bestCombo.GetIdHadb() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
+	   if (jets[ bestCombo.GetIdLepb() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
+	   if (jets[ bestCombo.GetIdWq() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
+	   if (jets[ bestCombo.GetIdWp() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
+	   hjets_->Fill1d("number_bjets_cut1", nbtags );
+
 	   // check MC truth
 	   //std::cout << "check gen matching" << std::endl;
 	   if (fIsMCTop) {
@@ -1473,8 +1480,16 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   hjets_->Fill1d("jet_Hadb_flavor_cut2", jets[ bestCombo.GetIdHadb() ].partonFlavour() );
 		   hjets_->Fill1d("jet_Lepb_flavor_cut2", jets[ bestCombo.GetIdLepb() ].partonFlavour() );
 
+		   // number of tag jets Medium OP
+		   int nbtags = 0;
+		   if ( jets[ bestCombo.GetIdHadb() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
+		   if (jets[ bestCombo.GetIdLepb() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
+		   if (jets[ bestCombo.GetIdWq() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
+		   if (jets[ bestCombo.GetIdWp() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
+		   hjets_->Fill1d("number_bjets_cut2", nbtags );
+
 		   ///////////////
-		   // Wiggle jets
+		   // Wiggle jets four-momentum
 		   TLorentzVector *newWp = new TLorentzVector(bestCombo.GetWp().Px(),
 													  bestCombo.GetWp().Py(),
 													  bestCombo.GetWp().Pz(),
@@ -1501,7 +1516,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 		   hmass_->Fill1d(TString("fitHadronicW_mass")+"_cut2", fitHadW.M());
 		   hmass_->Fill1d(TString("fitHadronicTop_mass")+"_cut2", fitHadTop.M());
-		   hmass_->Fill1d(TString("fittopPair_cut2"), (hadTopP4+lepTopP4).M() );
+		   hmass_->Fill1d(TString("fittopPair_cut2"), (fitHadTop+lepTopP4).M() );
 		   
 		   delete newWp;
 		   delete newWq;
@@ -1510,7 +1525,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		     if ( IsTruthMatch(bestCombo, jets, *genEvent, true) ) {
 		       MCAllmatch_chi2_++;
 		       hcounter->Counter("M3PrimeMatchedAllJets");
-		       hjets_->Fill1d("jet_Wmass_sigmas_cut2", Wsigmas ); //Wsigmas*resolution1/bestCombo.GetWp().E() );
+		      
 		     }
 
 			 if ( IsEventReconstructable ) {
@@ -1520,6 +1535,9 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 				 hmass_->Fill1d("recHadronicW_mass_cut2", hadWP4.M());
 				 hmass_->Fill2d("recLepTop_vs_LepW_cut2", lepTopP4.M(), lepWP4.M());
 				 hmass_->Fill2d("recHadTop_vs_HadW_cut2", hadTopP4.M(), hadWP4.M());
+
+				 hmass_->Fill1d("res_fitHadronicTop-recHadronicTop_mass_cut2", fitHadTop.M() - hadTopP4.M() );
+
 			 }
 
 		     if ( IsTruthMatch(bestCombo, jets, *genEvent) ) {
@@ -1531,6 +1549,9 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		       hmass_->Fill1d(TString("MCHadronicW_mass")+"_cut2", hadWP4.M());
 		       hmass_->Fill2d(TString("MCLepTop_vs_LepW")+"_cut2", lepTopP4.M(), lepWP4.M());
 		       hmass_->Fill2d(TString("MCHadTop_vs_HadW")+"_cut2", hadTopP4.M(), hadWP4.M());
+
+			   hjets_->Fill1d("jet_Wmass_sigmas_cut2", Wsigmas );
+			   hmass_->Fill1d("res_fitHadronicTop-MCHadronicTop_mass_cut2", fitHadTop.M() - hadTopP4.M() );
 
 		       hcounter->Counter("M3PrimeMatchedJets");
 		     }
