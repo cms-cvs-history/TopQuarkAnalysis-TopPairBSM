@@ -8,7 +8,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: BooEventNtuple.h,v 1.1.2.2 2009/03/26 22:39:33 yumiceva Exp $
+ version $Id: BooEventNtuple.h,v 1.1.2.3 2009/04/14 20:41:37 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -68,6 +68,12 @@ public:
     std::vector< float > muon_old_reliso;
     std::vector< float > muon_new_reliso;
     std::vector< float > muon_ptrel;
+	std::vector< float > muon_minDeltaR;
+	std::vector< float > muon_closestJet_px;
+	std::vector< float > muon_closestJet_py;
+	std::vector< float > muon_closestJet_pz;
+	std::vector< float > muon_closestJet_e;
+	
 	
     std::vector< float > MET;
     std::vector< float > Ht;

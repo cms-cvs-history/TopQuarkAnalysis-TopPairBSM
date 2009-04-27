@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: BooEventNtuple.cc,v 1.18 2008/09/12 16:41:30 bazterra Exp $
+ version $Id: BooEventNtuple.cc,v 1.1.2.1 2009/03/26 22:43:29 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -70,6 +70,11 @@ void BooEventNtuple::Reset()
 	muon_old_reliso.clear();
 	muon_new_reliso.clear();
 	muon_ptrel.clear();
+	muon_minDeltaR.clear();
+	muon_closestJet_px.clear();
+	muon_closestJet_py.clear();
+	muon_closestJet_pz.clear();
+	muon_closestJet_e.clear();
 	
 	MET.clear();
 	Ht.clear();

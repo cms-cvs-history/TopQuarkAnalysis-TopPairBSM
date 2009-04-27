@@ -24,3 +24,8 @@
 </library>
 
 
+<library file=BooHighMAnalyzer.cc name=BooHighMAnalyzer>
+  <flags EDM_PLUGIN=1>
+  <flags CXXFLAGS="-O0 -g -DDEBUG">
+</library>
+

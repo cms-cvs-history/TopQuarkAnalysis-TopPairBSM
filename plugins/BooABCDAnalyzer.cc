@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooABCDAnalyzer.cc,v 1.1.2.3 2009/04/03 20:46:27 yumiceva Exp $
+// $Id: BooABCDAnalyzer.cc,v 1.1.2.4 2009/04/14 20:41:38 yumiceva Exp $
 //
 //
 
@@ -721,6 +721,11 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    }
    
    hjets_->Fill1d(TString("jet_deltaR_muon")+"_cut1", minDeltaR_muon_jet);
+   fntuple->muon_minDeltaR.push_back( minDeltaR_muon_jet);
+   fntuple->muon_closestJet_px.push_back( closestJet.Px() );
+   fntuple->muon_closestJet_px.push_back( closestJet.Py() );
+   fntuple->muon_closestJet_px.push_back( closestJet.Pz() );
+   fntuple->muon_closestJet_px.push_back( closestJet.E() );
    
    if ( muonVetoEm < fMaxMuonEm  && muonVetoHad < fMaxMuonHad ) hjets_->Fill1d("jet_deltaR_muon_cut2", minDeltaR_muon_jet);
    
@@ -732,7 +737,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    if (theJetClosestMu != -1 ) {
 //	   hjets_->Fill1d(TString("jet_pTrel_muon")+"_cut0",PtRel(muonP4,muonP4+closestJet));
-	   fntuple->muon_ptrel.push_back( PtRel(muonP4,muonP4+closestJet));
+	   fntuple->muon_ptrel.push_back( PtRel(muonP4, closestJet) );//muonP4+closestJet));
 	   
 	   hjets_->Fill1d(TString("jet_pT_closest_muon")+"_cut0", closestJet.Pt());
 	   //hjets_->Fill1d(TString("jet_pT_closest_muon")+"_cut2", closestJet2.Pt());
@@ -834,7 +839,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    
    if (debug) std::cout << "MET section done" << std::endl;
       
-   if (NgoodJets >=4 ) {
+   //if (NgoodJets >=4 ) {
 	   //hmuons_->Fill2d("muon_RelIso_vs_MET_cut4", muonRelIso, METP4.Et() );
      double Htl = muonP4.Pt();
      for( size_t ijet=0; ijet != NgoodJets; ++ijet) Htl += jetP4[ijet].Et();
@@ -850,7 +855,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	 fntuple->MET.push_back( METP4.Et() );
 	 fntuple->Ht.push_back( Ht );
 	 
-   }
+	 //}
 
    if (debug) std::cout << "done." << std::endl;
 	   

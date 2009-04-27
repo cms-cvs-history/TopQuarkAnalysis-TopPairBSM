@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
-// Package:    BooLowMAnalyzer
-// Class:      BooLowMAnalyzer
+// Package:    BooHighMAnalyzer
+// Class:      BooHighMAnalyzer
 // 
-/**\class BostedTopPair/BooLowMAnalyzer.cc
+/**\class BostedTopPair/BooHighMAnalyzer.cc
 
  Description:
 
@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooLowMAnalyzer.cc,v 1.1.2.12 2009/04/14 20:41:38 yumiceva Exp $
+// $Id: BooHighMAnalyzer.cc,v 1.1.2.12 2009/04/14 20:41:38 yumiceva Exp $
 //
 //
 
@@ -24,7 +24,7 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 
 // user include files
-#include "TopQuarkAnalysis/TopPairBSM/interface/BooLowMAnalyzer.h"
+#include "TopQuarkAnalysis/TopPairBSM/interface/BooHighMAnalyzer.h"
 
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
@@ -51,7 +51,7 @@
 //
 // constructors and destructor
 //
-BooLowMAnalyzer::BooLowMAnalyzer(const edm::ParameterSet& iConfig)
+BooHighMAnalyzer::BooHighMAnalyzer(const edm::ParameterSet& iConfig)
 {
 	
   debug             = iConfig.getParameter<bool>   ("debug");
@@ -98,7 +98,7 @@ BooLowMAnalyzer::BooLowMAnalyzer(const edm::ParameterSet& iConfig)
 
   // write ascii output
   if (fwriteAscii) {
-	  edm::LogWarning ( "BooLowMAnalyzer" ) << " Results will also be saved into an ascii file: " << fasciiFileName;
+	  edm::LogWarning ( "BooHighMAnalyzer" ) << " Results will also be saved into an ascii file: " << fasciiFileName;
 	  fasciiFile.open(fasciiFileName.c_str());
   }
 
@@ -201,17 +201,17 @@ BooLowMAnalyzer::BooLowMAnalyzer(const edm::ParameterSet& iConfig)
 }
 
 
-BooLowMAnalyzer::~BooLowMAnalyzer()
+BooHighMAnalyzer::~BooHighMAnalyzer()
 {
 
-	if (debug) std::cout << "BooLowMAnalyzer Destructor called" << std::endl;
+	if (debug) std::cout << "BooHighMAnalyzer Destructor called" << std::endl;
 
 	// print out useful informantion
-	std::cout << "BooLowMAnalyzer Total events analyzed = " << nevents << std::endl;
-	std::cout << "BooLowMAnalyzer Number of bad muon events = " << nbadmuons << std::endl;
-	std::cout << "BooLowMAnalyzer Number of complex solutions = " << nWcomplex <<std::endl;
-	std::cout << "BooLowMAnalyzer Number of solutions with unambigous jet-parton matching, for sumEt case = " << MCAllmatch_sumEt_ << std::endl;
-	std::cout << "BooLowMAnalyzer Number of solutions with unambigous jet-parton matching, for chi2 case  = " << MCAllmatch_chi2_ << std::endl;
+	std::cout << "BooHighMAnalyzer Total events analyzed = " << nevents << std::endl;
+	std::cout << "BooHighMAnalyzer Number of bad muon events = " << nbadmuons << std::endl;
+	std::cout << "BooHighMAnalyzer Number of complex solutions = " << nWcomplex <<std::endl;
+	std::cout << "BooHighMAnalyzer Number of solutions with unambigous jet-parton matching, for sumEt case = " << MCAllmatch_sumEt_ << std::endl;
+	std::cout << "BooHighMAnalyzer Number of solutions with unambigous jet-parton matching, for chi2 case  = " << MCAllmatch_chi2_ << std::endl;
 	
 	   
 	if (fwriteAscii) fasciiFile.close();
@@ -260,7 +260,7 @@ BooLowMAnalyzer::~BooLowMAnalyzer()
 }
 
 double
-BooLowMAnalyzer::dij(TLorentzVector p1, TLorentzVector p2, double mass, bool min) {
+BooHighMAnalyzer::dij(TLorentzVector p1, TLorentzVector p2, double mass, bool min) {
 
 	TLorentzVector ptot = p1 + p2;
 	Double_t theta1 = TMath::ACos( (p1.Vect().Dot(ptot.Vect()))/(p1.P()*ptot.P()) );
@@ -279,7 +279,7 @@ BooLowMAnalyzer::dij(TLorentzVector p1, TLorentzVector p2, double mass, bool min
 
 
 double
-BooLowMAnalyzer::Psi(TLorentzVector p1, TLorentzVector p2, double mass) {
+BooHighMAnalyzer::Psi(TLorentzVector p1, TLorentzVector p2, double mass) {
 
 	TLorentzVector ptot = p1 + p2;
 	Double_t theta1 = TMath::ACos( (p1.Vect().Dot(ptot.Vect()))/(p1.P()*ptot.P()) );
@@ -306,7 +306,7 @@ BooLowMAnalyzer::Psi(TLorentzVector p1, TLorentzVector p2, double mass) {
 }
 
 double
-BooLowMAnalyzer::PtRel(TLorentzVector p, TLorentzVector paxis) {
+BooHighMAnalyzer::PtRel(TLorentzVector p, TLorentzVector paxis) {
 
 	TVector3 p3 = p.Vect();
 	TVector3 p3axis = paxis.Vect();
@@ -316,7 +316,7 @@ BooLowMAnalyzer::PtRel(TLorentzVector p, TLorentzVector paxis) {
 }
 
 bool
-BooLowMAnalyzer::IsTruthMatch( Combo acombo, const edm::View<pat::Jet> jets, TtGenEvent genEvt, bool MatchFlavor ) {
+BooHighMAnalyzer::IsTruthMatch( Combo acombo, const edm::View<pat::Jet> jets, TtGenEvent genEvt, bool MatchFlavor ) {
 
 	bool match = false;
 	
@@ -415,7 +415,7 @@ BooLowMAnalyzer::IsTruthMatch( Combo acombo, const edm::View<pat::Jet> jets, TtG
 
 
 void
-BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+BooHighMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {	
 
 	using namespace edm;
@@ -456,12 +456,6 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	const View<pat::Muon> &muons = *muonHandle;
 	if (debug) std::cout << "got muon collection" << std::endl;
 
-    // Electrons
-	Handle< View<pat::Electron> > electronHandle;
-	iEvent.getByLabel(electronSrc, electronHandle);
-	const View<pat::Electron> &electrons = *electronHandle;
-	if (debug) std::cout << "got electron collection" << std::endl;
-	
 	// MET
 	Handle< View<pat::MET> > metHandle;
 	iEvent.getByLabel(metSrc, metHandle);
@@ -472,10 +466,6 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	iEvent.getByLabel(jetSrc, jetHandle);
 	const View<pat::Jet> &jets = *jetHandle;
 	if (debug) std::cout << "got jets collection" << std::endl;
-	// primary vertices
-	Handle< View<reco::Vertex> > PVHandle;
-	iEvent.getByLabel("offlinePrimaryVertices", PVHandle);
-	const View<reco::Vertex> &PVs = *PVHandle;
 	// Generator
 	Handle<TtGenEvent > genEvent;
 	iEvent.getByLabel(genEvnSrc, genEvent);
@@ -644,21 +634,21 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 						 
 				 
 		} else {
-			edm::LogWarning ( "BooLowMAnalyzer" ) << " No top decay generator info, what happen here?";
-			if (!genHadWp) edm::LogWarning ( "BooLowMAnalyzer" ) << " no genHadWp";
-			if (!genHadWq) edm::LogWarning ( "BooLowMAnalyzer" ) << " no genHadWq";
-			if (!genHadb)  edm::LogWarning ( "BooLowMAnalyzer" ) << " no genHadb";
-			if (!genLepb)  edm::LogWarning ( "BooLowMAnalyzer" ) << " no genLepb";
-			if (!genMuon)  edm::LogWarning ( "BooLowMAnalyzer" ) << " no genMuon";
-			if (!genNu)    edm::LogWarning ( "BooLowMAnalyzer" ) << " no genNu";
-			edm::LogWarning ( "BooLowMAnalyzer" ) << " skipping event, no counting this event ";
+			edm::LogWarning ( "BooHighMAnalyzer" ) << " No top decay generator info, what happen here?";
+			if (!genHadWp) edm::LogWarning ( "BooHighMAnalyzer" ) << " no genHadWp";
+			if (!genHadWq) edm::LogWarning ( "BooHighMAnalyzer" ) << " no genHadWq";
+			if (!genHadb)  edm::LogWarning ( "BooHighMAnalyzer" ) << " no genHadb";
+			if (!genLepb)  edm::LogWarning ( "BooHighMAnalyzer" ) << " no genLepb";
+			if (!genMuon)  edm::LogWarning ( "BooHighMAnalyzer" ) << " no genMuon";
+			if (!genNu)    edm::LogWarning ( "BooHighMAnalyzer" ) << " no genNu";
+			edm::LogWarning ( "BooHighMAnalyzer" ) << " skipping event, no counting this event ";
 			//return;
 		}
 		}
 		if (debug) std::cout << "done gen histo" << std::endl;
 	} else {
 	  if (fIsMCTop)
-	    edm::LogWarning ( "BooLowMAnalyzer" ) << "no ttbar pair in generator";
+	    edm::LogWarning ( "BooHighMAnalyzer" ) << "no ttbar pair in generator";
 	}
 
 	// count events
@@ -670,9 +660,9 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	bool emptyjets  = false;
 	bool emptyMET   = false;
 	
-   if ( muons.size()==0 ) { emptymuons = true; edm::LogWarning ( "BooLowMAnalyzer" ) << " Muon collection: " << muonSrc << " is EMPTY.";}
-   if ( jets.size() ==0 ) { emptyjets  = true; edm::LogWarning ( "BooLowMAnalyzer" ) << " Jets collection: " << jetSrc << " is EMPTY.";}
-   if ( met.size()  ==0 ) { emptyMET   = true; edm::LogWarning ( "BooLowMAnalyzer" ) << " MET collection: " << metSrc << " is EMPTY.";}
+   if ( muons.size()==0 ) { emptymuons = true; edm::LogWarning ( "BooHighMAnalyzer" ) << " Muon collection: " << muonSrc << " is EMPTY.";}
+   if ( jets.size() ==0 ) { emptyjets  = true; edm::LogWarning ( "BooHighMAnalyzer" ) << " Jets collection: " << jetSrc << " is EMPTY.";}
+   if ( met.size()  ==0 ) { emptyMET   = true; edm::LogWarning ( "BooHighMAnalyzer" ) << " MET collection: " << metSrc << " is EMPTY.";}
    if ( emptyjets || emptyMET ) {std::cout << " skipping this event. empty jet or MET collection" << std::endl; return;}
 
    /////////////////////////////////////////
@@ -743,6 +733,8 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    int NgoodJets = 0;
    
+   bool gotLeadingJet = false;
+
    for( size_t ijet=0; ijet != jets.size(); ++ijet) {
 
 	   TLorentzVector tmpP4;
@@ -766,7 +758,8 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   
 	   if( NgoodJets == 1 ) {
 	     
-	
+	     if (jets[ijet].pt() > 240) gotLeadingJet = true;
+
 		   if (debug) std::cout << "leading jet et: " << jets[ijet].et() << std::endl;
 
 		   hjets_->Fill1d(TString("jet0_et")+"_"+"cut0", jets[ijet].et());
@@ -844,19 +837,23 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   //hjets_->Fill1d(TString("jet_nocorr_et")+"_cut0", jets[ijet].et() /jetcorr);
 	   
    }
-   
+
+   if ( ! gotLeadingJet ) return;
+
    if (debug) std::cout << "Jet section done. Number of good jets: " << NgoodJets << std::endl;
 
    // remove this constraint for the moment to check Z and W +jets muon spectrum
    //if ( NgoodJets == 0 ) { nevents++; return; } 
 
-  
+   if ( NgoodJets >= 1 ) hcounter->Counter("Njets>1");
+   if ( NgoodJets >= 4 ) hcounter->Counter("Njets>3");
+
    std::vector< TLorentzVector > vectorjets;
    size_t cutNgoodJets = NgoodJets;
    if (NgoodJets > 6) cutNgoodJets = 6; // use only 6 good jets
    std::vector< float > cutptjets;
    cutptjets.push_back(60); cutptjets.push_back(50); cutptjets.push_back(40); cutptjets.push_back(30);
-   
+
    for( size_t ijet=0; ijet != cutNgoodJets; ++ijet) {
 
      if (fApplyJetAsymmetricCuts) {
@@ -882,7 +879,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    // use the first vertex in the collection
    // which is the vertex of the highest Pt of the associated tracks
-
+   /*
    TVector3 thePV;
 
    if ( PVs.size() != 0 ) {
@@ -890,7 +887,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   thePV = TVector3(PVs[0].x(),PVs[0].y(),PVs[0].z());
 
    }
-   
+   */
    
    ////////////////////////////////////////
    //
@@ -901,7 +898,6 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    int NgoodMuons = 0;
    int NgoodMuonsID = 0;
    int NgoodIsoMuons = 0;
-   int NlooseMuonsID = 0;
    
    int TotalMuons = muons.size();
    hmuons_->Fill1d(TString("muons")+"_cut0",TotalMuons);
@@ -913,8 +909,6 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     
    for( size_t imu=0; imu != muons.size(); ++imu) {
 
-	   bool IsLooseMuonID = false;
-	   
 	   // require Global muons
 	   if ( ! muons[imu].isGlobalMuon() ) continue;
 
@@ -931,11 +925,6 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   if ( nhit > 10 && normChi2 < 10 ) {
 		   hmuons_->Fill1d("muon_pt_cut1", muonpt );
 		   hmuons_->Fill1d("muon_eta_cut1", muoneta );
-
-		   // Loose muons
-		   double looseRelIso = ( muonpt/(muonpt + muons[imu].caloIso() + muons[imu].trackIso()) );
-		   if (muonpt > 10 && fabs(muons[imu].eta()) < 2.5 && looseRelIso<0.8 )
-			   NlooseMuonsID++;
 	   }
 	   
 	   if ( (muonpt > fMinMuonPt) && fabs(muons[imu].eta()) < fMaxMuonEta ) {
@@ -957,10 +946,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   if ( nhit >= 11 && normChi2 < 10 && fabs(d0/d0sigma)<3 ) {
 
 			   NgoodMuonsID++;
-			   
-			   
 			   hmuons_->Fill1d("muon_pt_cut2", muonpt );
-			   hmuons_->Fill1d("muon_eta_cut2", muoneta );
 			   hmuons_->FillvsJets2d("muon_pt_vsJets_cut2",muonpt, vectorjets);   
 			   //hmuons_->Fill1d("muon_d0_cut2", d0 );
 			   
@@ -969,11 +955,10 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			   //double RelIso = (muons[imu].caloIso())/muons[imu].et() + (muons[imu].trackIso())/muonpt;
 			   hmuons_->Fill1d("muon_RelIso_cut2", RelIso);
 			   
-			   if ( RelIso > fMuonRelIso ) {
+			   if ( RelIso <= fMuonRelIso ) {
 
 				   NgoodIsoMuons++;
 				   hmuons_->Fill1d("muon_pt_cut3", muonpt );
-				   hmuons_->Fill1d("muon_eta_cut3", muoneta );
 				   hmuons_->FillvsJets2d("muon_pt_vsJets_cut3",muonpt, vectorjets);
 				   
 				   //double energymu = sqrt(muons[imu].innerTrack()->px()*muons[imu].innerTrack()->px() +
@@ -1008,16 +993,14 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    }
 
    //count muons and jets
-   //if ( NgoodJets >= 4 ) {
+   if ( NgoodJets >= 4 ) {
 
-	   if ( NGlobalMuons > 0 )  hcounter->Counter("GlobalMuons");
-	   if ( NgoodMuons > 0   )  hcounter->Counter("GoodMuons");
-	   if ( NgoodMuonsID > 0 )  hcounter->Counter("GoodMuonsID");
-	   if ( NgoodIsoMuons > 0)  hcounter->Counter("GoodIsoMuons");
-	   if ( NgoodIsoMuons ==1)  hcounter->Counter("GoodOneIsoMuon");
-	   if ( NgoodIsoMuons == 1 && NlooseMuonsID > 1 ) hcounter->Counter("LooseMuonsID");
-	   
-	   //}
+	   if ( NGlobalMuons > 0 ) hcounter->Counter("GlobalMuons");
+	   if ( NgoodMuons > 0   ) hcounter->Counter("GoodMuons");
+	   if ( NgoodMuonsID > 0 ) hcounter->Counter("GoodMuonsID");
+	   if ( NgoodIsoMuons > 0) hcounter->Counter("GoodIsoMuons");
+	   if ( NgoodIsoMuons ==1) hcounter->Counter("GoodOneIsoMuon");
+   }
 
    // number of muons vs number of jets
    hmuons_->FillvsJets2d(TString("muons_vsJets")+"_cut3", NgoodIsoMuons, vectorjets);
@@ -1032,11 +1015,9 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    // select events with only ONE muon otherwise skip the event
    if ( NgoodIsoMuons != 1 ) {
 	   nbadmuons++;
-	   //edm::LogWarning ("BooLowMAnalyzer") << "Event with number of good muons: "<< NgoodIsoMuons << ", skip this event since we request one good muon.";
+	   //edm::LogWarning ("BooHighMAnalyzer") << "Event with number of good muons: "<< NgoodIsoMuons << ", skip this event since we request one good muon.";
 	   return;
    }
-   // remove events with more than a good isolated loose muon
-   if ( NlooseMuonsID > 1 ) return;
 
    /////////////////////////////////////
    //
@@ -1111,11 +1092,11 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    if ( NgoodJets >= 4 && minDeltaR_muon_jet > 0.3 ) hcounter->Counter("DeltaR");
 
-   if ( muonVetoEm >= fMaxMuonEm || muonVetoHad >= fMaxMuonHad ) return;
+   //if ( muonVetoEm >= fMaxMuonEm || muonVetoHad >= fMaxMuonHad ) return;
 
    hjets_->Fill1d("jets_cut1",NgoodJets);
    
-   if ( muonVetoEm < fMaxMuonEm  && muonVetoHad < fMaxMuonHad ) hcounter->Counter("muonVetoCone");
+   if ( NgoodJets >= 4 && muonVetoEm < fMaxMuonEm  && muonVetoHad < fMaxMuonHad ) hcounter->Counter("muonVetoCone");
 
    
    if (debug) std::cout << "deltaR(muon,near jet) cut survive" << std::endl;
@@ -1134,10 +1115,8 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    //
    // E L E C T R O N   R E M O V A L
    //
-
+   /*
    int NgoodElectrons = 0;
-   int NlooseElectrons = 0;
-   
    helectrons_->Fill1d("electrons_cut0", electrons.size() );
    
    for( size_t ie=0; ie != electrons.size(); ++ie) {
@@ -1151,14 +1130,10 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   helectrons_->Fill1d("electron_eta_cut0", electrons[ie].eta() );
 	   //helectrons_->Fill2d("electron_phi_vs_d0_cut1", electrons[ie].track()->phi(), ed0 );
 
-	   double relIso = ( 1./(1. + electrons[ie].caloIso()/electrons[ie].et() + electrons[ie].trackIso()/ept) );
-	   // loose
-	   if ( ept > 15 && fabs(electrons[ie].eta()) < 2.5 && relIso > 0.8 ) NlooseElectrons++; 
-			
 	   if ( ept > fMinElectronPt && fabs(electrons[ie].eta()) < fMaxElectronEta &&
 		   electrons[ie].electronID("eidTight")>0) {
 
-		   //double relIso = ( 1./(1. + electrons[ie].caloIso()/electrons[ie].et() + electrons[ie].trackIso()/ept) );
+	     double relIso = ( 1./(1. + electrons[ie].caloIso()/electrons[ie].et() + electrons[ie].trackIso()/ept) );
 
 	     //double relIso = electrons[ie].trackIso() /ept + electrons[ie].caloIso()/electrons[ie].et();
 	     
@@ -1172,15 +1147,9 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    helectrons_->Fill1d("electrons_cut1", NgoodElectrons );
    if ( NgoodElectrons > 0 ) return;
 
-   hcounter->Counter("NoElectrons");
-
-   if ( NlooseElectrons > 1 ) return;
-   hcounter->Counter("NoLooseElectrons");
+   if ( NgoodJets >= 4 ) hcounter->Counter("NoElectrons");
    
-   if ( NgoodJets == 1 ) hcounter->Counter("Njets=1");
-   if ( NgoodJets == 2 ) hcounter->Counter("Njets=2");
-   if ( NgoodJets == 3 ) hcounter->Counter("Njets=3");
-   if ( NgoodJets >= 4 ) hcounter->Counter("Njets>=4");
+   */
 
    ////////////////////////////////////
    //
@@ -1194,7 +1163,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    hmet_->Fill1d(TString("myMET")+"_cut1", myMETP4.Pt());
    
    // met is corrected by muon momentum, how about muon energy?
-   if (met.size() != 1 ) edm::LogWarning ("BooLowMAnalyzer") << "MET collection has size different from ONE! size: "<< met.size() << std::endl;
+   if (met.size() != 1 ) edm::LogWarning ("BooHighMAnalyzer") << "MET collection has size different from ONE! size: "<< met.size() << std::endl;
       
    for( size_t imet=0; imet != met.size(); ++imet) {
 	   hmet_->Fill1d(TString("MET")+"_"+"cut0", met[imet].et());
@@ -1261,10 +1230,9 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   //hmet_->Fill1d(TString("delta_nu_pz")+"_cut0",(neutrinoPz - genNupz));
 	   found_nu = true;
 
-	   if (NgoodJets >=4 ) {
-		   hmass_->Fill1d(TString("LeptonicW_mass")+"_cut1",(muonP4+nuP4).M());
-		   if (zcalculator.IsComplex()) hmass_->Fill1d(TString("LeptonicW_mass")+"_cut2",(muonP4+nuP4).M());
-	   }
+	   hmass_->Fill1d(TString("LeptonicW_mass")+"_cut1",(muonP4+nuP4).M());
+	   if (zcalculator.IsComplex()) hmass_->Fill1d(TString("LeptonicW_mass")+"_cut2",(muonP4+nuP4).M());
+
 	   hmet_->Fill1d(TString("LeptonicW_dij")+"_cut0",dij(muonP4, nuP4, 80.4));
 
 	   
@@ -1367,7 +1335,6 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   hmass_->Fill2d(TString("LepTop_vs_LepW")+"_cut1", lepTopP4.M(), lepWP4.M());
 	   hmass_->Fill2d(TString("HadTop_vs_HadW")+"_cut1", hadTopP4.M(), hadWP4.M());
 
-	   
 	   // number oftag jets MediumOP
 	   int nbtags =0;
 	   if (jets[ bestCombo.GetIdHadb() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
@@ -1508,8 +1475,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   hmass_->Fill1d(TString("HadronicW_mass")+"_cut2", hadWP4.M());
 		   hmass_->Fill2d(TString("LepTop_vs_LepW")+"_cut2", lepTopP4.M(), lepWP4.M());
 		   hmass_->Fill2d(TString("HadTop_vs_HadW")+"_cut2", hadTopP4.M(), hadWP4.M());
-		   hmass_->Fill2d(TString("HadTop_vs_LepTop")+"_cut2", hadTopP4.M(), lepTopP4.M());
-	   
+
 		   hjets_->Fill1d("jet_Hadb_disc_cut2", jets[ bestCombo.GetIdHadb() ].bDiscriminator("trackCountingHighEffBJetTags") );
 		   hjets_->Fill1d("jet_Lepb_disc_cut2", jets[ bestCombo.GetIdLepb() ].bDiscriminator("trackCountingHighEffBJetTags") );
 		   hjets_->Fill1d("jet_Hadb_flavor_cut2", jets[ bestCombo.GetIdHadb() ].partonFlavour() );
@@ -1775,4 +1741,4 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(BooLowMAnalyzer);
+DEFINE_FWK_MODULE(BooHighMAnalyzer);
