@@ -8,12 +8,12 @@
  Description:
 
  Implementation:
-     <Notes on implementation>
+    <Notes on implementation>
 
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooLowMAnalyzer.cc,v 1.1.2.12 2009/04/14 20:41:38 yumiceva Exp $
+// $Id: BooLowMAnalyzer.cc,v 1.1.2.13 2009/04/27 19:16:49 yumiceva Exp $
 //
 //
 
@@ -913,8 +913,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     
    for( size_t imu=0; imu != muons.size(); ++imu) {
 
-	   bool IsLooseMuonID = false;
-	   
+	   	   
 	   // require Global muons
 	   if ( ! muons[imu].isGlobalMuon() ) continue;
 
@@ -934,7 +933,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 		   // Loose muons
 		   double looseRelIso = ( muonpt/(muonpt + muons[imu].caloIso() + muons[imu].trackIso()) );
-		   if (muonpt > 10 && fabs(muons[imu].eta()) < 2.5 && looseRelIso<0.8 )
+		   if (muonpt > 10. && fabs(muons[imu].eta()) < 2.5 && looseRelIso>0.8 )
 			   NlooseMuonsID++;
 	   }
 	   
@@ -1015,7 +1014,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   if ( NgoodMuonsID > 0 )  hcounter->Counter("GoodMuonsID");
 	   if ( NgoodIsoMuons > 0)  hcounter->Counter("GoodIsoMuons");
 	   if ( NgoodIsoMuons ==1)  hcounter->Counter("GoodOneIsoMuon");
-	   if ( NgoodIsoMuons == 1 && NlooseMuonsID > 1 ) hcounter->Counter("LooseMuonsID");
+	   
 	   
 	   //}
 
@@ -1038,6 +1037,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    // remove events with more than a good isolated loose muon
    if ( NlooseMuonsID > 1 ) return;
 
+   hcounter->Counter("LooseMuonsID");
    /////////////////////////////////////
    //
    // C L E A N   M U O N   M I Ps
