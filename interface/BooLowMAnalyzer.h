@@ -118,7 +118,8 @@ class BooLowMAnalyzer : public edm::EDAnalyzer {
     edm::InputTag evtsols;
 
 	bool fUsebTagging;
-	
+	bool fUseMtopConstraint;
+
 	int nevents;
 	int nbadmuons;
 	int nWcomplex;
@@ -142,6 +143,7 @@ class BooLowMAnalyzer : public edm::EDAnalyzer {
 	double fMinMET;
 	bool fUseMyMET;
 	bool fApplyJetAsymmetricCuts;
+	double fJES;
 };
 
 

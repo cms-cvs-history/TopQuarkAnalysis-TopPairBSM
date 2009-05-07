@@ -12,7 +12,8 @@ TopAnalyzer = cms.EDAnalyzer("BooLowMAnalyzer",
                              jetCuts = cms.PSet(
                                        MinJetPt        = cms.double( 30. ),
                                        MaxJetEta       = cms.double( 2.4),
-                                       ApplyAsymmetricCuts = cms.bool(False)
+                                       ApplyAsymmetricCuts = cms.bool(False),
+                                       JES             = cms.double( 1. )
                                        ),
                              muonCuts = cms.PSet(
                                        MinPt  = cms.double( 20. ),
@@ -33,6 +34,7 @@ TopAnalyzer = cms.EDAnalyzer("BooLowMAnalyzer",
                                        Recalculate = cms.bool(False)
                                        ),
                              UsebTagging = cms.bool(False),
+                             UseMtopConstraint = cms.bool(True),
                              writeAscii = cms.bool( False),
                              asciiFilename = cms.string('TopAnalysis.txt'),
                              processOnlyEvent = cms.int32( -1 ),

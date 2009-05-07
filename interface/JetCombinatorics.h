@@ -8,7 +8,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: JetCombinatorics.h,v 1.1.4.7 2009/03/23 20:39:24 yumiceva Exp $
+ version $Id: JetCombinatorics.h,v 1.1.4.8 2009/03/26 22:39:33 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -28,7 +28,7 @@ class Combo {
 
 	Combo() {
 		
-		MW = 79.8;
+		MW = 79.8;//80.4
 		Mtop = 175.;
 		SumEt_ = 0.;
 		usebtag_ = false;
@@ -66,9 +66,9 @@ class Combo {
 		LepTop_ = LepW_ + Lepb_;
 		TopPair_ = HadTop_ + LepTop_;
 
-		double sigmaHadW = 2.*7.6;
-		double sigmaHadt = 2.*12.5;
-		double sigmaLept = 2.*15.6;
+		double sigmaHadW = 10.5;//2.*7.6;
+		double sigmaHadt = 19.3;//2.*12.5;
+		double sigmaLept = 21.2;//2.*15.6;
 		
 		double chiHadW = (HadW_.M() - MW)/sigmaHadW;
 		double chiHadt = (HadTop_.M() - Mtop)/sigmaHadt;

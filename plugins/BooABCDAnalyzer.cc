@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooABCDAnalyzer.cc,v 1.1.2.4 2009/04/14 20:41:38 yumiceva Exp $
+// $Id: BooABCDAnalyzer.cc,v 1.1.2.5 2009/04/27 19:16:49 yumiceva Exp $
 //
 //
 
@@ -516,7 +516,8 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    int NgoodMuons = 0;
    int NgoodMuonsID = 0;
    int NgoodIsoMuons = 0;
-   
+   int NlooseMuonsID = 0;
+
    int TotalMuons = muons.size();
    hmuons_->Fill1d(TString("muons")+"_cut0",TotalMuons);
    hmuons_->FillvsJets2d(TString("muons_vsJets")+"_cut0",TotalMuons, jets);   
@@ -541,7 +542,12 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   double muoneta= muons[imu].eta();
 	   hmuons_->Fill1d("muon_pt_cut0", muonpt );
 	   hmuons_->Fill1d("muon_eta_cut0", muoneta );
-	   
+
+	   double oldRelIso = ( muonpt/(muonpt + muons[imu].caloIso() + muons[imu].trackIso()) );
+	   // Loose muons
+	   if (muonpt > 10. && fabs(muons[imu].eta()) < 2.5 && oldRelIso>0.8 )
+		   NlooseMuonsID++;
+			   
 	   if ( (muonpt > fMinMuonPt) && fabs(muons[imu].eta()) < fMaxMuonEta ) {
 
 		   NgoodMuons++;
@@ -567,9 +573,10 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			   //hmuons_->Fill1d("muon_d0_cut2", d0 );
 			   
 			   // ISOLATION	   
-			   double oldRelIso = ( muonpt/(muonpt + muons[imu].caloIso() + muons[imu].trackIso()) );
+			   //double oldRelIso = ( muonpt/(muonpt + muons[imu].caloIso() + muons[imu].trackIso()) );
 			   double RelIso = muons[imu].caloIso()/muons[imu].et() + muons[imu].trackIso()/muonpt;
 			   double newRelIso = RelIso;
+
 			   
 			   hmuons_->Fill1d("muon_RelIso_cut2", RelIso);
 
@@ -621,6 +628,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    }
 
    if ( NgoodIsoMuons == 1 ) {
+	   if ( NlooseMuonsID == 1 ) {
 	   size_t imu = ithisolatedmuon;
 	   math::XYZPoint point(beamSpot.x0(),beamSpot.y0(), beamSpot.z0());
 	   double d0 = -1.* muons[imu].innerTrack()->dxy(point);
@@ -633,7 +641,8 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   fntuple->muon_new_reliso.push_back( muons[imu].caloIso()/muons[imu].et() + muons[imu].trackIso()/muons[imu].pt() );
 	   fntuple->muon_d0.push_back( d0 );
 	   fntuple->muon_d0Error.push_back( d0sigma );
-						   
+	   }
+	   else { return; }
    } else if ( NgoodMuonsID >= 1 ) {
 	   size_t imu = ithleadingmuon;
 	   math::XYZPoint point(beamSpot.x0(),beamSpot.y0(), beamSpot.z0());
@@ -778,7 +787,8 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    //
    // E L E C T R O N   R E M O V A L
    //
-
+   
+   int NlooseElectrons = 0;
    int NgoodElectrons = 0;
    helectrons_->Fill1d("electrons_cut0", electrons.size() );
    
@@ -787,11 +797,16 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   double ept = electrons[ie].pt();
 	   helectrons_->Fill1d("electron_pt_cut0", ept );
 	   helectrons_->Fill1d("electron_eta_cut0", electrons[ie].eta() );
+
+	   double relIso = electrons[ie].trackIso()/ept + electrons[ie].caloIso()/electrons[ie].et();
+	   
+	   // loose
+	   if ( ept > 15 && fabs(electrons[ie].eta()) < 2.5 && relIso > 0.8 ) NlooseElectrons++;
 	   
 	   if ( ept > fMinElectronPt && fabs(electrons[ie].eta()) < fMaxElectronEta &&
 		   electrons[ie].electronID("eidTight")>0) {
 
-		   double relIso = electrons[ie].trackIso()/ept + electrons[ie].caloIso()/electrons[ie].et();
+		   //double relIso = electrons[ie].trackIso()/ept + electrons[ie].caloIso()/electrons[ie].et();
 
 		   if ( relIso < fElectronRelIso ) {
 
@@ -805,6 +820,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    if ( NgoodJets >= 4 ) hcounter->Counter("NoElectrons");
    
+   if ( NlooseElectrons > 1 ) return;
    
    ////////////////////////////////////
    //

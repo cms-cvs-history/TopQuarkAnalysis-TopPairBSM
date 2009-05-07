@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooLowMAnalyzer.cc,v 1.1.2.13 2009/04/27 19:16:49 yumiceva Exp $
+// $Id: BooLowMAnalyzer.cc,v 1.1.2.14 2009/04/29 19:28:13 yumiceva Exp $
 //
 //
 
@@ -85,9 +85,11 @@ BooLowMAnalyzer::BooLowMAnalyzer(const edm::ParameterSet& iConfig)
   fMinJetPt         = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<double>("MinJetPt");
   fMaxJetEta        = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<double>("MaxJetEta");
   fApplyJetAsymmetricCuts = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<bool>("ApplyAsymmetricCuts");
+  fJES              = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<double>("JES");
 
   fUsebTagging      = iConfig.getParameter<bool>  ("UsebTagging");
-  
+  fUseMtopConstraint = iConfig.getParameter<bool>  ("UseMtopConstraint");
+
   //fMinHt           = iConfig.getParameter<edm::ParameterSet>("jetCuts").getParameter<double>("MinHt");
   fMinMET           = iConfig.getParameter<edm::ParameterSet>("METCuts").getParameter<double>("MinMET");
   fUseMyMET         = iConfig.getParameter<edm::ParameterSet>("METCuts").getParameter<bool>("Recalculate");
@@ -748,12 +750,15 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   TLorentzVector tmpP4;
 	   tmpP4.SetPxPyPzE(jets[ijet].px(),jets[ijet].py(),jets[ijet].pz(),jets[ijet].energy());
 
-	   // recalculate my MET, remove soft jets that could be junk
-	   if (tmpP4.Pt() > 20)
-		   myMETP4 = myMETP4 + TLorentzVector(jets[ijet].px(),jets[ijet].py(),0,jets[ijet].pt());
+	   tmpP4 = fJES * tmpP4;
 	   
+	   // recalculate my MET, remove soft jets that could be junk
+	   if (tmpP4.Pt() > 20) {
+		   myMETP4 = myMETP4 + TLorentzVector(jets[ijet].px(),jets[ijet].py(),0,jets[ijet].pt());
+		   myMETP4 = fJES * tmpP4;
+	   }
 	   // jet cuts
-	   if (jets[ijet].pt() <= fMinJetPt || fabs(jets[ijet].eta()) >= fMaxJetEta ) continue;
+	   if ( fJES*jets[ijet].pt() <= fMinJetPt || fabs(jets[ijet].eta()) >= fMaxJetEta ) continue;
 
 	   NgoodJets++;
 	   	   
@@ -761,21 +766,21 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 	   if ( NgoodJets < 7 ) {
 		   jetP4[NgoodJets-1] = tmpP4;
-		   vect_bdiscriminators.push_back( jets[ijet].bDiscriminator("trackCountingHighEffBJetTags") );
+		   vect_bdiscriminators.push_back( jets[ijet].bDiscriminator("jetProbabilityBJetTags") );
 	   }
 	   
 	   if( NgoodJets == 1 ) {
 	     
 	
-		   if (debug) std::cout << "leading jet et: " << jets[ijet].et() << std::endl;
+		   if (debug) std::cout << "leading jet et: " << fJES*jets[ijet].et() << std::endl;
 
-		   hjets_->Fill1d(TString("jet0_et")+"_"+"cut0", jets[ijet].et());
-		   hjets_->Fill1d(TString("jet0_eta")+"_"+"cut0", jets[ijet].eta());
+		   hjets_->Fill1d(TString("jet0_et")+"_"+"cut0", fJES*jets[ijet].et());
+		   hjets_->Fill1d(TString("jet0_eta")+"_"+"cut0", fJES*jets[ijet].eta());
 		   
 		   // display jets//
 		   /*
 		   if (fdisplayJets) {
-			   std::vector<CaloTowerPtr> jetCaloRefs = jets[ijet].getCaloConstituents();
+			   std::vector<CaloTowerPtr> jetCaloRefs = fJES*jets[ijet].getCaloConstituents();
 			   if (debug) std::cout << " jetCaloRefs size = " << jetCaloRefs.size() << std::endl;
 			   for ( size_t icalo=0; icalo != jetCaloRefs.size(); ++icalo ) {
 				   if (debug) std::cout << " got icalo: " << "energy: "<< jetCaloRefs[icalo]->energy() << " eta: " << jetCaloRefs[icalo]->eta() <<  std::endl;
@@ -790,13 +795,13 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   if( NgoodJets == 2 ) {
 		   
 	
-		   hjets_->Fill1d(TString("jet1_et")+"_"+"cut0", jets[ijet].et() );
-		   hjets_->Fill1d(TString("jet1_eta")+"_"+"cut0", jets[ijet].eta());
+		   hjets_->Fill1d(TString("jet1_et")+"_"+"cut0", fJES*jets[ijet].et() );
+		   hjets_->Fill1d(TString("jet1_eta")+"_"+"cut0", fJES*jets[ijet].eta());
 		   
 		   // display jets//
 		   /*
 		   if (fdisplayJets) {
-			   std::vector<CaloTowerPtr> jetCaloRefs = jets[ijet].getCaloConstituents();
+			   std::vector<CaloTowerPtr> jetCaloRefs = fJES*jets[ijet].getCaloConstituents();
 			   for ( size_t icalo=0; icalo != jetCaloRefs.size(); ++icalo ) {
 				   hdisp_->Fill2d(TString("jet1_calotowerI")+"_cut0", jetCaloRefs[icalo]->eta(), jetCaloRefs[icalo]->phi(), jetCaloRefs[icalo]->energy() );
 			   }
@@ -806,12 +811,12 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   if( NgoodJets == 3 ) {
 
 			   
-		   hjets_->Fill1d(TString("jet2_et")+"_"+"cut0", jets[ijet].et() );
-		   hjets_->Fill1d(TString("jet2_eta")+"_"+"cut0", jets[ijet].eta());
+		   hjets_->Fill1d(TString("jet2_et")+"_"+"cut0", fJES*jets[ijet].et() );
+		   hjets_->Fill1d(TString("jet2_eta")+"_"+"cut0", fJES*jets[ijet].eta());
 		   
 		   /*
 		   if (fdisplayJets) {
-			   std::vector<CaloTowerPtr> jetCaloRefs = jets[ijet].getCaloConstituents();
+			   std::vector<CaloTowerPtr> jetCaloRefs = fJES*jets[ijet].getCaloConstituents();
 			   for ( size_t icalo=0; icalo != jetCaloRefs.size(); ++icalo ) {
 				   hdisp_->Fill2d(TString("jet2_calotowerI")+"_cut0", jetCaloRefs[icalo]->eta(), jetCaloRefs[icalo]->phi(), jetCaloRefs[icalo]->energy() );
 			   }
@@ -821,12 +826,12 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   if( NgoodJets == 4 ) {
 
 			   
-		   hjets_->Fill1d(TString("jet3_et")+"_"+"cut0", jets[ijet].et() );
-		   hjets_->Fill1d(TString("jet3_eta")+"_"+"cut0", jets[ijet].eta());
+		   hjets_->Fill1d(TString("jet3_et")+"_"+"cut0", fJES*jets[ijet].et() );
+		   hjets_->Fill1d(TString("jet3_eta")+"_"+"cut0", fJES*jets[ijet].eta());
 		   
 		   /*
 		   if (fdisplayJets) {
-			   std::vector<CaloTowerPtr> jetCaloRefs = jets[ijet].getCaloConstituents();
+			   std::vector<CaloTowerPtr> jetCaloRefs = fJES*jets[ijet].getCaloConstituents();
 			   for ( size_t icalo=0; icalo != jetCaloRefs.size(); ++icalo ) {
 				   hdisp_->Fill2d(TString("jet3_calotowerI")+"_cut0", jetCaloRefs[icalo]->eta(), jetCaloRefs[icalo]->phi(), jetCaloRefs[icalo]->energy() );
 			   }
@@ -835,13 +840,13 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   }
 
 	   // all jets histograms
-	   hjets_->Fill1d(TString("jet_et")+"_"+"cut0", jets[ijet].et());
-	   hjets_->Fill1d(TString("jet_eta")+"_"+"cut0", jets[ijet].eta());
-	   hjets_->Fill1d(TString("jet_phi")+"_"+"cut0", jets[ijet].phi());
-	   hjets_->Fill2d(TString("jet_ptVseta")+"_cut0", jets[ijet].et(),jets[ijet].eta());
-	   hjets_->Fill1d(TString("jet_emFrac_cut0"), jets[ijet].emEnergyFraction());
-	   //float jetcorr = jets[ijet].jetCorrFactors().scaleDefault();
-	   //hjets_->Fill1d(TString("jet_nocorr_et")+"_cut0", jets[ijet].et() /jetcorr);
+	   hjets_->Fill1d(TString("jet_et")+"_"+"cut0", fJES*jets[ijet].et());
+	   hjets_->Fill1d(TString("jet_eta")+"_"+"cut0", fJES*jets[ijet].eta());
+	   hjets_->Fill1d(TString("jet_phi")+"_"+"cut0", fJES*jets[ijet].phi());
+	   hjets_->Fill2d(TString("jet_ptVseta")+"_cut0", fJES*jets[ijet].et(),fJES*jets[ijet].eta());
+	   hjets_->Fill1d(TString("jet_emFrac_cut0"), fJES*jets[ijet].emEnergyFraction());
+	   //float jetcorr = fJES*jets[ijet].jetCorrFactors().scaleDefault();
+	   //hjets_->Fill1d(TString("jet_nocorr_et")+"_cut0", fJES*jets[ijet].et() /jetcorr);
 	   
    }
    
@@ -1197,18 +1202,18 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    if (met.size() != 1 ) edm::LogWarning ("BooLowMAnalyzer") << "MET collection has size different from ONE! size: "<< met.size() << std::endl;
       
    for( size_t imet=0; imet != met.size(); ++imet) {
-	   hmet_->Fill1d(TString("MET")+"_"+"cut0", met[imet].et());
-	   hmet_->Fill1d(TString("MET_eta")+"_"+"cut0", met[imet].eta());
-	   hmet_->Fill1d(TString("MET_phi")+"_"+"cut0", met[imet].phi());
+	   hmet_->Fill1d(TString("MET")+"_"+"cut0", fJES*met[imet].et());
+	   hmet_->Fill1d(TString("MET_eta")+"_"+"cut0", fJES*met[imet].eta());
+	   hmet_->Fill1d(TString("MET_phi")+"_"+"cut0", fJES*met[imet].phi());
 	   hmet_->Fill1d(TString("MET_deltaR_muon")+"_"+"cut0", DeltaR<reco::Candidate>()( met[imet] , muons[0] ));
-	   hmet_->FillvsJets2d(TString("MET_vsJets")+"_cut0",met[imet].et(), vectorjets);
-	   hmet_->Fill1d(TString("Ht")+"_cut0", met[imet].sumEt());
-	   hmet_->FillvsJets2d(TString("Ht_vsJets")+"_cut0",met[imet].sumEt(), vectorjets);
-	   hmet_->Fill1d("MET_resolution_cut0",(met[imet].et() - met[imet].genMET()->et())/ met[imet].genMET()->et() );
+	   hmet_->FillvsJets2d(TString("MET_vsJets")+"_cut0",fJES*met[imet].et(), vectorjets);
+	   hmet_->Fill1d(TString("Ht")+"_cut0", fJES*met[imet].sumEt());
+	   hmet_->FillvsJets2d(TString("Ht_vsJets")+"_cut0",fJES*met[imet].sumEt(), vectorjets);
+	   hmet_->Fill1d("MET_resolution_cut0",(fJES*met[imet].et() - met[imet].genMET()->et())/ met[imet].genMET()->et() );
    }
 
    METP4.SetPxPyPzE(met[0].px(), met[0].py(), met[0].pz(), met[0].energy());
-   myMETP4 = (-1)*myMETP4;
+   myMETP4 = (-1)*fJES*myMETP4;
 
    if (fUseMyMET) METP4 = myMETP4;
    
@@ -1305,8 +1310,8 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 		   if (jets[ijet].pt() <= fMinJetPt || fabs(jets[ijet].eta()) >= fMaxJetEta ) continue;
 		   
-		   fasciiFile << jets[ijet].energy() <<" "<< jets[ijet].px() <<" "<<jets[ijet].py()<<" "<<jets[ijet].pz()<< " " << jets[ijet].bDiscriminator("trackCountingHighEffBJetTags") << std::endl;
-		       
+		   fasciiFile << jets[ijet].energy() <<" "<< jets[ijet].px() <<" "<<jets[ijet].py()<<" "<<jets[ijet].pz()<< " " << jets[ijet].bDiscriminator("jetProbabilityBJetTags") << std::endl;
+		   //"trackCountingHighEffBJetTags"
 	   }
    }
 
@@ -1370,10 +1375,11 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   
 	   // number oftag jets MediumOP
 	   int nbtags =0;
-	   if (jets[ bestCombo.GetIdHadb() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
-	   if (jets[ bestCombo.GetIdLepb() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
-	   if (jets[ bestCombo.GetIdWq() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
-	   if (jets[ bestCombo.GetIdWp() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
+	   double looseOP = 0.241;
+	   if (jets[ bestCombo.GetIdHadb() ].bDiscriminator("jetProbabilityBJetTags") > looseOP ) nbtags++;
+	   if (jets[ bestCombo.GetIdLepb() ].bDiscriminator("jetProbabilityBJetTags") > looseOP ) nbtags++;
+	   if (jets[ bestCombo.GetIdWq() ].bDiscriminator("jetProbabilityBJetTags") > looseOP ) nbtags++;
+	   if (jets[ bestCombo.GetIdWp() ].bDiscriminator("jetProbabilityBJetTags") > looseOP ) nbtags++;
 	   hjets_->Fill1d("number_bjets_cut1", nbtags );
 
 	   // check MC truth
@@ -1422,8 +1428,8 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   if (debug ) std::cout << "number of good jets " << NgoodJets << std::endl;
 
 		   myCombi_.SetLeptonicW( lepWP4 );
-		   // remove top mass constraint
-		   //myCombi_.UseMtopConstraint(false);
+		   // top mass constraint
+		   myCombi_.UseMtopConstraint(fUseMtopConstraint);
 		   double Ndof = 3.;
 		   // apply btagging
 		   if (fUsebTagging) {
@@ -1441,8 +1447,9 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   //extra
 		   myCombi2_.SetMinMassLepTop( 150.);
 		   myCombi2_.SetMaxMassLepTop( 230.);
-		   // remove top mass constraint
-		   //myCombi2_.UseMtopConstraint(false);
+		   
+		   // top mass constraint
+		   myCombi2_.UseMtopConstraint(fUseMtopConstraint);
 
 		   // btagging
 		   //myCombi2_.UsebTagging();
@@ -1510,17 +1517,18 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   hmass_->Fill2d(TString("HadTop_vs_HadW")+"_cut2", hadTopP4.M(), hadWP4.M());
 		   hmass_->Fill2d(TString("HadTop_vs_LepTop")+"_cut2", hadTopP4.M(), lepTopP4.M());
 	   
-		   hjets_->Fill1d("jet_Hadb_disc_cut2", jets[ bestCombo.GetIdHadb() ].bDiscriminator("trackCountingHighEffBJetTags") );
-		   hjets_->Fill1d("jet_Lepb_disc_cut2", jets[ bestCombo.GetIdLepb() ].bDiscriminator("trackCountingHighEffBJetTags") );
+		   hjets_->Fill1d("jet_Hadb_disc_cut2", jets[ bestCombo.GetIdHadb() ].bDiscriminator("jetProbabilityBJetTags") );
+		   hjets_->Fill1d("jet_Lepb_disc_cut2", jets[ bestCombo.GetIdLepb() ].bDiscriminator("jetProbabilityBJetTags") );
 		   hjets_->Fill1d("jet_Hadb_flavor_cut2", jets[ bestCombo.GetIdHadb() ].partonFlavour() );
 		   hjets_->Fill1d("jet_Lepb_flavor_cut2", jets[ bestCombo.GetIdLepb() ].partonFlavour() );
 
-		   // number of tag jets Medium OP
+		   // number of tag jets
 		   int nbtags = 0;
-		   if ( jets[ bestCombo.GetIdHadb() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
-		   if (jets[ bestCombo.GetIdLepb() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
-		   if (jets[ bestCombo.GetIdWq() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
-		   if (jets[ bestCombo.GetIdWp() ].bDiscriminator("trackCountingHighEffBJetTags") > 4.38 ) nbtags++;
+		   double looseOP = 0.241;
+		   if ( jets[ bestCombo.GetIdHadb() ].bDiscriminator("jetProbabilityBJetTags") > looseOP ) nbtags++;
+		   if (jets[ bestCombo.GetIdLepb() ].bDiscriminator("jetProbabilityBJetTags") > looseOP ) nbtags++;
+		   if (jets[ bestCombo.GetIdWq() ].bDiscriminator("jetProbabilityBJetTags") > looseOP ) nbtags++;
+		   if (jets[ bestCombo.GetIdWp() ].bDiscriminator("jetProbabilityBJetTags") > looseOP ) nbtags++;
 		   hjets_->Fill1d("number_bjets_cut2", nbtags );
 
 		   ///////////////

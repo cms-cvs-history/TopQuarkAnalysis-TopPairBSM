@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: BooHistograms.cc,v 1.1.2.11 2009/04/27 19:16:50 yumiceva Exp $
+ version $Id: BooHistograms.cc,v 1.1.2.12 2009/04/29 19:28:14 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -122,9 +122,9 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h1["LeptonicTop_pt"+suffix1] = new TH1D("LeptonicTop_pt"+suffix1, "p_{T} (jet+W_{#mu+#nu}) [GeV/c]",100,0,4500.);
 		h1["HadronicTop_pt"+suffix1] = new TH1D("HadronicTop_pt"+suffix1, "p_{T} (jet+leading-jet) [GeV/c]",100,0,4500.);
 		h1["jet_combinations_ProbChi2"+suffix1] = new TH1D("jet_combinations_ProbChi2"+suffix1, "#chi^{2} Probability",50,0,1.);
-		h1["jet_combinations_NormChi2"+suffix1] = new TH1D("jet_combinations_NormChi2"+suffix1, "#chi^{2}/ndf",150,0,30);
+		h1["jet_combinations_NormChi2"+suffix1] = new TH1D("jet_combinations_NormChi2"+suffix1, "#chi^{2}/ndf",100,0,30);
 		h1["MCjet_combinations_ProbChi2"+suffix1] = new TH1D("MCjet_combinations_ProbChi2"+suffix1, "#chi^{2} Probability",50,0,1.);
-		h1["MCjet_combinations_NormChi2"+suffix1] = new TH1D("MCjet_combinations_NormChi2"+suffix1, "#chi^{2}/ndf",100,0,250);
+		h1["MCjet_combinations_NormChi2"+suffix1] = new TH1D("MCjet_combinations_NormChi2"+suffix1, "#chi^{2}/ndf",100,0,30);
 
 		h1["jet_Hadb_disc"+suffix1] = new TH1D("jet_Hadb_disc"+suffix1,"b-tag discriminator",40,-20,100);
 		h1["jet_Lepb_disc"+suffix1] = new TH1D("jet_Lepb_disc"+suffix1,"b-tag discriminator",40,-20,100);
