@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooABCDAnalyzer.cc,v 1.1.2.5 2009/04/27 19:16:49 yumiceva Exp $
+// $Id: BooABCDAnalyzer.cc,v 1.1.2.6 2009/05/07 04:06:27 yumiceva Exp $
 //
 //
 
@@ -388,7 +388,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    // H L T
    //
    for (int itrig = 0; itrig < ntrigs; ++itrig) {
-	   if (triggerNames_.triggerName(itrig) == "HLT_Mu15") {
+	   if (triggerNames_.triggerName(itrig) == "HLT_Mu9") {
 		   acceptHLT = hltresults->accept(itrig);
 	   }
    }
@@ -406,7 +406,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    }
    
    if ( !acceptHLT ) return;
-   hcounter->Counter("HLT_Mu15");
+   hcounter->Counter("HLT_Mu9");
    
 	   
    /////////////////////////////////////////
@@ -581,7 +581,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 			   hmuons_->Fill1d("muon_RelIso_cut2", RelIso);
 
 			   			   			   
-			   if ( oldRelIso > fMuonRelIso ) {
+			   if ( oldRelIso > fMuonRelIso  && fabs(d0/d0sigma)<3 ) {
 
 				   NgoodIsoMuons++;
 				   if ( NgoodIsoMuons==1 ) {
@@ -599,7 +599,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 			   // which muon should I pick ??
 			   // pick the leading muon
-			   if ( NgoodMuonsID == 1 ) {
+			   else if ( NgoodMuonsID == 1 ) {
 				   
 					   double energymu = muons[imu].energy();
 					   muonP4.SetPxPyPzE(muons[imu].px(),muons[imu].py(),muons[imu].pz(),energymu );

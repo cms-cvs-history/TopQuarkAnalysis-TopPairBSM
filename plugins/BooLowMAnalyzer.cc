@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooLowMAnalyzer.cc,v 1.1.2.14 2009/04/29 19:28:13 yumiceva Exp $
+// $Id: BooLowMAnalyzer.cc,v 1.1.2.15 2009/05/07 04:06:27 yumiceva Exp $
 //
 //
 
@@ -929,17 +929,17 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   hmuons_->Fill1d("muon_pt_cut0", muonpt );
 	   hmuons_->Fill1d("muon_eta_cut0", muoneta );
 
+	   // Loose muons
+	   double looseRelIso = ( muonpt/(muonpt + muons[imu].caloIso() + muons[imu].trackIso()) );
+	   if (muonpt > 10. && fabs(muons[imu].eta()) < 2.5 && looseRelIso>0.8 )
+		   NlooseMuonsID++;
+	   
 	   // Muon ID
 	   int nhit = muons[imu].innerTrack()->numberOfValidHits();
 	   double normChi2 = muons[imu].globalTrack()->chi2() / muons[imu].globalTrack()->ndof();
 	   if ( nhit > 10 && normChi2 < 10 ) {
 		   hmuons_->Fill1d("muon_pt_cut1", muonpt );
 		   hmuons_->Fill1d("muon_eta_cut1", muoneta );
-
-		   // Loose muons
-		   double looseRelIso = ( muonpt/(muonpt + muons[imu].caloIso() + muons[imu].trackIso()) );
-		   if (muonpt > 10. && fabs(muons[imu].eta()) < 2.5 && looseRelIso>0.8 )
-			   NlooseMuonsID++;
 	   }
 	   
 	   if ( (muonpt > fMinMuonPt) && fabs(muons[imu].eta()) < fMaxMuonEta ) {
