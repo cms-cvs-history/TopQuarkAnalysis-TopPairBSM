@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooABCDAnalyzer.cc,v 1.1.2.6 2009/05/07 04:06:27 yumiceva Exp $
+// $Id: BooABCDAnalyzer.cc,v 1.1.2.7 2009/05/07 20:01:38 yumiceva Exp $
 //
 //
 
@@ -599,7 +599,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 			   // which muon should I pick ??
 			   // pick the leading muon
-			   else if ( NgoodMuonsID == 1 ) {
+			   if ( NgoodMuonsID == 1 ) {
 				   
 					   double energymu = muons[imu].energy();
 					   muonP4.SetPxPyPzE(muons[imu].px(),muons[imu].py(),muons[imu].pz(),energymu );
