@@ -15,7 +15,9 @@
 
 <library file=BooLowMAnalyzer.cc name=BooLowMAnalyzer>
   <flags EDM_PLUGIN=1>
-  <flags CXXFLAGS="-O0 -g -DDEBUG">
+  <flags CXXFLAGS="-O0 -g -DDEBUG -I/uscms_data/d2/jengbou/Generators/LHAPDFLIB/include">
+  <flags LDFLAGS="-Wl,-rpath /uscms_data/d2/jengbou/Generators/LHAPDFLIB/lib -L/uscms_data/d2/jengbou/Generators/LHAPDFLIB/lib -lLHAPDF">
+ 
 </library>
 
 <library file=BooABCDAnalyzer.cc name=BooABCDAnalyzer>
