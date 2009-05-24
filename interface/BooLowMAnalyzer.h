@@ -46,104 +46,106 @@ struct partonMaxPt
 
 class BooLowMAnalyzer : public edm::EDAnalyzer {
 
-  public:
+ public:
 
 
-    /// Constructor
-    BooLowMAnalyzer(const edm::ParameterSet& pset);
+  // Constructor
+  BooLowMAnalyzer(const edm::ParameterSet& pset);
+    
+  // Destructor
+  virtual ~BooLowMAnalyzer();
 
-    /// Destructor
-    virtual ~BooLowMAnalyzer();
+  // Perform the real analysis
+  void analyze(const edm::Event & iEvent, const edm::EventSetup& iSetup);
 
-    /// Perform the real analysis
-    void analyze(const edm::Event & iEvent, const edm::EventSetup& iSetup);
-
-    /// 3d angles
-	double Psi(TLorentzVector p1, TLorentzVector p2, double mass);
-	double dij(TLorentzVector p1, TLorentzVector p2, double mass, bool min = true);
-	double PtRel(TLorentzVector p, TLorentzVector paxis);
+  // 3d angles
+  double Psi(TLorentzVector p1, TLorentzVector p2, double mass);
+  double dij(TLorentzVector p1, TLorentzVector p2, double mass, bool min = true);
+  double PtRel(TLorentzVector p, TLorentzVector paxis);
 	
-	typedef math::XYZTLorentzVector LorentzVector;
+  typedef math::XYZTLorentzVector LorentzVector;
 
-	/// Jet to parton matching
-	bool IsTruthMatch( Combo acombo, const edm::View<pat::Jet> jets,  TtGenEvent genEvt, bool MatchFlavor = false);
+  // Jet to parton matching
+  bool IsTruthMatch( Combo acombo, const edm::View<pat::Jet> jets,  TtGenEvent genEvt, bool MatchFlavor = false);
 
-  private:
-
-
-    // Histogram containers
-	BooHistograms *hcounter;
-	BooHistograms *hmuons_;
-	BooHistograms *helectrons_;
-	BooHistograms *hmet_;
-	BooHistograms *hjets_;
-	BooHistograms *hgen_;
-	BooHistograms *hmass_;
-	BooHistograms *hdisp_;
+ private:
+  
+  // Histogram containers
+  BooHistograms *hcounter;
+  BooHistograms *hmuons_;
+  BooHistograms *helectrons_;
+  BooHistograms *hmet_;
+  BooHistograms *hjets_;
+  BooHistograms *hgen_;
+  BooHistograms *hmass_;
+  BooHistograms *hdisp_;
 	
-	std::map<TString, TString> cut_map;
+  std::map<TString, TString> cut_map;
 	    
-    // The file which will store the histos
-    TFile *theFile;
-    // ascii outpur filename
-	std::ofstream fasciiFile;
+  // The file which will store the histos
+  TFile *theFile;
+  // ascii outpur filename
+  std::ofstream fasciiFile;
 
-	JetCombinatorics myCombi_;
-	JetCombinatorics myCombi0_;
-	JetCombinatorics myCombi2_;
-	JetCombinatorics myCombi3_;
+  JetCombinatorics myCombi_;
+  JetCombinatorics myCombi0_;
+  JetCombinatorics myCombi2_;
+  JetCombinatorics myCombi3_;
 
 	
-    // configuration
-	bool fwriteAscii;// flag to dump ASCII file
-    std::string fasciiFileName; // ASCII filename
-    // csa07 weights
-    bool fApplyWeights;
-    bool fIsMCTop;
+  // configuration
+  bool fwriteAscii;// flag to dump ASCII file
+  std::string fasciiFileName; // ASCII filename
+  // csa07 weights
+  bool fApplyWeights;
+  bool fIsMCTop;
 
-    // verbose
-    bool debug;
-	bool fdisplayJets; // make lego plots
-    int feventToProcess;
+  // verbose
+  bool debug;
+  bool fdisplayJets; // make lego plots
+  int feventToProcess;
 	
-    std::string rootFileName;
-	edm::InputTag genEvnSrc;
-    edm::InputTag muonSrc;
-    edm::InputTag electronSrc;
-    edm::InputTag metSrc;
-    edm::InputTag jetSrc;
-	edm::InputTag jetSrc1;
-    edm::InputTag jetSrc2;
+  std::string rootFileName;
+  edm::InputTag genEvnSrc;
+  edm::InputTag muonSrc;
+  edm::InputTag electronSrc;
+  edm::InputTag metSrc;
+  edm::InputTag jetSrc;
+  edm::InputTag jetSrc1;
+  edm::InputTag jetSrc2;
+  edm::InputTag pdfInfoTag;
+  std::string pdfSetName;
 
-    edm::InputTag evtsols;
+  edm::InputTag evtsols;
 
-	bool fUsebTagging;
-	bool fUseMtopConstraint;
+  bool fUsebTagging;
+  bool fUseMtopConstraint;
 
-	int nevents;
-	int nbadmuons;
-	int nWcomplex;
-	int MCAllmatch_chi2_;
-	int MCAllmatch_sumEt_;
-		
-	double fMinMuonPt;
-	double fMaxMuonEta;
-	double fMuonRelIso;
-	double fMaxMuonEm;
-	double fMaxMuonHad;
+  int nevents;
+  int nbadmuons;
+  int nWcomplex;
+  int MCAllmatch_chi2_;
+  int MCAllmatch_sumEt_;
+  unsigned int nmembers;
+  
+  double fMinMuonPt;
+  double fMaxMuonEta;
+  double fMuonRelIso;
+  double fMaxMuonEm;
+  double fMaxMuonHad;
 	
-	double fMinElectronPt;
-	double fMaxElectronEta;
-	double fElectronRelIso;
+  double fMinElectronPt;
+  double fMaxElectronEta;
+  double fElectronRelIso;
 	
-	double fMinLeadingJetPt;
-	double fMinJetPt;
-	double fMaxJetEta;
-	double fMinHt;
-	double fMinMET;
-	bool fUseMyMET;
-	bool fApplyJetAsymmetricCuts;
-	double fJES;
+  double fMinLeadingJetPt;
+  double fMinJetPt;
+  double fMaxJetEta;
+  double fMinHt;
+  double fMinMET;
+  bool fUseMyMET;
+  bool fApplyJetAsymmetricCuts;
+  double fJES;
 };
 
 
