@@ -8,7 +8,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: JetCombinatorics.h,v 1.1.4.8 2009/03/26 22:39:33 yumiceva Exp $
+ version $Id: JetCombinatorics.h,v 1.1.4.9 2009/05/07 04:06:27 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -28,11 +28,19 @@ class Combo {
 
 	Combo() {
 		
-		MW = 79.8;//80.4
-		Mtop = 175.;
-		SumEt_ = 0.;
-		usebtag_ = false;
-		useMtop_ = true;
+	  MW = 84.2;//79.8;
+	  Mtop_h = 180.7;//175.;
+	  Mtop_l = 174.9;
+	  sigmaHadW = 10.5;//2.*7.6;
+	  sigmaHadt = 19.2;//2.*12.5;
+	  sigmaLept = 24.2;//2.*15.6;
+
+	  SumEt_ = 0.;
+	  usebtag_ = false;
+	  useMtop_ = true;
+
+	  useFlv_ = false;
+	  Wp_flv_ = Wq_flv_ = Hadb_flv_ = Lepb_flv_ = 1.;
 	}
 	~Combo(){};
 
@@ -41,6 +49,13 @@ class Combo {
 	void SetHadb(TLorentzVector Hadb) { Hadb_ = Hadb; }
 	void SetLepW(TLorentzVector LepW) { LepW_ = LepW; }
 	void SetLepb(TLorentzVector Lepb) { Lepb_ = Lepb; }
+	// flavor corrections
+	void ApplyFlavorCorrections(bool option=true){ useFlv_ = option;}
+	void SetFlvCorrWp( double corr ) { Wp_flv_ = corr; }
+	void SetFlvCorrWq( double corr ) { Wq_flv_ = corr; }
+	void SetFlvCorrHadb( double corr ) { Hadb_flv_ = corr; }
+	void SetFlvCorrLepb( double corr ) { Lepb_flv_ = corr; }
+	// b tagging
 	void SetWp_disc(double disc) { Wp_disc_ = disc;}
 	void SetWq_disc(double disc) { Wq_disc_= disc;}
 	void SetHadb_disc(double disc) { Hadb_disc_= disc;}
@@ -49,6 +64,29 @@ class Combo {
 	  pdffile_ = TFile::Open(filename);
 	  hdisc_b_ = (TH1F*) gDirectory->Get("hdiscNorm_b");
 	  hdisc_cl_ = (TH1F*) gDirectory->Get("hdiscNorm_cl");
+	}
+	void SetSigmas(int type=0) {
+
+	  // type == 0 take defaults
+	  if (type==1) {
+	    // JES +10%
+	    MW = 87.2;
+	    Mtop_h = 193.2;
+	    Mtop_l = 179.0;
+	    sigmaHadW = 13.0;
+	    sigmaHadt = 22.8;
+	    sigmaLept = 26.3;
+	  }
+	  if (type==-1) {
+            // JES -10%
+            MW = 81.6;
+            Mtop_h = 169.3;
+            Mtop_l = 171.4;
+            sigmaHadW =8.9;
+            sigmaHadt =17.9;
+            sigmaLept =22.6;
+	  }
+
 	}
 	void Usebtagging(bool option = true) { usebtag_ = option;}
 	void SetMinMassLepW( double mass ) { minMassLepW_ = mass; }
@@ -61,18 +99,25 @@ class Combo {
 		
 	void analyze() {
 
+		if ( useFlv_ ) {
+			Wp_ = Wp_flv_ * Wp_;
+			Wq_ = Wq_flv_ * Wq_;
+			Hadb_ = Hadb_flv_ * Hadb_;
+			Lepb_ = Lepb_flv_ * Lepb_;
+		}
+
 		HadW_ = Wp_ + Wq_;
 		HadTop_ = HadW_ + Hadb_;
 		LepTop_ = LepW_ + Lepb_;
 		TopPair_ = HadTop_ + LepTop_;
 
-		double sigmaHadW = 10.5;//2.*7.6;
-		double sigmaHadt = 19.3;//2.*12.5;
-		double sigmaLept = 21.2;//2.*15.6;
+		//double sigmaHadW = 10.5;//2.*7.6;
+		//double sigmaHadt = 19.2;//2.*12.5;
+		//double sigmaLept = 24.2;//2.*15.6;
 		
 		double chiHadW = (HadW_.M() - MW)/sigmaHadW;
-		double chiHadt = (HadTop_.M() - Mtop)/sigmaHadt;
-		double chiLept = (LepTop_.M() - Mtop)/sigmaLept;
+		double chiHadt = (HadTop_.M() - Mtop_h)/sigmaHadt;
+		double chiLept = (LepTop_.M() - Mtop_l)/sigmaLept;
 
 		if ( useMtop_ ) {
 			chi2_ = chiHadW*chiHadW + chiHadt*chiHadt + chiLept*chiLept;
@@ -179,6 +224,8 @@ class Combo {
 	TH1F *hdisc_b_;
 	TH1F *hdisc_cl_;
 
+	double Wp_flv_, Wq_flv_, Hadb_flv_, Lepb_flv_;
+	bool useFlv_;
 	double chi2_;
 	double Ndof_;
 	double SumEt_;
@@ -191,7 +238,12 @@ class Combo {
 	double maxMassLepTop_;
 
 	double MW;
-	double Mtop;
+	double Mtop_h;
+	double Mtop_l;
+	double sigmaHadW;
+	double sigmaHadt;
+	double sigmaLept;
+
 
 	int IdHadb_;
 	int IdWp_;
@@ -232,12 +284,16 @@ class JetCombinatorics {
 	std::map< int, std::string > NestedCombinatorics();
 
 	void FourJetsCombinations(std::vector<TLorentzVector> jets, std::vector<double> bdiscriminators = 0);
+	void SetFlavorCorrections(std::vector<double > vector ) { flavorCorrections_ = vector; }
 	void SetMaxNJets(int n) { maxNJets_ = n; }
 	Combo GetCombination(int n=0);
 	Combo GetCombinationSumEt(int n=0);
 	int GetNumberOfCombos() { return ( (int)allCombos_.size() ); } 
 	//void SetCandidate( std::vector< TLorentzVector > JetCandidates );
-	
+
+	void SetSigmas(int type = 0) {
+	  SigmasTypef = type;
+	}
 	void SetLeptonicW( TLorentzVector LepW ) { theLepW_ = LepW; }
 
 	void SetMinMassLepW( double mass ) { minMassLepW_ = mass; }
@@ -248,6 +304,7 @@ class JetCombinatorics {
 	void SetMaxMassLepTop( double mass ) { maxMassLepTop_ = mass; }
 
 	void UsebTagging( bool option = true ) { UsebTagging_ = option; }
+	void ApplyFlavorCorrection( bool option = true ) { UseFlv_ = option; }
 	void UseMtopConstraint( bool option = true) { UseMtop_ = option; }
 	void SetbTagPdf( TString name ) { bTagPdffilename_ = name; }
 	void Clear();
@@ -265,16 +322,19 @@ class JetCombinatorics {
 
 	//int kcombos_;
 	//int maxcombos_;
+	int SigmasTypef;
 	bool verbosef;
 	std::map< int, std::string > Template4jCombos_;
 	std::map< int, std::string > Template5jCombos_;
 	std::map< int, std::string > Template6jCombos_;
 	std::map< int, std::string > Template7jCombos_;
 
+	std::vector< double > flavorCorrections_;
 	int maxNJets_;
 	bool UsebTagging_;
 	bool UseMtop_;
 	TString bTagPdffilename_;
+	bool UseFlv_;
 	
 	TLorentzVector theLepW_;
 

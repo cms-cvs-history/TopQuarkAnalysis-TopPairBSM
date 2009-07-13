@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: JetCombinatorics.cc,v 1.1.4.4 2009/02/25 05:45:37 yumiceva Exp $
+ version $Id: JetCombinatorics.cc,v 1.1.4.5 2009/03/26 22:39:34 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -41,6 +41,8 @@ JetCombinatorics::JetCombinatorics() {
 	verbosef = false;
 	UsebTagging_ = false;
 	UseMtop_ = true;
+	SigmasTypef = 0;
+	UseFlv_ = false;
 	
 	Template4jCombos_ = NestedCombinatorics(); // 12 combinations
 	Template5jCombos_ = Combinatorics(4,5); // 5 combinations of 4 combos
@@ -240,7 +242,7 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets, st
 		std::vector< TLorentzVector > the4jets;
 		std::vector< int > the4Ids;
 		std::vector< double > thebdisc;
-		
+		std::vector< double > theFlvCorr;
 		//the4jets[0] = jets[0];
 		
 		for (int ij=0; ij<4; ij++) {
@@ -252,6 +254,7 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets, st
 			the4jets.push_back(jets[tmpi]);
 			the4Ids.push_back(tmpi);
 			if ( UsebTagging_ ) thebdisc.push_back( bdiscriminators[tmpi] );
+			if ( UseFlv_ ) theFlvCorr.push_back( flavorCorrections_[tmpi] );
 		}
 
 		if (verbosef) std::cout<< "[JetCombinatorics] with these 4 jets, make 12 combinations: " <<std::endl;
@@ -277,6 +280,14 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets, st
 			acombo.SetIdHadb( the4Ids[atoi((a4template.substr(2,1)).c_str())] );
 			acombo.SetIdLepb( the4Ids[atoi((a4template.substr(3,1)).c_str())] );
 			//std::cout << " acombo setup" << std::endl;
+
+			if ( UseFlv_ ) {
+				acombo.SetFlvCorrWp( theFlvCorr[atoi((a4template.substr(0,1)).c_str())] );
+				acombo.SetFlvCorrWq( theFlvCorr[atoi((a4template.substr(1,1)).c_str())] );
+				acombo.SetFlvCorrHadb( theFlvCorr[atoi((a4template.substr(2,1)).c_str())] );
+				acombo.SetFlvCorrLepb( theFlvCorr[atoi((a4template.substr(3,1)).c_str())] );
+				acombo.ApplyFlavorCorrections();
+			}
 			if ( UsebTagging_ ) {
 
 				acombo.Usebtagging();
@@ -289,7 +300,9 @@ void JetCombinatorics::FourJetsCombinations(std::vector<TLorentzVector> jets, st
 			}
 
 			acombo.UseMtopConstraint(UseMtop_);
-			
+			// choose value of sigmas
+			acombo.SetSigmas(SigmasTypef);
+
 			acombo.analyze();
 
 			if (verbosef) {

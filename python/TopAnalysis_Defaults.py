@@ -15,7 +15,8 @@ TopAnalyzer = cms.EDAnalyzer("BooLowMAnalyzer",
                                        MinJetPt        = cms.double( 30. ),
                                        MaxJetEta       = cms.double( 2.4),
                                        ApplyAsymmetricCuts = cms.bool(False),
-                                       JES             = cms.double( 1. )
+                                       JES             = cms.double( 1. ),
+                                       ApplyFlavorJEC = cms.bool(False)
                                        ),
                              muonCuts = cms.PSet(
                                        MinPt  = cms.double( 20. ),
