@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooLowMAnalyzer.cc,v 1.1.2.16 2009/05/07 20:01:38 yumiceva Exp $
+// $Id: BooLowMAnalyzer.cc,v 1.1.2.18 2009/07/13 15:13:36 yumiceva Exp $
 //
 //
 
@@ -195,6 +195,7 @@ BooLowMAnalyzer::BooLowMAnalyzer(const edm::ParameterSet& iConfig)
 
   hmet_->Init("MET","cut0");
   hmet_->Init("MET","cut1");
+  hmet_->Init("MET","cut2"); // GYJ 2009/07/27
 
   if (fdisplayJets) hdisp_->Init("DisplayJets","cut0");
   
@@ -777,6 +778,14 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
    BooTools tools;
    
+   // MET dist before event selection GYJ--2009/07/27
+   for( size_t imet=0; imet != met.size(); ++imet) {
+     hmet_->Fill1d(TString("MET")+"_"+"cut1", fJES*met[imet].et());
+     hmet_->Fill1d(TString("MET_eta")+"_"+"cut1", fJES*met[imet].eta());
+     hmet_->Fill1d(TString("MET_phi")+"_"+"cut1", fJES*met[imet].phi());
+     hmet_->Fill1d(TString("MET_phi")+"_"+"cut2", fJES*met[imet].uncorrectedPhi(pat::MET::uncorrALL));
+   }
+
    ////////////////////////////////////////
    //
    // S E L E C T    J E T S
@@ -996,7 +1005,7 @@ BooLowMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   double d0 = -1.* muons[imu].innerTrack()->dxy(point);
 		   hmuons_->Fill2d("muon_phi_vs_d0_cut0", muons[imu].innerTrack()->phi(), muons[imu].innerTrack()->d0() );
 		   hmuons_->Fill2d("muon_phi_vs_d0_cut1", muons[imu].innerTrack()->phi(), d0 );
-		   double d0sigma = sqrt( muons[imu].innerTrack()->d0Error() * muons[imu].innerTrack()->d0Error() + beamSpot.BeamWidth()*beamSpot.BeamWidth());
+		   double d0sigma = sqrt( muons[imu].innerTrack()->d0Error() * muons[imu].innerTrack()->d0Error() + beamSpot.BeamWidthX()*beamSpot.BeamWidthX());
 
 		   hmuons_->Fill1d("muon_IPS_cut1", d0/d0sigma );
 

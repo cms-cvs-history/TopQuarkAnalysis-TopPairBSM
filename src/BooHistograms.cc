@@ -5,7 +5,7 @@
 
  author: Francisco Yumiceva, Fermilab (yumiceva@fnal.gov)
 
- version $Id: BooHistograms.cc,v 1.1.2.13 2009/05/07 04:06:28 yumiceva Exp $
+ version $Id: BooHistograms.cc,v 1.1.2.15 2009/07/13 15:13:37 yumiceva Exp $
 
 ________________________________________________________________**/
 
@@ -184,7 +184,8 @@ void BooHistograms::Init(TString type, TString suffix1, TString suffix2) {
 		h2["MET_vsJets"+suffix1] = new TH2D("MET_vsJets"+suffix1,"MET [GeV] vs Jets",100,0.0,400,4,1,5);
 		h1["MET"+suffix1] = new TH1D("MET"+suffix1,"MET [GeV]",100,0.0,400);
 		h1["MET_eta"+suffix1] = new TH1D("MET_eta"+suffix1,"#eta_{MET}",50,-3.,3.);
-		h1["MET_phi"+suffix1] = new TH1D("MET_phi"+suffix1,"#phi_{MET}",30,-3.15,3.15);
+ 		h1["MET_phi"+suffix1] = new TH1D("MET_phi"+suffix1,"#phi_{MET}",32,-3.2,3.2); //GYJ 2009/07/27
+//   		h1["MET_phi"+suffix1] = new TH1D("MET_phi"+suffix1,"#phi_{MET}",30,-3.15,3.15);
 		h1["MET_resolution"+suffix1] = new TH1D("MET_resolution"+suffix1,"MET_{reco}-MET_{gen}/MET_{gen}",30,-10,10);
 		
 		h1["Ht"+suffix1] = new TH1D("Ht"+suffix1,"Ht [GeV]",100,0,2500);

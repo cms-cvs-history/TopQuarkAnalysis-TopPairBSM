@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooHighMAnalyzer.cc,v 1.1.2.12 2009/04/14 20:41:38 yumiceva Exp $
+// $Id: BooHighMAnalyzer.cc,v 1.1.2.1 2009/04/27 19:16:49 yumiceva Exp $
 //
 //
 
@@ -939,7 +939,7 @@ BooHighMAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 		   double d0 = -1.* muons[imu].innerTrack()->dxy(point);
 		   hmuons_->Fill2d("muon_phi_vs_d0_cut0", muons[imu].innerTrack()->phi(), muons[imu].innerTrack()->d0() );
 		   hmuons_->Fill2d("muon_phi_vs_d0_cut1", muons[imu].innerTrack()->phi(), d0 );
-		   double d0sigma = sqrt( muons[imu].innerTrack()->d0Error() * muons[imu].innerTrack()->d0Error() + beamSpot.BeamWidth()*beamSpot.BeamWidth());
+		   double d0sigma = sqrt( muons[imu].innerTrack()->d0Error() * muons[imu].innerTrack()->d0Error() + beamSpot.BeamWidthX()*beamSpot.BeamWidthX());
 
 		   hmuons_->Fill1d("muon_IPS_cut1", d0/d0sigma );
 

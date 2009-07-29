@@ -18,7 +18,7 @@ process.options = cms.untracked.PSet(
 process.load("Configuration.StandardSequences.Geometry_cff")
 ## configure conditions
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
-process.GlobalTag.globaltag = cms.string('IDEAL_V9::All')
+process.GlobalTag.globaltag = cms.string('MC_31X_V2::All')
 ## load magnetic field
 process.load("Configuration.StandardSequences.MagneticField_cff")
 
@@ -30,19 +30,19 @@ process.load("TopQuarkAnalysis.TopPairBSM.TopAnalysis_sequences")
 #process.p = cms.Path( process.TopAnalysisNoMuFilter ) # with generator filter on all but muonci decays
 process.p = cms.Path( process.TopAnalysis ) # no generator filter at all
 process.TopAnalyzer.debug = cms.bool(True)
-process.TopAnalyzer.jetSource      = cms.InputTag('selectedLayer1JetsJPT')
+#process.TopAnalyzer.jetSource      = cms.InputTag('selectedLayer1JetsJPT')
 
 # change defaults
-process.BooTopHLTFilter.HLTPaths = [''] # do not filter
+process.BooTopHLTFilter.HLTPaths = cms.vstring() # do not filter
 
 # source
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
     #'file:testPatTuple.root'
-    'dcache:/pnfs/cms/WAX/resilient/yumiceva/Top/PatTuple_2_2_5/TTJets-madgraph_Fall08/TTJets_madgraph_Fall08_1.root'
+    'file:TTJets_madgraph_Summer09.root'
     )
                             )
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10) )
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1) )
 
     

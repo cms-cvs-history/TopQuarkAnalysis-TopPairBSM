@@ -13,7 +13,7 @@
 	 Author: Francisco Yumiceva
 */
 //
-// $Id: BooABCDAnalyzer.cc,v 1.1.2.8 2009/05/08 03:14:47 yumiceva Exp $
+// $Id: BooABCDAnalyzer.cc,v 1.1.2.10 2009/07/13 15:13:36 yumiceva Exp $
 //
 //
 
@@ -564,7 +564,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		   hmuons_->Fill2d("muon_phi_vs_d0_cut0", muons[imu].innerTrack()->phi(), muons[imu].innerTrack()->d0() );
 		   hmuons_->Fill2d("muon_phi_vs_d0_cut1", muons[imu].innerTrack()->phi(), d0 );
 
-		   double d0sigma = sqrt( muons[imu].innerTrack()->d0Error() * muons[imu].innerTrack()->d0Error() + beamSpot.BeamWidth()*beamSpot.BeamWidth());
+		   double d0sigma = sqrt( muons[imu].innerTrack()->d0Error() * muons[imu].innerTrack()->d0Error() + beamSpot.BeamWidthX()*beamSpot.BeamWidthX());
 		   
 		   if ( nhit >= 11 && normChi2 < 10 ) {
 
@@ -632,7 +632,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   size_t imu = ithisolatedmuon;
 	   math::XYZPoint point(beamSpot.x0(),beamSpot.y0(), beamSpot.z0());
 	   double d0 = -1.* muons[imu].innerTrack()->dxy(point);
-	   double d0sigma = sqrt( muons[imu].innerTrack()->d0Error() * muons[imu].innerTrack()->d0Error() + beamSpot.BeamWidth()*beamSpot.BeamWidth());
+	   double d0sigma = sqrt( muons[imu].innerTrack()->d0Error() * muons[imu].innerTrack()->d0Error() + beamSpot.BeamWidthX()*beamSpot.BeamWidthX());
 	   fntuple->muon_px.push_back( muons[imu].px() );
 	   fntuple->muon_py.push_back( muons[imu].py() );
 	   fntuple->muon_pz.push_back( muons[imu].pz() );
@@ -647,7 +647,7 @@ BooABCDAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 	   size_t imu = ithleadingmuon;
 	   math::XYZPoint point(beamSpot.x0(),beamSpot.y0(), beamSpot.z0());
 	   double d0 = -1.* muons[imu].innerTrack()->dxy(point);
-	   double d0sigma = sqrt( muons[imu].innerTrack()->d0Error() * muons[imu].innerTrack()->d0Error() + beamSpot.BeamWidth()*beamSpot.BeamWidth());
+	   double d0sigma = sqrt( muons[imu].innerTrack()->d0Error() * muons[imu].innerTrack()->d0Error() + beamSpot.BeamWidthX()*beamSpot.BeamWidthX());
 	   fntuple->muon_px.push_back( muons[imu].px() );
 	   fntuple->muon_py.push_back( muons[imu].py() );
 	   fntuple->muon_pz.push_back( muons[imu].pz() );
