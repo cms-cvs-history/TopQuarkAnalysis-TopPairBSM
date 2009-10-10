@@ -24,6 +24,12 @@ from PhysicsTools.PatAlgos.tools.coreTools import *
 #removeAllPATObjectsBut(process, ['Muons'])
 #removeSpecificPATObjects(process, ['Electrons', 'Muons', 'Taus'])
 
+# add the trigger information to the configuration
+from PhysicsTools.PatAlgos.tools.trigTools import *
+switchOnTrigger( process )
+from PhysicsTools.PatAlgos.patEventContent_cff import patTriggerEventContent
+
+
 print "Setting variables"
 
 outputdir = './'
@@ -37,29 +43,32 @@ print "Output file : " + outputFileName
 
 # CATopJets
 process.load("RecoJets.Configuration.GenJetParticles_cff")
-from RecoJets.JetProducers.cambridge6GenJets_cff import cambridge6GenJets
+from RecoJets.JetProducers.ca4GenJets_cfi import ca4GenJets
 process.load("TopQuarkAnalysis.TopPairBSM.caTopJets_cff")
 process.load("TopQuarkAnalysis.TopPairBSM.CATopJetTagger_cfi")
 
-process.cambridge8GenJets = cambridge6GenJets.clone( FJ_ktRParam = cms.double(0.8) )
+process.ca8GenJets = ca4GenJets.clone( rParam = cms.double(0.8) )
 
 # switch jet collection to our juets
 from PhysicsTools.PatAlgos.tools.jetTools import *
 
 print "About to switch jet collection"
 
+
 switchJetCollection(process, 
-        'antikt5CaloJets',     # Jet collection; must be already in the event when patLayer0 sequence is executed
+        cms.InputTag('ak5CaloJets'),     # Jet collection; must be already in the event when patLayer0 sequence is executed
         doJTA=True,            # Run Jet-Track association & JetCharge
         doBTagging=True,       # Run b-tagging
         jetCorrLabel=('AK5', 'Calo'),   # example jet correction name; set to None for no JEC
-        doType1MET=False,
-        genJetCollection = cms.InputTag("antikt5GenJets")
+        doType1MET=True,
+        genJetCollection = cms.InputTag("ak5GenJets"),
+        doJetID = True,
+        jetIdLabel = 'ak5'
                     )
 
 ## ==== Example with CaloJets
 addJetCollection(process, 
-        'caTopCaloJets',         # Jet collection; must be already in the event when patLayer0 sequence is executed
+        cms.InputTag('caTopCaloJets'),         # Jet collection; must be already in the event when patLayer0 sequence is executed
         'TopTagCalo',
         doJTA=True,            # Run Jet-Track association & JetCharge
         doBTagging=True,       # Run b-tagging
@@ -67,12 +76,13 @@ addJetCollection(process,
         doType1MET=False,
         doL1Cleaning=False,
         doL1Counters=False,
-        genJetCollection = cms.InputTag("cambridge8GenJets")
+        genJetCollection = cms.InputTag("ca8GenJets"),
+        doJetID = False
                  )
 
 ## ==== Example withPFJets
 addJetCollection(process, 
-        'caTopPFJets',         # Jet collection; must be already in the event when patLayer0 sequence is executed
+        cms.InputTag('caTopPFJets'),         # Jet collection; must be already in the event when patLayer0 sequence is executed
         'TopTagPF',
         doJTA=True,            # Run Jet-Track association & JetCharge
         doBTagging=True,       # Run b-tagging
@@ -80,8 +90,11 @@ addJetCollection(process,
         doType1MET=False,
         doL1Cleaning=False,
         doL1Counters=False,
-        genJetCollection = cms.InputTag("cambridge8GenJets")
+        genJetCollection = cms.InputTag("ca8GenJets"),
+        doJetID = False
                  )
+
+
 
 # Place appropriate jet cuts (NB: no cut on number of constituents)
 process.selectedLayer1Jets.cut = cms.string('pt > 30. & abs(eta) < 5.0')
@@ -91,16 +104,7 @@ process.selectedLayer1Muons.cut = cms.string('pt > 20. & abs(eta) < 2.5 & muonID
 process.selectedLayer1Electrons.cut = cms.string('pt > 20. & abs(eta) < 2.5 & electronID("eidLoose")')
 # reduce size of leptons
 process.allLayer1Electrons.isoDeposits = cms.PSet()
-process.allLayer1Electrons.embedGsfTrack = cms.bool(False)
-process.allLayer1Electrons.embedSuperCluster = cms.bool(False)
-process.allLayer1Electrons.embedPFCandidate = cms.bool(False)
 process.allLayer1Muons.isoDeposits = cms.PSet()
-process.allLayer1Muons.addTeVRefits = cms.bool(False)
-process.allLayer1Muons.embedCombinedMuon = cms.bool(False)
-process.allLayer1Muons.embedStandAloneMuon = cms.bool(False)
-process.allLayer1Muons.embedPickyMuon = cms.bool(False)
-process.allLayer1Muons.embedTpfmsMuon = cms.bool(False)
-
 
 # Jets
 
@@ -113,8 +117,8 @@ process.allLayer1JetsTopTagCalo.addTagInfos = cms.bool(True)
 process.allLayer1JetsTopTagCalo.tagInfoSources = cms.VInputTag( cms.InputTag('CATopCaloJetTagInfos') )
 process.allLayer1JetsTopTagCalo.addDiscriminators = cms.bool(False)
 # Add parton match to quarks and gluons
-process.allLayer1JetsTopTagCalo.addGenPartonMatch = cms.bool(False)
-process.allLayer1JetsTopTagCalo.embedGenPartonMatch = cms.bool(False)
+process.allLayer1JetsTopTagCalo.addGenPartonMatch = cms.bool(True)
+process.allLayer1JetsTopTagCalo.embedGenPartonMatch = cms.bool(True)
 process.allLayer1JetsTopTagCalo.embedGenJetMatch = cms.bool(False)
 # Add jet MC flavour (custom built to capture tops)
 process.allLayer1JetsTopTagCalo.getJetMCFlavour = cms.bool(True)
@@ -149,11 +153,6 @@ process.jetPartonMatch.maxDeltaR = cms.double(0.8)
 
 print "Done switching jet collection"
 
-# only keep events that have at least one jet
-process.jetFilter = cms.EDFilter("CandViewCountFilter",
-                                  src = cms.InputTag("cleanLayer1Jets"),
-                                  minNumber = cms.uint32( 1 )
-                                  )
 
 if algorithm == 'kt' :
     process.caTopCaloJets.algorithm = cms.int32(0)
@@ -174,6 +173,31 @@ process.printList = cms.EDAnalyzer( "ParticleListDrawer",
                                 maxEventsToPrint = cms.untracked.int32( 0 )
 )
 
+
+## produce ttGenEvent
+process.load("TopQuarkAnalysis.TopEventProducers.sequences.ttGenEvent_cff")
+
+# prune gen particles
+
+process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
+
+process.prunedGenParticles = cms.EDProducer(
+    "GenParticlePruner",
+    src = cms.InputTag("genParticles"),
+    select = cms.vstring(
+    "drop  *  ",
+    "keep status = 3 & pt > 0.01",
+    "keep++ abs(pdgId) = 23 & status = 1",
+    "keep++ abs(pdgId) = 24 & status = 1"
+    )
+)
+
+
+# require >= 1 jets
+process.countLayer1Jets.minNumber = cms.uint32(1)
+
+
+
 # In addition you usually want to change the following parameters:
 #
 #   process.GlobalTag.globaltag =  ...    ##  (according to https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions)
@@ -190,6 +214,10 @@ process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(100)
 # extend event content to include PAT objects
 process.out.outputCommands.extend(['drop *_genParticles_*_*',
                                    'drop *_generalTracks_*_*',
+                                   'keep *_prunedGenParticles_*_*',
+                                   'keep *_decaySubset_*_*',
+                                   'keep *_initSubset_*_*',
+                                   'keep *_offlineBeamSpot_*_*',
                                    'keep recoCaloJets_caTopCaloJets_*_*',
                                    'keep recoGenJets_ca8GenJets_*_*',
                                    'keep recoPFJets_caTopPFJets_*_*',
@@ -199,11 +227,13 @@ process.out.outputCommands.extend(['drop *_genParticles_*_*',
                                    "keep *_selectedLayer1Jets*_*_*",
                                    'drop *_cleanLayer1Taus_*_*',
                                    'drop *_cleanLayer1Hemispheres_*_*',
-                                   'drop *_cleanLayer1Photons_*_*'
+                                   'drop *_cleanLayer1Photons_*_*',
+                                   'keep GenEventInfoProduct_generator_*_*'
                                    #'keep *_CAJetPartonMatcher_*_*',
                                    #'keep *_CAJetFlavourIdentifier_*_*'
                                    ]
                                   )
+process.out.outputCommands += patTriggerEventContent
 
 # drop the meta data for dropped data
 process.out.dropMetaData = cms.untracked.string("DROPPED")
@@ -211,14 +241,16 @@ process.out.dropMetaData = cms.untracked.string("DROPPED")
 
 # define path 'p'
 process.p = cms.Path(process.genJetParticles*
-                     process.cambridge8GenJets*
+                     process.makeGenEvt *
+                     process.prunedGenParticles*
+                     process.ca8GenJets*
                      process.caTopGenJets*
                      process.caTopCaloJets*
                      process.caTopPFJets*
                      process.CATopCaloJetTagInfos*
                      process.CATopPFJetTagInfos*
                      process.patDefaultSequence*
-                     process.jetFilter
+                     process.countLayer1Jets
                      )
 
 
