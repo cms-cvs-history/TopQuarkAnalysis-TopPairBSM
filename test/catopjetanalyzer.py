@@ -12,6 +12,8 @@ process = cms.Process("TTBSM")
 # Starting with a skeleton process which gets imported with the following line
 from PhysicsTools.PatAlgos.patTemplate_cfg import *
 
+from PhysicsTools.PatAlgos.tools.cmsswVersionTools import *
+
 # load the standard PAT config
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
 
@@ -54,24 +56,17 @@ from PhysicsTools.PatAlgos.tools.jetTools import *
 
 print "About to switch jet collection"
 
-
-switchJetCollection(process, 
-        cms.InputTag('ak5CaloJets'),     # Jet collection; must be already in the event when patLayer0 sequence is executed
-        doJTA=True,            # Run Jet-Track association & JetCharge
-        doBTagging=True,       # Run b-tagging
-        jetCorrLabel=('AK5', 'Calo'),   # example jet correction name; set to None for no JEC
-        doType1MET=True,
-        genJetCollection = cms.InputTag("ak5GenJets"),
-        doJetID = True,
-        jetIdLabel = 'ak5'
-                    )
+run33xOn31xMC( process,
+               jetSrc = cms.InputTag("antikt5CaloJets"),
+               jetIdTag = "antikt5"
+               )
 
 ## ==== Example with CaloJets
 addJetCollection(process, 
         cms.InputTag('caTopCaloJets'),         # Jet collection; must be already in the event when patLayer0 sequence is executed
         'TopTagCalo',
-        doJTA=True,            # Run Jet-Track association & JetCharge
-        doBTagging=True,       # Run b-tagging
+        doJTA=False,            # Run Jet-Track association & JetCharge
+        doBTagging=False,       # Run b-tagging
         jetCorrLabel=('KT6', 'Calo'),   # example jet correction name; set to None for no JEC
         doType1MET=False,
         doL1Cleaning=False,
@@ -84,8 +79,8 @@ addJetCollection(process,
 addJetCollection(process, 
         cms.InputTag('caTopPFJets'),         # Jet collection; must be already in the event when patLayer0 sequence is executed
         'TopTagPF',
-        doJTA=True,            # Run Jet-Track association & JetCharge
-        doBTagging=True,       # Run b-tagging
+        doJTA=False,            # Run Jet-Track association & JetCharge
+        doBTagging=False,       # Run b-tagging
         jetCorrLabel=('KT6', 'PF'),   # example jet correction name; set to None for no JEC
         doType1MET=False,
         doL1Cleaning=False,
@@ -100,14 +95,18 @@ addJetCollection(process,
 process.selectedLayer1Jets.cut = cms.string('pt > 30. & abs(eta) < 5.0')
 process.selectedLayer1JetsTopTagCalo.cut = cms.string('pt > 250. & abs(eta) < 5.0')
 process.selectedLayer1JetsTopTagPF.cut = cms.string('pt > 250. & abs(eta) < 5.0')
-process.selectedLayer1Muons.cut = cms.string('pt > 20. & abs(eta) < 2.5 & muonID("TMLastStationLoose")')
-process.selectedLayer1Electrons.cut = cms.string('pt > 20. & abs(eta) < 2.5 & electronID("eidLoose")')
+process.selectedLayer1Muons.cut = cms.string('pt > 20. & abs(eta) < 2.5')
+process.selectedLayer1Electrons.cut = cms.string('pt > 20. & abs(eta) < 2.5')
 # reduce size of leptons
 process.allLayer1Electrons.isoDeposits = cms.PSet()
 process.allLayer1Muons.isoDeposits = cms.PSet()
 
 # Jets
-
+from PhysicsTools.PatAlgos.tools.jetTools import *
+setTagInfos(process,
+            coll = "allLayer1Jets",
+            tagInfos = cms.vstring("secondaryVertex")
+            )
 # Turn off resolutions, they don't mean anything here
 process.allLayer1JetsTopTagCalo.addResolutions = cms.bool(False)
 # Add CATopTag info... piggy-backing on b-tag functionality
@@ -204,7 +203,7 @@ process.countLayer1Jets.minNumber = cms.uint32(1)
 #   process.source.fileNames = [
 #     '/store/relval/CMSSW_3_1_1/RelValCosmics/GEN-SIM-RECO/STARTUP31X_V1-v2/0002/7625DA7D-E36B-DE11-865A-000423D174FE.root'
 #                               ]         ##  (e.g. 'file:AOD.root')
-process.maxEvents.input = cms.untracked.int32(100)
+#process.maxEvents.input = cms.untracked.int32(100)
 #   process.out.outputCommands = [ ... ]  ##  (e.g. taken from PhysicsTools/PatAlgos/python/patEventContent_cff.py)
 process.out.fileName = outputFileName
 process.options.wantSummary = True       ##  (to suppress the long output at the end of the job)    
@@ -253,5 +252,10 @@ process.p = cms.Path(process.genJetParticles*
                      process.countLayer1Jets
                      )
 
-
-# print process.dumpPython()
+process.source.fileNames = [
+    '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/48AC6C31-AA88-DE11-B02C-0030487C6F54.root',
+    '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/9E80A46A-AA88-DE11-94BD-001E682F882A.root',
+    '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/6004FF4C-AA88-DE11-B0BF-001E68A9941C.root',
+    '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/129A0B85-AA88-DE11-B08A-001E6837DFEA.root'
+    ]
+process.maxEvents.input = 500         ##  (e.g. -1 to run on all events)
