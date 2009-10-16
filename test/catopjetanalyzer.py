@@ -88,7 +88,7 @@ addJetCollection(process,
 
 
 # Place appropriate jet cuts (NB: no cut on number of constituents)
-process.selectedLayer1Jets.cut = cms.string('pt > 30. & abs(eta) < 5.0')
+process.selectedLayer1Jets.cut = cms.string('pt > 20. & abs(eta) < 5.0')
 process.selectedLayer1JetsTopTagCalo.cut = cms.string('pt > 250. & abs(eta) < 5.0')
 process.selectedLayer1JetsTopTagPF.cut = cms.string('pt > 250. & abs(eta) < 5.0')
 process.selectedLayer1Muons.cut = cms.string('pt > 20. & abs(eta) < 2.5')
