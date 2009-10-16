@@ -1,4 +1,3 @@
-
 # import configurations
 import FWCore.ParameterSet.Config as cms
 
@@ -7,11 +6,8 @@ print "About to process"
 # define the process
 process = cms.Process("TTBSM")
 
-# This is an example PAT configuration showing the usage of PAT on full sim samples
-
 # Starting with a skeleton process which gets imported with the following line
 from PhysicsTools.PatAlgos.patTemplate_cfg import *
-
 from PhysicsTools.PatAlgos.tools.cmsswVersionTools import *
 
 # load the standard PAT config
@@ -165,6 +161,9 @@ elif algorithm == 'antikt' :
     process.caTopCaloJets.algorithm = cms.int32(2)
     process.caTopGenJets.algorithm = cms.int32(2)
     process.caTopPFJets.algorithm = cms.int32(2)
+else:
+    print "Error: algorithm '%s' unknown. Use one of kt, ca, antikt." % algorithm
+    raise AttributeError()
 
 # pythia output
 process.printList = cms.EDAnalyzer( "ParticleListDrawer",
@@ -180,14 +179,12 @@ process.load("TopQuarkAnalysis.TopEventProducers.sequences.ttGenEvent_cff")
 
 process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
 
-process.prunedGenParticles = cms.EDProducer(
-    "GenParticlePruner",
+process.prunedGenParticles = cms.EDProducer("GenParticlePruner",
     src = cms.InputTag("genParticles"),
     select = cms.vstring(
-    "drop  *  ",
-    "keep status = 3 & pt > 0.01",
-    "keep++ abs(pdgId) = 23 & status = 1",
-    "keep++ abs(pdgId) = 24 & status = 1"
+    "drop  *",
+    "keep status = 3", #keeps all particles from the hard matrix element
+    "+keep (abs(pdgId) = 11 | abs(pdgId) = 13) & status = 1" #keeps all stable muons and electrons and their (direct) mothers.
     )
 )
 
@@ -200,11 +197,6 @@ process.countLayer1Jets.minNumber = cms.uint32(1)
 # In addition you usually want to change the following parameters:
 #
 #   process.GlobalTag.globaltag =  ...    ##  (according to https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideFrontierConditions)
-#   process.source.fileNames = [
-#     '/store/relval/CMSSW_3_1_1/RelValCosmics/GEN-SIM-RECO/STARTUP31X_V1-v2/0002/7625DA7D-E36B-DE11-865A-000423D174FE.root'
-#                               ]         ##  (e.g. 'file:AOD.root')
-#process.maxEvents.input = cms.untracked.int32(100)
-#   process.out.outputCommands = [ ... ]  ##  (e.g. taken from PhysicsTools/PatAlgos/python/patEventContent_cff.py)
 process.out.fileName = outputFileName
 process.options.wantSummary = True       ##  (to suppress the long output at the end of the job)    
 
@@ -258,4 +250,5 @@ process.source.fileNames = [
     '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/6004FF4C-AA88-DE11-B0BF-001E68A9941C.root',
     '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/129A0B85-AA88-DE11-B08A-001E6837DFEA.root'
     ]
-process.maxEvents.input = 500         ##  (e.g. -1 to run on all events)
+    
+process.maxEvents.input = cms.untracked.int32(500)         ##  (e.g. -1 to run on all events)
