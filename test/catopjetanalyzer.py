@@ -206,8 +206,10 @@ process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(100)
 process.out.outputCommands.extend(['drop *_genParticles_*_*',
                                    'drop *_generalTracks_*_*',
                                    'keep *_prunedGenParticles_*_*',
+				   #(cmp. TopQuarkAnalysis/TopEventProducers/python/tqafEventContent_cff.py):
                                    'keep *_decaySubset_*_*',
                                    'keep *_initSubset_*_*',
+				   'keep *_genEvt_*_*',
                                    'keep *_offlineBeamSpot_*_*',
                                    'keep recoCaloJets_caTopCaloJets_*_*',
                                    'keep recoGenJets_ca8GenJets_*_*',
