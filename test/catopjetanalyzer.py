@@ -27,17 +27,20 @@ from PhysicsTools.PatAlgos.tools.trigTools import *
 switchOnTrigger( process )
 from PhysicsTools.PatAlgos.patEventContent_cff import patTriggerEventContent
 
-
 print "Setting variables"
 
 outputdir = './'
+#set 'algorithm' to 'kt', 'antiki' or 'ca':
 algorithm = 'ca'
 idtag = '_330'
 
 outputFileName = outputdir +  'ttbsm_' + algorithm + '_pat' + idtag + '.root'
 
-
 print "Output file : " + outputFileName
+
+#set 'runon' to '31x' if you intent to run on data which was reconstructed with CMSSW 31X, and to '33x' if you want
+# to run it on 33x (fastsim).
+runon = '33x'
 
 # CATopJets
 process.load("RecoJets.Configuration.GenJetParticles_cff")
@@ -52,10 +55,10 @@ from PhysicsTools.PatAlgos.tools.jetTools import *
 
 print "About to switch jet collection"
 
-run33xOn31xMC( process,
+if runon=='31x':
+    run33xOn31xMC( process,
                jetSrc = cms.InputTag("antikt5CaloJets"),
-               jetIdTag = "antikt5"
-               )
+               jetIdTag = "antikt5")
 
 ## ==== Example with CaloJets
 addJetCollection(process, 
@@ -247,10 +250,20 @@ process.p = cms.Path(process.genJetParticles*
                      )
 
 process.source.fileNames = [
+    #TODO: fill in your dataset filenames here
     '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/48AC6C31-AA88-DE11-B02C-0030487C6F54.root',
-    '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/9E80A46A-AA88-DE11-94BD-001E682F882A.root',
-    '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/6004FF4C-AA88-DE11-B0BF-001E68A9941C.root',
-    '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/129A0B85-AA88-DE11-B08A-001E6837DFEA.root'
+     '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/9E80A46A-AA88-DE11-94BD-001E682F882A.root',
+     '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/6004FF4C-AA88-DE11-B0BF-001E68A9941C.root',
+     '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/129A0B85-AA88-DE11-B08A-001E6837DFEA.root'
     ]
-    
-process.maxEvents.input = cms.untracked.int32(500)         ##  (e.g. -1 to run on all events)
+
+#On MC, there are often non-unique run and event ids. Safeguard against skipping in that case:
+process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
+process.maxEvents.input = cms.untracked.int32(10)         ##  (e.g. -1 to run on all events)
+
+#override settings in CMSSW/ PhysicsTools/ PatAlgos/ python/ recoLayer0/ photonIsolation_cff.py, where
+#it is (wrongly) assumed that the reconstruction process label is called "RECO": for fastsim, it is usually called "HLT". Therefore,
+# omit the process label. Maybe this breaks some things for 31x (TODO: someone could check that), so do it only for run on 33x:
+if runon=='33x':
+    process.gamIsoDepositEcalFromHits.ExtractorPSet.barrelEcalHits = cms.InputTag("reducedEcalRecHitsEB")
+    process.gamIsoDepositEcalFromHits.ExtractorPSet.endcapEcalHits = cms.InputTag("reducedEcalRecHitsEE")
