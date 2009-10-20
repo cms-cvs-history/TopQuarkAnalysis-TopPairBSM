@@ -246,6 +246,10 @@ process.p = cms.Path(process.genJetParticles*
                      process.CATopCaloJetTagInfos*
                      process.CATopPFJetTagInfos*
                      process.patDefaultSequence*
+		     #addJetCollection only adds the "allLayer1Jets*" to the sequence, so 
+                     # add the selection manually: 
+                     process.selectedLayer1JetsTopTagCalo *
+                     process.selectedLayer1JetsTopTagPF *
                      process.countLayer1Jets
                      )
 
