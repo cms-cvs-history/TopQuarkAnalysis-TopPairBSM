@@ -99,6 +99,8 @@ process.selectedLayer1Electrons.cut = cms.string('pt > 20. & abs(eta) < 2.5')
 # reduce size of leptons
 process.allLayer1Electrons.isoDeposits = cms.PSet()
 process.allLayer1Muons.isoDeposits = cms.PSet()
+#embed the inner track of the muon:
+process.allLayer1Muons.embedTrack = cms.bool(True)
 
 # Jets
 from PhysicsTools.PatAlgos.tools.jetTools import *
@@ -224,6 +226,10 @@ process.out.outputCommands.extend(['drop *_genParticles_*_*',
                                    'drop *_cleanLayer1Taus_*_*',
                                    'drop *_cleanLayer1Hemispheres_*_*',
                                    'drop *_cleanLayer1Photons_*_*',
+				   'drop *_cleanLayer1Electrons_*_*',
+				   'drop *_cleanLayer1Muons_*_*',
+				   'keep *_selectedLayer1Electrons_*_*',
+				   'keep *_selectedLayer1Muons_*_*',
                                    'keep GenEventInfoProduct_generator_*_*'
                                    #'keep *_CAJetPartonMatcher_*_*',
                                    #'keep *_CAJetFlavourIdentifier_*_*'
