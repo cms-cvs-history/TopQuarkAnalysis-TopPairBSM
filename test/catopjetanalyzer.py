@@ -39,7 +39,7 @@ outputFileName = outputdir +  'ttbsm_' + algorithm + '_pat' + idtag + '.root'
 print "Output file : " + outputFileName
 
 #set 'runon' to '31x' if you intent to run on data which was reconstructed with CMSSW 31X, and to '33x' if you want
-# to run it on 33x (fastsim).
+# to run it on 33x (fastsim). -- Jochen
 runon = '33x'
 
 # CATopJets
@@ -88,8 +88,8 @@ addJetCollection(process,
         doJetID = False
                  )
 
-
-
+#jet ID does not work reliably in PAT for now (PAT as of 2009-10-20), so switch it off -- Jochen:
+process.allLayer1Jets.addJetID = cms.bool(False)
 # Place appropriate jet cuts (NB: no cut on number of constituents)
 process.selectedLayer1Jets.cut = cms.string('pt > 20. & abs(eta) < 5.0')
 process.selectedLayer1JetsTopTagCalo.cut = cms.string('pt > 250. & abs(eta) < 5.0')
@@ -99,7 +99,7 @@ process.selectedLayer1Electrons.cut = cms.string('pt > 20. & abs(eta) < 2.5')
 # reduce size of leptons
 process.allLayer1Electrons.isoDeposits = cms.PSet()
 process.allLayer1Muons.isoDeposits = cms.PSet()
-#embed the inner track of the muon:
+#embed the inner track of the muon: --Jochen
 process.allLayer1Muons.embedTrack = cms.bool(True)
 
 # Jets
@@ -253,7 +253,7 @@ process.p = cms.Path(process.genJetParticles*
                      process.CATopPFJetTagInfos*
                      process.patDefaultSequence*
 		     #addJetCollection only adds the "allLayer1Jets*" to the sequence, so 
-                     # add the selection manually: 
+                     # add the selection manually: -- Jochen
                      process.selectedLayer1JetsTopTagCalo *
                      process.selectedLayer1JetsTopTagPF *
                      process.countLayer1Jets
@@ -267,13 +267,13 @@ process.source.fileNames = [
      '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/129A0B85-AA88-DE11-B08A-001E6837DFEA.root'
     ]
 
-#On MC, there are often non-unique run and event ids. Safeguard against skipping in that case:
+#On MC, there are often non-unique run and event ids. Safeguard against skipping in that case: --Jochen
 process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
 process.maxEvents.input = cms.untracked.int32(10)         ##  (e.g. -1 to run on all events)
 
 #override settings in CMSSW/ PhysicsTools/ PatAlgos/ python/ recoLayer0/ photonIsolation_cff.py, where
 #it is (wrongly) assumed that the reconstruction process label is called "RECO": for fastsim, it is usually called "HLT". Therefore,
-# omit the process label. Maybe this breaks some things for 31x (TODO: someone could check that), so do it only for run on 33x:
+# omit the process label. Maybe this breaks some things for 31x (TODO: someone could check that), so do it only for run on 33x: --Jochen
 if runon=='33x':
     process.gamIsoDepositEcalFromHits.ExtractorPSet.barrelEcalHits = cms.InputTag("reducedEcalRecHitsEB")
     process.gamIsoDepositEcalFromHits.ExtractorPSet.endcapEcalHits = cms.InputTag("reducedEcalRecHitsEE")
