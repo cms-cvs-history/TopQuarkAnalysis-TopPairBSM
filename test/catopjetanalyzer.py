@@ -32,7 +32,7 @@ print "Setting variables"
 outputdir = './'
 #set 'algorithm' to 'kt', 'antiki' or 'ca':
 algorithm = 'ca'
-idtag = '_330'
+idtag = '_331'
 
 outputFileName = outputdir +  'ttbsm_' + algorithm + '_pat' + idtag + '.root'
 
@@ -40,7 +40,7 @@ print "Output file : " + outputFileName
 
 #set 'runon' to '31x' if you intent to run on data which was reconstructed with CMSSW 31X, and to '33x' if you want
 # to run it on 33x (fastsim). -- Jochen
-runon = '33x'
+runon = '31x'
 
 # CATopJets
 process.load("RecoJets.Configuration.GenJetParticles_cff")
@@ -269,7 +269,7 @@ process.source.fileNames = [
 
 #On MC, there are often non-unique run and event ids. Safeguard against skipping in that case: --Jochen
 process.source.duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
-process.maxEvents.input = cms.untracked.int32(10)         ##  (e.g. -1 to run on all events)
+process.maxEvents.input = cms.untracked.int32(500)         ##  (e.g. -1 to run on all events)
 
 #override settings in CMSSW/ PhysicsTools/ PatAlgos/ python/ recoLayer0/ photonIsolation_cff.py, where
 #it is (wrongly) assumed that the reconstruction process label is called "RECO": for fastsim, it is usually called "HLT". Therefore,
