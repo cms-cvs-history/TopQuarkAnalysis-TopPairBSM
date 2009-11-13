@@ -37,8 +37,10 @@ idtag = '_332'
 # this is the name of the output file.
 outputFileName = outputdir +  'ttbsm_' + algorithm + '_pat' + idtag + '.root'
 print "Output file : " + outputFileName
-#set 'runon' to '31x' if you intent to run on data which was reconstructed with CMSSW 31X, and to '33x' if you want
-# to run it on 33x (fastsim). -- Jochen
+# Options: 
+#   '31x' if you intent to run on data which was reconstructed with CMSSW 31X
+#   '33x' if you want to run it on 33x (fastsim)
+#   '332rereco' if you want to run it on 332 re-recoed samples
 runon = '332rereco'
 #set 'type' to 'ttbar' if you want to run the ttbar gen event
 type = 'qcd'
@@ -112,39 +114,48 @@ setTagInfos(process,
             coll = "allLayer1Jets",
             tagInfos = cms.vstring("secondaryVertex")
             )
-
-for jetcoll in (process.allLayer1JetsTopTagCalo, process.allLayer1JetsTopTagPF):
-	jetcoll.embedGenJetMatch = cms.bool(False)
-	#getJetMCFlavour uses jetFlavourAssociation*, see below
-	jetcoll.getJetMCFlavour = cms.bool(True)
-	#those two use jetPartonMatch*, see below
-	jetcoll.addGenPartonMatch = cms.bool(True)
-	jetcoll.embedGenPartonMatch = cms.bool(True)
-	# Add CATopTag info... piggy-backing on b-tag functionality
-	jetcoll.discriminatorSources = cms.VInputTag()
-	jetcoll.addBTagInfo = cms.bool(True)
-	jetcoll.addTagInfos = cms.bool(True)
-	jetcoll.addDiscriminators = cms.bool(False)
-
+# Turn off resolutions, they don't mean anything here
+process.allLayer1JetsTopTagCalo.addResolutions = cms.bool(False)
+# Add CATopTag info... piggy-backing on b-tag functionality
+process.allLayer1JetsTopTagCalo.discriminatorSources = cms.VInputTag()
+process.allLayer1JetsTopTagCalo.addBTagInfo = cms.bool(True)
+process.allLayer1JetsTopTagCalo.addTagInfos = cms.bool(True)
 process.allLayer1JetsTopTagCalo.tagInfoSources = cms.VInputTag( cms.InputTag('CATopCaloJetTagInfos') )
+process.allLayer1JetsTopTagCalo.addDiscriminators = cms.bool(False)
+# Add parton match to quarks and gluons
+process.allLayer1JetsTopTagCalo.addGenPartonMatch = cms.bool(True)
+process.allLayer1JetsTopTagCalo.embedGenPartonMatch = cms.bool(True)
+process.allLayer1JetsTopTagCalo.embedGenJetMatch = cms.bool(False)
+# Add jet MC flavour (custom built to capture tops)
+process.allLayer1JetsTopTagCalo.getJetMCFlavour = cms.bool(True)
+
+# Turn off resolutions, they don't mean anything here
+process.allLayer1JetsTopTagPF.addResolutions = cms.bool(False)
+# Add CATopTag info... piggy-backing on b-tag functionality
+process.allLayer1JetsTopTagPF.discriminatorSources = cms.VInputTag()
+process.allLayer1JetsTopTagPF.addBTagInfo = cms.bool(True)
+process.allLayer1JetsTopTagPF.addTagInfos = cms.bool(True)
 process.allLayer1JetsTopTagPF.tagInfoSources = cms.VInputTag( cms.InputTag('CATopPFJetTagInfos') )
+process.allLayer1JetsTopTagPF.addDiscriminators = cms.bool(False)
+# Add parton match to quarks and gluons
+process.allLayer1JetsTopTagPF.addGenPartonMatch = cms.bool(False)
+process.allLayer1JetsTopTagPF.embedGenPartonMatch = cms.bool(False)
+process.allLayer1JetsTopTagPF.embedGenJetMatch = cms.bool(False)
+# Add jet MC flavour (custom built to capture tops)
+process.allLayer1JetsTopTagPF.getJetMCFlavour = cms.bool(True)
 
-#adapt jet parton stuff for topjet collections. There is only one "jetPartons" module ...
+# jet flavor stuff
 process.jetPartons.withTop = cms.bool(True)
-# ... but many "jetPartonAssociation", "jetFlavourAssociation" and "jetPartonMatch":
-for jetcollname in ('TopTagCalo', 'TopTagPF'):
-	# definition 4 = match heaviest flavor 
-	getattr(process, 'jetFlavourAssociation'+jetcollname).definition = cms.int32(4)
-	getattr(process, 'jetFlavourAssociation'+jetcollname).physicsDefinition = cms.bool(False)
-	# jetFlavourAssociation depends on jetPartonAssociation, so re-configure that as well:
-	getattr(process, 'jetPartonAssociation'+jetcollname).coneSizeToAssociate = cms.double(0.8)
-	getattr(process, 'jetPartonAssociation'+jetcollname).doPriority = cms.bool(True)
-	getattr(process, 'jetPartonAssociation'+jetcollname).priorityList = cms.vint32(6)
-	getattr(process, 'jetPartonMatch'+jetcollname).mcPdgId = cms.vint32(1,2,3,4,5,6,21)
-	getattr(process, 'jetPartonMatch'+jetcollname).maxDeltaR = cms.double(0.8)
+process.jetPartonAssociation.coneSizeToAssociate = cms.double(0.8)
+process.jetPartonAssociation.doPriority = cms.bool(True)
+process.jetPartonAssociation.priorityList = cms.vint32(6)
+process.jetFlavourAssociation.definition = cms.int32(4)
+process.jetFlavourAssociation.physicsDefinition = cms.bool(False)
+process.jetPartonMatch.mcPdgId = cms.vint32(1,2,3,4,5,6,21)
+process.jetPartonMatch.maxDeltaR = cms.double(0.8)
 
-#Note: the original jetPartonAssociation, jetFlavourAssociation, jetPartonMatch which is used for antiktcalo
-# is not changed.
+
+#process.allLayer1Jets.JetPartonMapSource = cms.InputTag("CAJetFlavourIdentifier")
 
 print "Done switching jet collection"
 
