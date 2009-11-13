@@ -32,15 +32,16 @@ print "Setting variables"
 outputdir = './'
 #set 'algorithm' to 'kt', 'antiki' or 'ca':
 algorithm = 'ca'
-idtag = '_331'
-
+# this is an ID tag to specify versions, etc
+idtag = '_332'
+# this is the name of the output file.
 outputFileName = outputdir +  'ttbsm_' + algorithm + '_pat' + idtag + '.root'
-
 print "Output file : " + outputFileName
-
 #set 'runon' to '31x' if you intent to run on data which was reconstructed with CMSSW 31X, and to '33x' if you want
 # to run it on 33x (fastsim). -- Jochen
-runon = '31x'
+runon = '332rereco'
+#set 'type' to 'ttbar' if you want to run the ttbar gen event
+type = 'qcd'
 
 # CATopJets
 process.load("RecoJets.Configuration.GenJetParticles_cff")
@@ -59,6 +60,9 @@ if runon=='31x':
     run33xOn31xMC( process,
                jetSrc = cms.InputTag("antikt5CaloJets"),
                jetIdTag = "antikt5")
+
+if runon=='332rereco':
+    run33xOnReRecoMC( process, "ak5GenJets" )
 
 ## ==== Example with CaloJets
 addJetCollection(process, 
@@ -250,12 +254,24 @@ process.p = cms.Path(process.genJetParticles*
                      process.countLayer1Jets
                      )
 
+if type!='ttbar' :
+    process.p.remove( process.makeGenEvt )
+
 process.source.fileNames = [
     #TODO: fill in your dataset filenames here
-    '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/48AC6C31-AA88-DE11-B02C-0030487C6F54.root',
-     '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/9E80A46A-AA88-DE11-94BD-001E682F882A.root',
-     '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/6004FF4C-AA88-DE11-B0BF-001E68A9941C.root',
-     '/store/mc/Summer09/TTbar/GEN-SIM-RECO/MC_31X_V3-v1/0025/129A0B85-AA88-DE11-B08A-001E6837DFEA.root'
+       '/store/mc/Summer09/QCDDiJet_Pt2600to3000/GEN-SIM-RECO/MC_31X_V9_7TeV-v1/0001/F8C20DCD-5FCA-DE11-AFF0-001E0BE922E2.root',
+       '/store/mc/Summer09/QCDDiJet_Pt2600to3000/GEN-SIM-RECO/MC_31X_V9_7TeV-v1/0001/C626BA4F-F4CA-DE11-89B4-00237DA1FC56.root',
+       '/store/mc/Summer09/QCDDiJet_Pt2600to3000/GEN-SIM-RECO/MC_31X_V9_7TeV-v1/0001/B6A540D3-30CA-DE11-9CDE-001E0B5FC57A.root',
+       '/store/mc/Summer09/QCDDiJet_Pt2600to3000/GEN-SIM-RECO/MC_31X_V9_7TeV-v1/0001/7EFDA264-63CA-DE11-9DD1-001F296B9576.root',
+       '/store/mc/Summer09/QCDDiJet_Pt2600to3000/GEN-SIM-RECO/MC_31X_V9_7TeV-v1/0001/6C730F68-C6CA-DE11-8F8F-001CC4AADC6E.root',
+       '/store/mc/Summer09/QCDDiJet_Pt2600to3000/GEN-SIM-RECO/MC_31X_V9_7TeV-v1/0001/507CAF87-4CCA-DE11-A4DB-001E0B5FD4A6.root',
+       '/store/mc/Summer09/QCDDiJet_Pt2600to3000/GEN-SIM-RECO/MC_31X_V9_7TeV-v1/0001/22C12A62-80CA-DE11-8228-00237DA1CD92.root',
+       '/store/mc/Summer09/QCDDiJet_Pt2600to3000/GEN-SIM-RECO/MC_31X_V9_7TeV-v1/0000/FE24C6A9-1CCA-DE11-8842-00237DA1FC56.root',
+       '/store/mc/Summer09/QCDDiJet_Pt2600to3000/GEN-SIM-RECO/MC_31X_V9_7TeV-v1/0000/EAB6EEDB-11CA-DE11-9FF8-001F29C4D35E.root',
+       '/store/mc/Summer09/QCDDiJet_Pt2600to3000/GEN-SIM-RECO/MC_31X_V9_7TeV-v1/0000/CC984B69-18CA-DE11-A3C0-001F296A7698.root',
+       '/store/mc/Summer09/QCDDiJet_Pt2600to3000/GEN-SIM-RECO/MC_31X_V9_7TeV-v1/0000/9AE0D101-1BCA-DE11-89DF-00215AAC88D2.root',
+       '/store/mc/Summer09/QCDDiJet_Pt2600to3000/GEN-SIM-RECO/MC_31X_V9_7TeV-v1/0000/8C71AFC4-29CA-DE11-9233-001CC4AADC6E.root',
+       '/store/mc/Summer09/QCDDiJet_Pt2600to3000/GEN-SIM-RECO/MC_31X_V9_7TeV-v1/0000/36203CFC-16CA-DE11-B2D4-00237DA15C96.root'
     ]
 
 #On MC, there are often non-unique run and event ids. Safeguard against skipping in that case: --Jochen
