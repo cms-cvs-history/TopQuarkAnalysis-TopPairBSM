@@ -42,6 +42,8 @@ print "Output file : " + outputFileName
 runon = '332rereco'
 #set 'type' to 'ttbar' if you want to run the ttbar gen event
 type = 'qcd'
+# set "select" to true if you want to remove events without at least one jet with pt > 20
+select = cms.bool(True)
 
 # CATopJets
 process.load("RecoJets.Configuration.GenJetParticles_cff")
@@ -98,8 +100,8 @@ process.allLayer1Jets.addJetID = cms.bool(False)
 process.selectedLayer1Jets.cut = cms.string('pt > 20. & abs(eta) < 5.0')
 process.selectedLayer1JetsTopTagCalo.cut = cms.string('pt > 250. & abs(eta) < 5.0')
 process.selectedLayer1JetsTopTagPF.cut = cms.string('pt > 250. & abs(eta) < 5.0')
-process.selectedLayer1Muons.cut = cms.string('pt > 20. & abs(eta) < 2.5')
-process.selectedLayer1Electrons.cut = cms.string('pt > 20. & abs(eta) < 2.5')
+process.selectedLayer1Muons.cut = cms.string('pt > 15. & abs(eta) < 2.5')
+process.selectedLayer1Electrons.cut = cms.string('pt > 15. & abs(eta) < 2.5')
 # reduce size of leptons
 process.allLayer1Electrons.isoDeposits = cms.PSet()
 process.allLayer1Muons.isoDeposits = cms.PSet()
@@ -190,7 +192,8 @@ process.prunedGenParticles = cms.EDProducer("GenParticlePruner",
 
 
 # require >= 1 jets
-process.countLayer1Jets.minNumber = cms.uint32(1)
+if ( select )  :
+    process.countLayer1Jets.minNumber = cms.uint32(1)
 
 
 
