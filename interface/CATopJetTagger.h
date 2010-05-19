@@ -23,7 +23,7 @@
 //
 // Original Author:  "Salvatore Rappoccio"
 //         Created:  Thu Jul  3 00:19:30 CDT 2008
-// $Id: CATopJetTagger.h,v 1.3 2008/09/22 22:18:07 yumiceva Exp $
+// $Id: CATopJetTagger.h,v 1.4 2010/03/11 20:03:05 srappocc Exp $
 //
 //
 
@@ -71,7 +71,7 @@ class CATopJetTagger : public edm::EDProducer {
 
 
    private:
-      virtual void beginJob(const edm::EventSetup&) ;
+      virtual void beginJob() ;
       virtual void produce( edm::Event&, const edm::EventSetup&);
       virtual void endJob() ;
 

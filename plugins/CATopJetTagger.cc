@@ -152,7 +152,7 @@ CATopJetTagger::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-CATopJetTagger::beginJob(const edm::EventSetup&)
+CATopJetTagger::beginJob()
 {
 }
 
