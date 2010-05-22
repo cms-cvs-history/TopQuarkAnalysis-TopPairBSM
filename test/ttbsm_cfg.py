@@ -10,7 +10,7 @@ from PhysicsTools.PatAlgos.tools.coreTools import *
 # This will apply a dijet skim (2 jets with pt > 25)
 skimDijets = True
 # Set to true for running on data
-useData = False
+useData = True
 # Set to true if running on a ttbar sample
 useTTHyp = False
 # Set to true if running on a single top sample
@@ -86,6 +86,8 @@ if useData == False :
         # prune gen particles
 
 else :
+    # run b-tagging sequences
+    run36xOn35xInput( process )    
     removeMCMatching( process, ['All'] )
 
 ###############################
@@ -414,11 +416,10 @@ for jetcoll in (process.patJets,
                 process.patJetsCATopTagPF,
                 process.patJetsCATopTagNoAdjPF
                 ) :
-    jetcoll.embedGenJetMatch = cms.bool(False)
-    #getJetMCFlavour uses jetFlavourAssociation*, see below
-    jetcoll.getJetMCFlavour = cms.bool(True)
-    #those two use jetPartonMatch*, see below
-    jetcoll.addGenPartonMatch = cms.bool(True)
+    if useData == False :
+        jetcoll.embedGenJetMatch = cms.bool(False)
+        jetcoll.getJetMCFlavour = cms.bool(True)
+        jetcoll.addGenPartonMatch = cms.bool(True)
     # Add CATopTag info... piggy-backing on b-tag functionality
     jetcoll.addBTagInfo = cms.bool(True)
     jetcoll.addTagInfos = cms.bool(True)
@@ -569,8 +570,11 @@ process.patseq = cms.Sequence(
 if useData == False :
     process.patseq.remove( process.hltLevel1GTSeed )
     process.patseq.remove( process.hltPhysicsDeclared )
+else :
+    process.patseq.remove( process.genJetParticles )
+    process.patseq.remove( process.ca8GenJets )
 
-if useTTHyp or useSTHyp :
+if (useTTHyp or useSTHyp) and useData == False :
     process.patseq.append( process.makeGenEvt )
 
 process.p0 = cms.Path(
@@ -609,16 +613,23 @@ readFiles = cms.untracked.vstring()
 secFiles = cms.untracked.vstring()
 
 readFiles.extend( [
-    '/store/mc/Spring10/QCDDiJet_Pt80to120/GEN-SIM-RECO/START3X_V26_S09-v1/0073/500DAE6F-2B4B-DF11-ABC4-E41F13181564.root',
-    '/store/mc/Spring10/QCDDiJet_Pt80to120/GEN-SIM-RECO/START3X_V26_S09-v1/0013/F4CD6579-7346-DF11-837D-E41F13181CF8.root',
-    '/store/mc/Spring10/QCDDiJet_Pt80to120/GEN-SIM-RECO/START3X_V26_S09-v1/0013/EAAE740C-7D46-DF11-82C3-00215E222442.root',
-    '/store/mc/Spring10/QCDDiJet_Pt80to120/GEN-SIM-RECO/START3X_V26_S09-v1/0013/EA12C324-7B46-DF11-90DF-00215E21DBFA.root',
-    '/store/mc/Spring10/QCDDiJet_Pt80to120/GEN-SIM-RECO/START3X_V26_S09-v1/0013/E6DB0D77-7346-DF11-85C1-00215E2211AC.root',
-    '/store/mc/Spring10/QCDDiJet_Pt80to120/GEN-SIM-RECO/START3X_V26_S09-v1/0013/E603D5C8-7846-DF11-9903-00215E221FB0.root',
-    '/store/mc/Spring10/QCDDiJet_Pt80to120/GEN-SIM-RECO/START3X_V26_S09-v1/0013/DE858FB9-7646-DF11-998C-00215E21DAC8.root',
-    '/store/mc/Spring10/QCDDiJet_Pt80to120/GEN-SIM-RECO/START3X_V26_S09-v1/0013/DA54DE19-7F46-DF11-B262-00215E21D9F6.root',
-    '/store/mc/Spring10/QCDDiJet_Pt80to120/GEN-SIM-RECO/START3X_V26_S09-v1/0013/D8F67342-7646-DF11-9EBD-00215E22175E.root',
-    '/store/mc/Spring10/QCDDiJet_Pt80to120/GEN-SIM-RECO/START3X_V26_S09-v1/0013/D0A9CB03-7646-DF11-82F3-00215E21D86A.root'
+'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/C29CA026-055D-DF11-89B1-0018F3D096F0.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/BC4DF5E3-065D-DF11-BF49-0018F3D096C6.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/B2DD908B-F75C-DF11-806C-001A92810AA2.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/AE661C3B-0A5D-DF11-9D67-0018F3D095EE.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/8E6485B0-F85C-DF11-9AC3-001A928116B0.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/84522D01-035D-DF11-9C3C-001A92971BBA.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/80A65972-FC5C-DF11-8D7B-0018F3D09634.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/7219C828-095D-DF11-8D9E-0018F3D0963C.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/6265E2B0-FD5C-DF11-8B16-0018F3D096D8.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/58A5DBFA-015D-DF11-8E82-001A92810ACE.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/58537513-FC5C-DF11-9792-001A92810A92.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/50E673AB-FD5C-DF11-923F-003048678CA2.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/441C4710-055D-DF11-AD35-001A928116BA.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/3A9BC0D4-015D-DF11-A097-003048678FE4.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/30389A33-095D-DF11-8A8E-0018F3D096E6.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/2A06ECAC-F85C-DF11-9D60-001A928116F4.root'
+
         ] );
 process.source.fileNames = readFiles
 
