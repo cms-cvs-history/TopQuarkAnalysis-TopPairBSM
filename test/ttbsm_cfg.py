@@ -8,11 +8,11 @@ from PhysicsTools.PatAlgos.tools.coreTools import *
 ###############################
 
 # This will apply a dijet skim (2 jets with pt > 25)
-skimDijets = True
+skimDijets = False
 # Set to true for running on data
-useData = True
+useData = False
 # Set to true if running on a ttbar sample
-useTTHyp = False
+useTTHyp = True
 # Set to true if running on a single top sample
 useSTHyp = False
 
@@ -575,7 +575,7 @@ else :
     process.patseq.remove( process.ca8GenJets )
 
 if (useTTHyp or useSTHyp) and useData == False :
-    process.patseq.append( process.makeGenEvt )
+    process.patseq += process.makeGenEvt
 
 process.p0 = cms.Path(
     process.patseq
@@ -613,22 +613,12 @@ readFiles = cms.untracked.vstring()
 secFiles = cms.untracked.vstring()
 
 readFiles.extend( [
-'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/C29CA026-055D-DF11-89B1-0018F3D096F0.root',
-'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/BC4DF5E3-065D-DF11-BF49-0018F3D096C6.root',
-'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/B2DD908B-F75C-DF11-806C-001A92810AA2.root',
-'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/AE661C3B-0A5D-DF11-9D67-0018F3D095EE.root',
-'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/8E6485B0-F85C-DF11-9AC3-001A928116B0.root',
-'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/84522D01-035D-DF11-9C3C-001A92971BBA.root',
-'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/80A65972-FC5C-DF11-8D7B-0018F3D09634.root',
-'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/7219C828-095D-DF11-8D9E-0018F3D0963C.root',
-'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/6265E2B0-FD5C-DF11-8B16-0018F3D096D8.root',
-'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/58A5DBFA-015D-DF11-8E82-001A92810ACE.root',
-'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/58537513-FC5C-DF11-9792-001A92810A92.root',
-'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/50E673AB-FD5C-DF11-923F-003048678CA2.root',
-'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/441C4710-055D-DF11-AD35-001A928116BA.root',
-'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/3A9BC0D4-015D-DF11-A097-003048678FE4.root',
-'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/30389A33-095D-DF11-8A8E-0018F3D096E6.root',
-'/store/data/Commissioning10/MinimumBias/RECO/May6thPDSkim2_SD_JetMETTau-v1/0124/2A06ECAC-F85C-DF11-9D60-001A928116F4.root'
+'/store/mc/Spring10/TTbarJets-madgraph/GEN-SIM-RECO/START3X_V26_S09-v1/0016/6E7C4631-9D47-DF11-96CE-003048C69288.root',
+'/store/mc/Spring10/TTbarJets-madgraph/GEN-SIM-RECO/START3X_V26_S09-v1/0011/A4121AB4-0747-DF11-8984-0030487F171B.root',
+'/store/mc/Spring10/TTbarJets-madgraph/GEN-SIM-RECO/START3X_V26_S09-v1/0006/FE8DE204-C446-DF11-BF76-003048C693FA.root',
+'/store/mc/Spring10/TTbarJets-madgraph/GEN-SIM-RECO/START3X_V26_S09-v1/0006/FE14F78B-C446-DF11-818D-003048C6930E.root',
+'/store/mc/Spring10/TTbarJets-madgraph/GEN-SIM-RECO/START3X_V26_S09-v1/0006/FE0DD96C-B846-DF11-B5AE-0030487EB003.root'
+
 
         ] );
 process.source.fileNames = readFiles
