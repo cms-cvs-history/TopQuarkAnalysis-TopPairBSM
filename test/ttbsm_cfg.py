@@ -8,11 +8,11 @@ from PhysicsTools.PatAlgos.tools.coreTools import *
 ###############################
 
 # This will apply a dijet skim (2 jets with pt > 25)
-skimDijets = False
+skimDijets = True
 # Set to true for running on data
-useData = False
+useData = True
 # Set to true if running on a ttbar sample
-useTTHyp = True
+useTTHyp = False
 # Set to true if running on a single top sample
 useSTHyp = False
 
@@ -47,8 +47,37 @@ process.scrapingVeto = cms.EDFilter("FilterOutScraping",
 # configure HLT
 process.load('L1TriggerConfig.L1GtConfigProducers.L1GtTriggerMaskTechTrigConfig_cff')
 process.load('HLTrigger/HLTfilters/hltLevel1GTSeed_cfi')
+
+### JetMETTau SD look-alike
+import HLTrigger.HLTfilters.hltHighLevelDev_cfi
+process.JetMETTau_1e28 = HLTrigger.HLTfilters.hltHighLevelDev_cfi.hltHighLevelDev.clone(andOr = True)
+process.JetMETTau_1e28.HLTPaths = (
+"HLT_Jet15U",
+"HLT_DiJetAve15U_8E29",
+"HLT_FwdJet20U",
+"HLT_Jet30U", 
+"HLT_Jet50U",
+"HLT_DiJetAve30U_8E29",
+"HLT_QuadJet15U",
+"HLT_MET45",
+"HLT_MET100",
+"HLT_HT100U",
+"HLT_SingleLooseIsoTau20",
+"HLT_DoubleLooseIsoTau15",
+"HLT_DoubleJet15U_ForwardBackward",
+"HLT_BTagMu_Jet10U",
+"HLT_BTagIP_Jet50U",
+"HLT_StoppedHSCP_8E29"
+)
+process.JetMETTau_1e28.HLTPathsPrescales  = cms.vuint32(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)
+process.JetMETTau_1e28.HLTOverallPrescale = cms.uint32(1)
+process.JetMETTau_1e28.throw = False
+process.JetMETTau_1e28.andOr = True
+
+
+# Require BPTX coincidence
 process.hltLevel1GTSeed.L1TechTriggerSeeding = cms.bool(True)
-process.hltLevel1GTSeed.L1SeedsLogicalExpression = cms.string('0 AND (40 OR 41) AND NOT (36 OR 37 OR 38 OR 39) AND NOT ((42 AND NOT 43) OR (43 AND NOT 42))')
+process.hltLevel1GTSeed.L1SeedsLogicalExpression = cms.string('0')
 
 # switch on PAT trigger
 from PhysicsTools.PatAlgos.tools.trigTools import switchOnTrigger
@@ -87,7 +116,7 @@ if useData == False :
 
 else :
     # run b-tagging sequences
-    run36xOn35xInput( process )    
+    # run36xOn35xInput( process )    
     removeMCMatching( process, ['All'] )
 
 ###############################
@@ -548,6 +577,7 @@ process.patseq = cms.Sequence(
     process.hltLevel1GTSeed*
     process.scrapingVeto*
     process.hltPhysicsDeclared*
+    process.JetMETTau_1e28*
     process.primaryVertexFilter*
     process.genJetParticles*
     process.ca8GenJets*
@@ -576,6 +606,9 @@ else :
 
 if (useTTHyp or useSTHyp) and useData == False :
     process.patseq += process.makeGenEvt
+
+if (skimDijets == False or useData == False) :
+    process.patseq.remove( process.JetMETTau_1e28 )
 
 process.p0 = cms.Path(
     process.patseq
@@ -613,15 +646,36 @@ readFiles = cms.untracked.vstring()
 secFiles = cms.untracked.vstring()
 
 readFiles.extend( [
-'/store/mc/Spring10/TTbarJets-madgraph/GEN-SIM-RECO/START3X_V26_S09-v1/0016/6E7C4631-9D47-DF11-96CE-003048C69288.root',
-'/store/mc/Spring10/TTbarJets-madgraph/GEN-SIM-RECO/START3X_V26_S09-v1/0011/A4121AB4-0747-DF11-8984-0030487F171B.root',
-'/store/mc/Spring10/TTbarJets-madgraph/GEN-SIM-RECO/START3X_V26_S09-v1/0006/FE8DE204-C446-DF11-BF76-003048C693FA.root',
-'/store/mc/Spring10/TTbarJets-madgraph/GEN-SIM-RECO/START3X_V26_S09-v1/0006/FE14F78B-C446-DF11-818D-003048C6930E.root',
-'/store/mc/Spring10/TTbarJets-madgraph/GEN-SIM-RECO/START3X_V26_S09-v1/0006/FE0DD96C-B846-DF11-B5AE-0030487EB003.root'
-
-
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/FEFBA245-1D6A-DF11-A909-002618943901.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/FCA432B0-C769-DF11-9402-002618943963.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/FC75616A-C769-DF11-884C-0026189437FE.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/FC309771-D969-DF11-B2BE-00304867C1B0.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/FC14372B-196A-DF11-98FE-003048678E24.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/FAB5C1DB-1B6A-DF11-99FA-003048679046.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/FA90C3AB-EC69-DF11-A8D7-003048679296.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/FA81B0C2-1F6A-DF11-920A-002354EF3BDB.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/F8E89DD0-0F6A-DF11-8125-001A92971B62.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/F8565F96-106A-DF11-9A6C-002618943916.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/F809CFF5-D469-DF11-98D1-00261894395B.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/F6CCAD64-B769-DF11-B457-0018F3D09680.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/F6492DA0-9D69-DF11-8CD6-001A9281173A.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/F61D9497-CA69-DF11-9E91-002618943927.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/F60273F3-FA69-DF11-A9EB-003048678E94.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/F48E25CF-D869-DF11-8521-0026189438F2.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/F47619B6-296A-DF11-88FA-003048D3C010.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/F415E3F4-9B69-DF11-9156-001BFCDBD1BC.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/F2DE2005-9B69-DF11-92C5-003048678F92.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/F211DFED-CA69-DF11-A6CB-00304867C034.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/F08985EC-276A-DF11-B408-0030486792B8.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/F071FBF9-DF69-DF11-8AAB-00261894383A.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/F03DCDD5-9D69-DF11-B6B8-001A92811738.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/F016CC3D-9F69-DF11-8F54-0030486792BA.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/EE0752E5-DC69-DF11-AE82-001A92971B36.root',
+'/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/EC7FFD93-9969-DF11-A8A7-003048678E92.root'
         ] );
 process.source.fileNames = readFiles
+
+process.source.inputCommands = cms.untracked.vstring("keep *", "drop *_MEtoEDMConverter_*_*", "drop L1GlobalTriggerObjectMapRecord_hltL1GtObjectMap__HLT")
 
 
 from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
