@@ -23,7 +23,7 @@
 //
 // Original Author:  "Salvatore Rappoccio"
 //         Created:  Thu Jul  3 00:19:30 CDT 2008
-// $Id: CATopJetTagger.h,v 1.4 2010/03/11 20:03:05 srappocc Exp $
+// $Id: CATopJetTagger.h,v 1.4.2.1 2010/05/19 18:34:31 srappocc Exp $
 //
 //
 
@@ -43,7 +43,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
-#include "FWCore/ParameterSet/interface/InputTag.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 
 #include "DataFormats/Math/interface/deltaR.h"
 
