@@ -6,16 +6,55 @@ from PhysicsTools.PatAlgos.tools.coreTools import *
 ###############################
 ####### Parameters ############
 ###############################
+from FWCore.ParameterSet.VarParsing import VarParsing
+options = VarParsing ('python')
+
+options.register ('skimDijets',
+                  False,
+                  VarParsing.multiplicity.singleton,
+                  VarParsing.varType.int,
+                  "Apply a skim of >= 2jets")
+
+options.register ('useData',
+                  False,
+                  VarParsing.multiplicity.singleton,
+                  VarParsing.varType.int,
+                  "Run this on real data")
+
+options.register ('useTTHyp',
+                  False,
+                  VarParsing.multiplicity.singleton,
+                  VarParsing.varType.int,
+                  "On MC, run the ttbar event hypothesis")
+
+options.register ('useSTHyp',
+                  False,
+                  VarParsing.multiplicity.singleton,
+                  VarParsing.varType.int,
+                  "On MC, run the single top event hypothesis")
+
+options.register ('runOn35x',
+                  False,
+                  VarParsing.multiplicity.singleton,
+                  VarParsing.varType.int,
+                  "Run on samples produced with <= 35x")
+                  
+options.parseArguments()
+
+print options
+
+import sys
 
 # This will apply a dijet skim (2 jets with pt > 25)
-skimDijets = True
+skimDijets = options.skimDijets
 # Set to true for running on data
-useData = True
+useData = options.useData
 # Set to true if running on a ttbar sample
-useTTHyp = False
+useTTHyp = options.skimDijets
 # Set to true if running on a single top sample
-useSTHyp = False
-
+useSTHyp = options.skimDijets
+# Set to true to run on < 36x samples
+runOn35x = options.skimDijets
 
 ###############################
 ####### Global Setup ##########
@@ -47,7 +86,7 @@ from PhysicsTools.PatAlgos.tools.trigTools import switchOnTrigger
 switchOnTrigger( process )
 
 # Switch to the REDIGI trigger for MC
-if useData == False :
+if useData == False and runOn35x:
     process.patTrigger.processName = "REDIGI"
     process.patTriggerEvent.processName = "REDIGI"
 
@@ -66,10 +105,14 @@ process.primaryVertexFilter = cms.EDFilter("GoodVertexFilter",
 
 from PhysicsTools.PatAlgos.tools.cmsswVersionTools import *
 
-if useData == False :
-    # run ak5 gen jets and b-tagging sequences
-    run36xOn35xInput( process, "ak5GenJets")
+if runOn35x :
+    if useData == False :
+        # run ak5 gen jets and b-tagging sequences
+        run36xOn35xInput( process, "ak5GenJets")
+    else :
+        run36xOn35xInput( process )    
 
+if useData == False:
     # produce ttGenEvent
     if useTTHyp :
         process.load("TopQuarkAnalysis.TopEventProducers.sequences.ttGenEvent_cff")
@@ -77,32 +120,25 @@ if useData == False :
         process.load("TopQuarkAnalysis.TopEventProducers.sequences.stGenEvent_cff")
         # prune gen particles
 
-else :
-    # run b-tagging sequences
-    # run36xOn35xInput( process )    
-    removeMCMatching( process, ['All'] )
 
 ###############################
 ########## PF Setup ###########
 ###############################
 
-process.load("PhysicsTools.PFCandProducer.PF2PAT_cff")
-
-
 from PhysicsTools.PatAlgos.tools.pfTools import *
 postfix = "PFlow"
 if useData == False :
-    usePF2PAT(process,runPF2PAT=True, jetAlgo='AK5', runOnMC=True, postfix=postfix, explicitExclude=True)
+    usePF2PAT(process,runPF2PAT=True, jetAlgo='AK5', runOnMC=True, postfix=postfix)
 else :
-    usePF2PAT(process,runPF2PAT=True, jetAlgo='AK5', runOnMC=False, postfix=postfix, explicitExclude=True)
+    usePF2PAT(process,runPF2PAT=True, jetAlgo='AK5', runOnMC=False, postfix=postfix)
 
 # turn to false when running on data
 if useData :
+    getattr(process, "patPhotons"+postfix).embedGenMatch = False
     getattr(process, "patElectrons"+postfix).embedGenMatch = False
     getattr(process, "patMuons"+postfix).embedGenMatch = False
 
-
-
+    removeMCMatching( process, ['All'] )
 
 ###############################
 ###### Vanilla CA8 Jets #######
@@ -202,6 +238,8 @@ process.CATopPFJetTagInfosNoAdj = cms.EDProducer("CATopJetTagger",
                                     MinMassMax = cms.double(200.0),
                                     verbose = cms.bool(False)
                                     )
+
+
 
 
 process.PF2PAT += ( process.caPrunedPFJets*
@@ -453,8 +491,6 @@ if useData == True :
 if (useTTHyp or useSTHyp) and useData == False :
     process.patseq += process.makeGenEvt
 
-if (skimDijets == False or useData == False) :
-    process.patseq.remove( process.JetMETTau_1e28 )
 
 process.p0 = cms.Path(
     process.patseq
@@ -491,6 +527,8 @@ process.out.dropMetaData = cms.untracked.string("DROPPED")
 readFiles = cms.untracked.vstring()
 secFiles = cms.untracked.vstring()
 
+
+
 readFiles.extend( [
 '/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/FEFBA245-1D6A-DF11-A909-002618943901.root',
 '/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/FCA432B0-C769-DF11-9402-002618943963.root',
@@ -519,6 +557,7 @@ readFiles.extend( [
 '/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/EE0752E5-DC69-DF11-AE82-001A92971B36.root',
 '/store/data/Commissioning10/MinimumBias/RECO/May27thReReco_v1/0017/EC7FFD93-9969-DF11-A8A7-003048678E92.root'
         ] );
+
 process.source.fileNames = readFiles
 
 process.source.inputCommands = cms.untracked.vstring("keep *", "drop *_MEtoEDMConverter_*_*", "drop L1GlobalTriggerObjectMapRecord_hltL1GtObjectMap__HLT")
