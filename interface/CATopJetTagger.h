@@ -23,7 +23,7 @@
 //
 // Original Author:  "Salvatore Rappoccio"
 //         Created:  Thu Jul  3 00:19:30 CDT 2008
-// $Id: CATopJetTagger.h,v 1.4.2.1 2010/05/19 18:34:31 srappocc Exp $
+// $Id: CATopJetTagger.h,v 1.4.2.2 2010/08/04 14:41:13 srappocc Exp $
 //
 //
 
@@ -80,16 +80,7 @@ class CATopJetTagger : public edm::EDProducer {
   edm::InputTag   src_;
 
   double      TopMass_;
-  double      TopMassMin_;
-  double      TopMassMax_;
-
   double      WMass_;
-  double      WMassMin_;
-  double      WMassMax_;
-
-  double      MinMassMin_;
-  double      MinMassMax_;
-
   bool        verbose_;
 
 };

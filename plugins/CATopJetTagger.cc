@@ -25,16 +25,7 @@ struct GreaterByPtCandPtr {
 CATopJetTagger::CATopJetTagger(const edm::ParameterSet& iConfig):
   src_(iConfig.getParameter<InputTag>("src") ),
   TopMass_(iConfig.getParameter<double>("TopMass") ),
-  TopMassMin_(iConfig.getParameter<double>("TopMassMin") ),
-  TopMassMax_(iConfig.getParameter<double>("TopMassMax") ),
-
   WMass_(iConfig.getParameter<double>("WMass") ),
-  WMassMin_(iConfig.getParameter<double>("WMassMin") ),
-  WMassMax_(iConfig.getParameter<double>("WMassMax") ),
-
-  MinMassMin_(iConfig.getParameter<double>("MinMassMin") ),
-  MinMassMax_(iConfig.getParameter<double>("MinMassMax") ),
-
   verbose_(iConfig.getParameter<bool>("verbose") )
 {
   produces<CATopJetTagInfoCollection>();
@@ -138,7 +129,8 @@ CATopJetTagger::produce( edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 }// end second loop over subjets
        }// end first loop over subjets
      }// endif 3 subjets
-     
+ 
+ 	 if (properties.minMass == 999999){properties.minMass=-1;}
      CATopJetTagInfo tagInfo;
      tagInfo.insert( ref, properties );
      tagInfos->push_back( tagInfo );
