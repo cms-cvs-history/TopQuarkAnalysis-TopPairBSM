@@ -401,6 +401,13 @@ process.selectedPatJetsPFlow.cut = cms.string("pt > 30")
 process.patJetsPFlow.tagInfoSources = cms.VInputTag(
     cms.InputTag("secondaryVertexTagInfosAODPFlow")
     )
+
+process.patJetsCA8PF.tagInfoSources = cms.VInputTag(
+    )
+process.patJetsCA8PrunedPF.tagInfoSources = cms.VInputTag(
+    )
+
+
 process.patJetsPFlow.addTagInfos = True
 process.patJetsPFlow.embedCaloTowers = False
 process.patJetsPFlow.embedPFCandidates = False
