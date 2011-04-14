@@ -33,7 +33,8 @@ options.parseArguments()
 if not options.useData :
     inputJetCorrLabel = ('AK5PF', ['L2Relative', 'L3Absolute'])
     process.source.fileNames = [
-        '/store/mc/Spring11/TTJets_TuneZ2_7TeV-madgraph-tauola/GEN-SIM-RECO/PU_S1_START311_V1G1-v1/0000/369F9723-124E-E011-B6A2-485B39800BDF.root',
+        '/store/mc/Spring11/WJetsToLNu_TuneZ2_7TeV-madgraph-tauola/AODSIM/PU_S1_START311_V1G1-v1/0005/A2A23D0D-1B55-E011-BF39-003048678FE6.root'
+#        '/store/mc/Spring11/TTJets_TuneZ2_7TeV-madgraph-tauola/GEN-SIM-RECO/PU_S1_START311_V1G1-v1/0000/369F9723-124E-E011-B6A2-485B39800BDF.root',
 #'/store/mc/Spring11/QCD_Pt_15to3000_Flat_7TeV/GEN-SIM-RECO/START311_V1A-v1/0000/FEB02EA6-0747-E011-AB86-00E081791847.root',
 #'/store/mc/Spring11/QCD_Pt_15to3000_Flat_7TeV/GEN-SIM-RECO/START311_V1A-v1/0000/FE628AA2-0747-E011-965E-00E081791891.root',
 #'/store/mc/Spring11/QCD_Pt_15to3000_Flat_7TeV/GEN-SIM-RECO/START311_V1A-v1/0000/FE5AF9C2-2047-E011-91ED-003048D46072.root'
