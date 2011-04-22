@@ -33,8 +33,8 @@ options.parseArguments()
 if not options.useData :
     inputJetCorrLabel = ('AK5PF', ['L2Relative', 'L3Absolute'])
     process.source.fileNames = [
-        '/store/mc/Spring11/WJetsToLNu_TuneZ2_7TeV-madgraph-tauola/AODSIM/PU_S1_START311_V1G1-v1/0005/A2A23D0D-1B55-E011-BF39-003048678FE6.root'
-#        '/store/mc/Spring11/TTJets_TuneZ2_7TeV-madgraph-tauola/GEN-SIM-RECO/PU_S1_START311_V1G1-v1/0000/369F9723-124E-E011-B6A2-485B39800BDF.root',
+#        '/store/mc/Spring11/WJetsToLNu_TuneZ2_7TeV-madgraph-tauola/AODSIM/PU_S1_START311_V1G1-v1/0005/A2A23D0D-1B55-E011-BF39-003048678FE6.root'
+        '/store/mc/Spring11/TTJets_TuneZ2_7TeV-madgraph-tauola/GEN-SIM-RECO/PU_S1_START311_V1G1-v1/0000/369F9723-124E-E011-B6A2-485B39800BDF.root',
 #'/store/mc/Spring11/QCD_Pt_15to3000_Flat_7TeV/GEN-SIM-RECO/START311_V1A-v1/0000/FEB02EA6-0747-E011-AB86-00E081791847.root',
 #'/store/mc/Spring11/QCD_Pt_15to3000_Flat_7TeV/GEN-SIM-RECO/START311_V1A-v1/0000/FE628AA2-0747-E011-965E-00E081791891.root',
 #'/store/mc/Spring11/QCD_Pt_15to3000_Flat_7TeV/GEN-SIM-RECO/START311_V1A-v1/0000/FE5AF9C2-2047-E011-91ED-003048D46072.root'
@@ -131,8 +131,46 @@ switchOnTrigger( process, hltProcess=options.hltProcess )
 
 
 
+###############################
+####### DAF PV's     ##########
+###############################
+
+
+process.offlinePrimaryVerticesDAF = cms.EDProducer("PrimaryVertexProducer",
+    verbose = cms.untracked.bool(False),
+    algorithm = cms.string('AdaptiveVertexFitter'),
+    TrackLabel = cms.InputTag("generalTracks"),
+    useBeamConstraint = cms.bool(False),
+    beamSpotLabel = cms.InputTag("offlineBeamSpot"),
+    minNdof  = cms.double(0.0),
+    PVSelParameters = cms.PSet(
+        maxDistanceToBeam = cms.double(1.0)
+    ),
+    TkFilterParameters = cms.PSet(
+        algorithm=cms.string('filter'),
+        maxNormalizedChi2 = cms.double(20.0),
+        minPixelLayersWithHits=cms.int32(2),
+        minSiliconLayersWithHits = cms.int32(5),
+        maxD0Significance = cms.double(5.0), 
+        minPt = cms.double(0.0),
+        trackQuality = cms.string("any")
+    ),
+
+    TkClusParameters = cms.PSet(
+        algorithm   = cms.string("DA"),
+        TkDAClusParameters = cms.PSet(
+            coolingFactor = cms.double(0.6),  #  moderate annealing speed
+            Tmin = cms.double(4.),            #  end of annealing
+            vertexSize = cms.double(0.01),    #  ~ resolution / sqrt(Tmin)
+            d0CutOff = cms.double(3.),        # downweight high IP tracks 
+            dzCutOff = cms.double(4.)         # outlier rejection after freeze-out (T<Tmin)
+        )
+    )
+)
+
+
 process.primaryVertexFilter = cms.EDFilter("GoodVertexFilter",
-                                           vertexCollection = cms.InputTag('offlinePrimaryVertices'),
+                                           vertexCollection = cms.InputTag('offlinePrimaryVerticesDAF'),
                                            minimumNDOF = cms.uint32(4) ,
                                            maxAbsZ = cms.double(24), 
                                            maxd0 = cms.double(2) 
@@ -146,18 +184,35 @@ from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector
 process.goodOfflinePrimaryVertices = cms.EDFilter(
     "PrimaryVertexObjectFilter",
     filterParams = pvSelector.clone( maxZ = cms.double(24.0) ),
-    src=cms.InputTag('offlinePrimaryVertices')    
+    src=cms.InputTag('offlinePrimaryVerticesDAF')
     )
 
 
 ###############################
-########## GenJet Setup #######
+########## Gen Setup ##########
 ###############################
 
 process.load("RecoJets.Configuration.GenJetParticles_cff")
 from RecoJets.JetProducers.ca4GenJets_cfi import ca4GenJets
 process.ca8GenJetsNoNu = ca4GenJets.clone( rParam = cms.double(0.8),
                                            src = cms.InputTag("genParticlesForJetsNoNu"))
+
+process.load("TopQuarkAnalysis.TopEventProducers.sequences.ttGenEvent_cff")
+
+# add the flavor history
+process.load("PhysicsTools.HepMCCandAlgos.flavorHistoryPaths_cfi")
+
+
+# prune gen particles
+process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
+process.prunedGenParticles = cms.EDProducer("GenParticlePruner",
+                                            src = cms.InputTag("genParticles"),
+                                            select = cms.vstring(
+                                                "drop  *",
+                                                "keep status = 3", #keeps all particles from the hard matrix element
+                                                "+keep (abs(pdgId) = 11 | abs(pdgId) = 13) & status = 1" #keeps all stable muons and electrons and their (direct) mothers.
+                                                )
+                                            )
 
 
 ###############################
@@ -169,7 +224,7 @@ from RecoJets.JetProducers.PFJetParameters_cfi import *
 from RecoJets.JetProducers.CaloJetParameters_cfi import *
 from RecoJets.JetProducers.AnomalousCellParameters_cfi import *
 from RecoJets.JetProducers.CATopJetParameters_cfi import *
-
+from RecoJets.JetProducers.GenJetParameters_cfi import *
 
 
 ###############################
@@ -238,6 +293,22 @@ if options.useData :
     removeMCMatching( process, ['All'] )
     process.looseLeptonSequence.remove( process.muonMatchLoosePFlow )
 
+
+###############################
+###### Bare KT 0.6 jets #######
+###############################
+
+from RecoJets.JetProducers.kt4PFJets_cfi import kt4PFJets
+process.kt6PFJetsPFlow = kt4PFJets.clone(
+    rParam = cms.double(0.6),
+    src = cms.InputTag('pfNoElectron'+postfix),
+    doAreaFastjet = cms.bool(True),
+    doRhoFastjet = cms.bool(True),    
+    Ghost_EtaMax = cms.double(5.0),    
+    Rho_EtaMax = cms.double(5.0) )
+
+
+
 ###############################
 ###### Bare CA 0.8 jets #######
 ###############################
@@ -249,7 +320,6 @@ process.ca8PFJetsPFlow = ca4PFJets.clone(
     doRhoFastjet = cms.bool(True),    
     Ghost_EtaMax = cms.double(5.0),    
     Rho_EtaMax = cms.double(5.0) )
-
 
 ###############################
 ###### Jet Pruning Setup ######
@@ -273,6 +343,18 @@ process.caPrunedPFlow = cms.EDProducer(
     )
 
 process.caPrunedPFlow.nSubjets = cms.int32(2)
+
+
+process.caPrunedGen =  cms.EDProducer(
+    "SubJetProducer",
+    GenJetParameters.clone(src = cms.InputTag("genParticlesForJetsNoNu")),
+    AnomalousCellParameters,
+    SubJetParameters,
+    jetAlgorithm = cms.string("CambridgeAachen"),
+    rParam = SubJetParameters.jetSize,
+    jetCollInstanceName=cms.string("subjets")
+    )
+
 
 ###############################
 #### CATopTag Setup ###########
@@ -309,6 +391,28 @@ process.CATopTagInfosPFlow = cms.EDProducer("CATopJetTagger",
 
 
 
+process.caTopTagGen = cms.EDProducer(
+    "CATopJetProducer",
+    GenJetParameters.clone(src = cms.InputTag("genParticlesForJetsNoNu")),
+    AnomalousCellParameters,
+    CATopJetParameters,
+    jetAlgorithm = cms.string("CambridgeAachen"),
+    rParam = SubJetParameters.jetSize
+    )
+
+process.CATopTagInfosGen = cms.EDProducer("CATopJetTagger",
+                                          src = cms.InputTag("caTopTagGen"),
+                                          TopMass = cms.double(171),
+                                          TopMassMin = cms.double(0.),
+                                          TopMassMax = cms.double(250.),
+                                          WMass = cms.double(80.4),
+                                          WMassMin = cms.double(0.0),
+                                          WMassMax = cms.double(200.0),
+                                          MinMassMin = cms.double(0.0),
+                                          MinMassMax = cms.double(200.0),
+                                          verbose = cms.bool(False)
+                                          )
+
 
 
 # CATopJet PF Jets
@@ -326,6 +430,8 @@ for ipostfix in [postfix] :
 # Use the good primary vertices everywhere. 
 for imod in [process.patMuonsPFlow, process.patMuonsLoosePFlow, process.patElectronsPFlow, process.patElectronsLoosePFlow] :
     imod.pvSrc = "goodOfflinePrimaryVertices"
+    imod.embedTrack = True
+    
 
 addJetCollection(process, 
                  cms.InputTag('ca8PFJetsPFlow'),         # Jet collection; must be already in the event when patLayer0 sequence is executed
@@ -386,9 +492,15 @@ for jetcoll in (process.patJetsPFlow,
     # Add CATopTag info... piggy-backing on b-tag functionality
     jetcoll.addBTagInfo = True
     jetcoll.addTagInfos = True
-    jetcoll.embedCaloTowers = False
-    jetcoll.embedPFCandidates = False
-#    jetcoll.embedGenJet = False
+    # Add the calo towers and PFCandidates.
+    # I'm being a little tricksy here, because I only
+    # actually keep the products if the "writeFat" switch
+    # is on. However, this allows for overlap checking
+    # with the Refs so satisfies most use cases without
+    # having to add to the object size
+    jetcoll.embedCaloTowers = True
+    jetcoll.embedPFCandidates = True
+
 
 
 
@@ -398,7 +510,7 @@ for jetcoll in (process.patJetsPFlow,
 
 # AK5 Jets
 #   PF
-process.selectedPatJetsPFlow.cut = cms.string("pt > 30")
+process.selectedPatJetsPFlow.cut = cms.string("pt > 20 & abs(eta) < 2.5")
 process.patJetsPFlow.tagInfoSources = cms.VInputTag(
     cms.InputTag("secondaryVertexTagInfosAODPFlow")
     )
@@ -419,26 +531,26 @@ process.patJetsPFlow.userData.userFunctionLabels = cms.vstring('secvtxMass')
 
 
 # CA8 jets
-process.selectedPatJetsCA8PF.cut = cms.string("pt > 30")
+process.selectedPatJetsCA8PF.cut = cms.string("pt > 20 & abs(rapidity) < 2.5")
 
 # CA8 Pruned jets
-process.selectedPatJetsCA8PrunedPF.cut = cms.string("pt > 30")
+process.selectedPatJetsCA8PrunedPF.cut = cms.string("pt > 20 & abs(rapidity) < 2.5")
 
 # CA8 TopJets
-process.selectedPatJetsCATopTagPF.cut = cms.string("pt > 30")
+process.selectedPatJetsCATopTagPF.cut = cms.string("pt > 20 & abs(rapidity) < 2.5")
 process.patJetsCATopTagPF.tagInfoSources = cms.VInputTag(
     cms.InputTag('CATopTagInfosPFlow')
     )
 
 # electrons
-process.selectedPatElectronsPFlow.cut = cms.string('pt > 10.0')
+process.selectedPatElectronsPFlow.cut = cms.string('pt > 10.0 & abs(eta) < 2.5')
 process.patElectronsPFlow.embedTrack = cms.bool(True)
-process.selectedPatElectronsLoosePFlow.cut = cms.string('pt > 10.0')
+process.selectedPatElectronsLoosePFlow.cut = cms.string('pt > 10.0 & abs(eta) < 2.5')
 process.patElectronsLoosePFlow.embedTrack = cms.bool(True)
 # muons
-process.selectedPatMuonsPFlow.cut = cms.string("pt > 10.0")
+process.selectedPatMuonsPFlow.cut = cms.string("pt > 10.0 & abs(eta) < 2.5")
 process.patMuonsPFlow.embedTrack = cms.bool(True)
-process.selectedPatMuonsLoosePFlow.cut = cms.string("pt > 10.0")
+process.selectedPatMuonsLoosePFlow.cut = cms.string("pt > 10.0 & abs(eta) < 2.5")
 process.patMuonsLoosePFlow.embedTrack = cms.bool(True)
 # taus
 process.selectedPatTausPFlow.cut = cms.string("pt > 5 & abs(eta) < 3")
@@ -473,25 +585,36 @@ process.goodPatJetsCATopTagPF = cms.EDFilter("PFJetIDSelectionFunctorFilter",
 
 process.patseq = cms.Sequence(
     process.scrapingVeto*
+    process.HBHENoiseFilter*
+    process.offlinePrimaryVerticesDAF*    
     process.goodOfflinePrimaryVertices*
     process.primaryVertexFilter*
-    process.HBHENoiseFilter*
     process.genParticlesForJetsNoNu*
     process.ca8GenJetsNoNu*
     getattr(process,"patPF2PATSequence"+postfix)*
     process.looseLeptonSequence*
+    process.kt6PFJetsPFlow*
     process.patDefaultSequence*
     process.goodPatJetsPFlow*
     process.goodPatJetsCA8PF*
     process.goodPatJetsCA8PrunedPF*
-    process.goodPatJetsCATopTagPF
+    process.goodPatJetsCATopTagPF*
+    process.flavorHistorySeq*
+    process.prunedGenParticles*
+    process.caPrunedGen*
+    process.caTopTagGen*
+    process.CATopTagInfosGen
     )
 
 if options.useData == True :
     process.patseq.remove( process.genParticlesForJetsNoNu )
-    process.patseq.remove( process.genJetParticles )
+    process.patseq.remove( process.genJetParticles )    
     process.patseq.remove( process.ca8GenJetsNoNu )
-
+    process.patseq.remove( process.flavorHistorySeq )
+    process.patseq.remove( process.caPrunedGen )
+    process.patseq.remove( process.caTopTagGen )
+    process.patseq.remove( process.CATopTagInfosGen )
+    process.patseq.remove( process.prunedGenParticles )
 
 process.p0 = cms.Path(
     process.patseq
@@ -500,14 +623,24 @@ process.p0 = cms.Path(
 process.out.SelectEvents.SelectEvents = cms.vstring('p0')
     
 # rename output file
-process.out.fileName = cms.untracked.string('ttbsm_413.root')
+if options.useData :
+    if options.writeFat :
+        process.out.fileName = cms.untracked.string('ttbsm_414_data_fat.root')
+    else :
+        process.out.fileName = cms.untracked.string('ttbsm_414_data.root')
+else :
+    if options.writeFat :
+        process.out.fileName = cms.untracked.string('ttbsm_414_mc_fat.root')
+    else :
+        process.out.fileName = cms.untracked.string('ttbsm_414_mc.root')
+
 
 # reduce verbosity
 process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(100)
 
 
 # process all the events
-process.maxEvents.input = 4000
+process.maxEvents.input = 2000
 process.options.wantSummary = True
 process.out.dropMetaData = cms.untracked.string("DROPPED")
 
@@ -525,7 +658,6 @@ process.out.outputCommands = [
     'drop patJets_selectedPat*_*_*',
     'drop *_selectedPatJets_*_*',    
     'keep *_patMETs*_*_*',
-    'keep *_offlineBeamSpot_*_*',
     'keep *_offlinePrimaryVertices*_*_*',
     'keep *_goodOfflinePrimaryVertices*_*_*',    
     'drop patPFParticles_*_*_*',
@@ -546,7 +678,14 @@ process.out.outputCommands = [
     'keep *_TriggerResults_*_*',
     'keep *_hltTriggerSummaryAOD_*_*',
     'keep *_ak5GenJetsNoNu_*_*',
-    'keep *_ca8GenJetsNoNu_*_*',    
+    'keep *_ca8GenJetsNoNu_*_*',
+    'keep *_caPrunedGen_*_*',
+    'keep *_caTopTagPFlow_*_*',
+    'keep *_CATopTagInfosPFlow_*_*',
+    'keep *_prunedGenParticles_*_*',
+    'drop recoPFCandidates_selectedPatJets*_*_*',
+    'drop recoBaseTagInfosOwned_selectedPatJets*_*_*',
+    'drop CaloTowers_selectedPatJets*_*_*'    
     #'keep recoTracks_generalTracks_*_*'
     ]
 
@@ -558,22 +697,25 @@ else :
     process.out.outputCommands += ['keep *_ca8GenJetsNoNu_*_*',
                                    'keep *_ak5GenJetsNoNu_*_*',                                   
                                    'keep GenRunInfoProduct_generator_*_*',
-                                   'keep GenEventInfoProduct_generator_*_*'
+                                   'keep GenEventInfoProduct_generator_*_*',
+                                   'keep *_flavorHistoryFilter_*_*',
 
                                    ]
 
 if options.writeFat :
-    if options.useData :
+
+    process.out.outputCommands += [
+        'keep *_pfNoElectron*_*_*',
+        'keep recoTracks_generalTracks_*_*',
+        'keep recoPFCandidates_selectedPatJets*_*_*',
+        'keep recoBaseTagInfosOwned_selectedPatJets*_*_*',
+        'keep CaloTowers_selectedPatJets*_*_*'
+        ]
+    
+    if options.useData == False :
         process.out.outputCommands += [
-            'keep *_pfNoElectron*_*_*',
-            'keep recoTracks_generalTracks_*_*'
+            'keep *_genParticles_*_*'
             ]
-    else :
-        process.out.outputCommands += [
-            'keep *_genParticlesNoNu_*_*',                                       
-            'keep *_pfNoElectron*_*_*',
-            'keep recoTracks_generalTracks_*_*'
-            ]        
             
 
 #open('junk.py','w').write(process.dumpPython())
