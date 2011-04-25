@@ -33,6 +33,7 @@ options.parseArguments()
 if not options.useData :
     inputJetCorrLabel = ('AK5PF', ['L2Relative', 'L3Absolute'])
     process.source.fileNames = [
+#        '/store/relval/CMSSW_4_2_1/RelValTTbar/GEN-SIM-RECO/START42_V10-v1/0025/72E96F34-C166-E011-9556-003048678FA6.root'
 #        '/store/mc/Spring11/WJetsToLNu_TuneZ2_7TeV-madgraph-tauola/AODSIM/PU_S1_START311_V1G1-v1/0005/A2A23D0D-1B55-E011-BF39-003048678FE6.root'
         '/store/mc/Spring11/TTJets_TuneZ2_7TeV-madgraph-tauola/GEN-SIM-RECO/PU_S1_START311_V1G1-v1/0000/369F9723-124E-E011-B6A2-485B39800BDF.root',
 #'/store/mc/Spring11/QCD_Pt_15to3000_Flat_7TeV/GEN-SIM-RECO/START311_V1A-v1/0000/FEB02EA6-0747-E011-AB86-00E081791847.root',
@@ -338,7 +339,7 @@ process.caPrunedPFlow = cms.EDProducer(
     AnomalousCellParameters,
     SubJetParameters,
     jetAlgorithm = cms.string("CambridgeAachen"),
-    rParam = SubJetParameters.jetSize,
+    rParam = cms.double(0.8),
     jetCollInstanceName=cms.string("subjets")
     )
 
@@ -347,11 +348,16 @@ process.caPrunedPFlow.nSubjets = cms.int32(2)
 
 process.caPrunedGen =  cms.EDProducer(
     "SubJetProducer",
-    GenJetParameters.clone(src = cms.InputTag("genParticlesForJetsNoNu")),
+    GenJetParameters.clone(src = cms.InputTag("genParticlesForJetsNoNu"),
+                           doAreaFastjet = cms.bool(True),
+                           doRhoFastjet = cms.bool(False),
+                           Ghost_EtaMax = cms.double(5.0),
+                           Rho_EtaMax = cms.double(5.0)
+                           ),
     AnomalousCellParameters,
     SubJetParameters,
     jetAlgorithm = cms.string("CambridgeAachen"),
-    rParam = SubJetParameters.jetSize,
+    rParam = cms.double(0.8),
     jetCollInstanceName=cms.string("subjets")
     )
 
@@ -373,7 +379,7 @@ process.caTopTagPFlow = cms.EDProducer(
     AnomalousCellParameters,
     CATopJetParameters,
     jetAlgorithm = cms.string("CambridgeAachen"),
-    rParam = SubJetParameters.jetSize
+    rParam = cms.double(0.8)
     )
 
 process.CATopTagInfosPFlow = cms.EDProducer("CATopJetTagger",
@@ -393,11 +399,15 @@ process.CATopTagInfosPFlow = cms.EDProducer("CATopJetTagger",
 
 process.caTopTagGen = cms.EDProducer(
     "CATopJetProducer",
-    GenJetParameters.clone(src = cms.InputTag("genParticlesForJetsNoNu")),
+    GenJetParameters.clone(src = cms.InputTag("genParticlesForJetsNoNu"),
+                           doAreaFastjet = cms.bool(True),
+                           doRhoFastjet = cms.bool(False),
+                           Ghost_EtaMax = cms.double(5.0),
+                           Rho_EtaMax = cms.double(5.0)),
     AnomalousCellParameters,
     CATopJetParameters,
     jetAlgorithm = cms.string("CambridgeAachen"),
-    rParam = SubJetParameters.jetSize
+    rParam = cms.double(0.8)
     )
 
 process.CATopTagInfosGen = cms.EDProducer("CATopJetTagger",
@@ -685,7 +695,7 @@ process.out.outputCommands = [
     'keep *_prunedGenParticles_*_*',
     'drop recoPFCandidates_selectedPatJets*_*_*',
     'drop recoBaseTagInfosOwned_selectedPatJets*_*_*',
-    'drop CaloTowers_selectedPatJets*_*_*'    
+    'drop CaloTowers_selectedPatJets*_*_*'
     #'keep recoTracks_generalTracks_*_*'
     ]
 
