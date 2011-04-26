@@ -392,7 +392,7 @@ process.caTopTagGen = cms.EDProducer(
     "CATopJetProducer",
     GenJetParameters.clone(src = cms.InputTag("genParticlesForJetsNoNu"),
                            doAreaFastjet = cms.bool(True),
-                           doRhoFastjet = cms.bool(False),
+                           doRhoFastjet = cms.bool(False)),
     AnomalousCellParameters,
     CATopJetParameters,
     jetAlgorithm = cms.string("CambridgeAachen"),
