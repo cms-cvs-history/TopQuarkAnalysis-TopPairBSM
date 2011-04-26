@@ -171,7 +171,7 @@ process.offlinePrimaryVerticesDAF = cms.EDProducer("PrimaryVertexProducer",
 
 
 process.primaryVertexFilter = cms.EDFilter("GoodVertexFilter",
-                                           vertexCollection = cms.InputTag('offlinePrimaryVerticesDAF'),
+                                           vertexCollection = cms.InputTag('offlinePrimaryVertices'),
                                            minimumNDOF = cms.uint32(4) ,
                                            maxAbsZ = cms.double(24), 
                                            maxd0 = cms.double(2) 
@@ -185,7 +185,7 @@ from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector
 process.goodOfflinePrimaryVertices = cms.EDFilter(
     "PrimaryVertexObjectFilter",
     filterParams = pvSelector.clone( maxZ = cms.double(24.0) ),
-    src=cms.InputTag('offlinePrimaryVerticesDAF')
+    src=cms.InputTag('offlinePrimaryVertices')
     )
 
 
@@ -240,8 +240,6 @@ process.pfPileUpPFlow.Enable = True
 process.pfJetsPFlow.Vertices = cms.InputTag('goodOfflinePrimaryVertices')
 process.pfJetsPFlow.doAreaFastjet = True
 process.pfJetsPFlow.doRhoFastjet = False
-process.pfJetsPFlow.Ghost_EtaMax = 5.0
-process.pfJetsPFlow.Rho_EtaMax = cms.double(5.0)
 
 # In order to have a coherent semileptonic channel also, add
 # some "loose" leptons to do QCD estimates.
@@ -304,9 +302,9 @@ process.kt6PFJetsPFlow = kt4PFJets.clone(
     rParam = cms.double(0.6),
     src = cms.InputTag('pfNoElectron'+postfix),
     doAreaFastjet = cms.bool(True),
-    doRhoFastjet = cms.bool(True),    
-    Ghost_EtaMax = cms.double(5.0),    
-    Rho_EtaMax = cms.double(5.0) )
+    doRhoFastjet = cms.bool(True),
+    voronoiRfact = cms.double(0.9)
+    )
 
 
 
@@ -318,9 +316,8 @@ process.ca8PFJetsPFlow = ca4PFJets.clone(
     rParam = cms.double(0.8),
     src = cms.InputTag('pfNoElectron'+postfix),
     doAreaFastjet = cms.bool(True),
-    doRhoFastjet = cms.bool(True),    
-    Ghost_EtaMax = cms.double(5.0),    
-    Rho_EtaMax = cms.double(5.0) )
+    doRhoFastjet = cms.bool(True)
+    )
 
 ###############################
 ###### Jet Pruning Setup ######
@@ -332,9 +329,7 @@ process.caPrunedPFlow = cms.EDProducer(
     "SubJetProducer",
     PFJetParameters.clone( src = cms.InputTag('pfNoElectron'+postfix),
                            doAreaFastjet = cms.bool(True),
-                           doRhoFastjet = cms.bool(False),
-                           Ghost_EtaMax = cms.double(5.0),
-                           Rho_EtaMax = cms.double(5.0)
+                           doRhoFastjet = cms.bool(False)
                            ),
     AnomalousCellParameters,
     SubJetParameters,
@@ -350,9 +345,7 @@ process.caPrunedGen =  cms.EDProducer(
     "SubJetProducer",
     GenJetParameters.clone(src = cms.InputTag("genParticlesForJetsNoNu"),
                            doAreaFastjet = cms.bool(True),
-                           doRhoFastjet = cms.bool(False),
-                           Ghost_EtaMax = cms.double(5.0),
-                           Rho_EtaMax = cms.double(5.0)
+                           doRhoFastjet = cms.bool(False)
                            ),
     AnomalousCellParameters,
     SubJetParameters,
@@ -372,9 +365,7 @@ process.caTopTagPFlow = cms.EDProducer(
     "CATopJetProducer",
     PFJetParameters.clone( src = cms.InputTag('pfNoElectron'+postfix),
                            doAreaFastjet = cms.bool(True),
-                           doRhoFastjet = cms.bool(False),
-                           Ghost_EtaMax = cms.double(5.0),
-                           Rho_EtaMax = cms.double(5.0)                           
+                           doRhoFastjet = cms.bool(False)                         
                            ),
     AnomalousCellParameters,
     CATopJetParameters,
@@ -402,8 +393,6 @@ process.caTopTagGen = cms.EDProducer(
     GenJetParameters.clone(src = cms.InputTag("genParticlesForJetsNoNu"),
                            doAreaFastjet = cms.bool(True),
                            doRhoFastjet = cms.bool(False),
-                           Ghost_EtaMax = cms.double(5.0),
-                           Rho_EtaMax = cms.double(5.0)),
     AnomalousCellParameters,
     CATopJetParameters,
     jetAlgorithm = cms.string("CambridgeAachen"),
@@ -596,7 +585,7 @@ process.goodPatJetsCATopTagPF = cms.EDFilter("PFJetIDSelectionFunctorFilter",
 process.patseq = cms.Sequence(
     process.scrapingVeto*
     process.HBHENoiseFilter*
-    process.offlinePrimaryVerticesDAF*    
+#    process.offlinePrimaryVerticesDAF*    
     process.goodOfflinePrimaryVertices*
     process.primaryVertexFilter*
     process.genParticlesForJetsNoNu*
@@ -709,7 +698,7 @@ else :
                                    'keep GenRunInfoProduct_generator_*_*',
                                    'keep GenEventInfoProduct_generator_*_*',
                                    'keep *_flavorHistoryFilter_*_*',
-
+                                   'keep PileupSummaryInfos_*_*_*'
                                    ]
 
 if options.writeFat :
