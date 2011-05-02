@@ -4,7 +4,7 @@ import ROOT
 import sys
 from DataFormats.FWLite import Events, Handle
 
-files = ["ttbsm_413.root"]
+files = ["ttbsm_414_data.root"]
 events = Events (files)
 handle1  = Handle ("std::vector<pat::Jet>")
 handle2  = Handle ("std::vector<pat::Jet>")

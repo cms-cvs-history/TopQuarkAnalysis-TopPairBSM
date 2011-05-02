@@ -683,7 +683,6 @@ process.out.outputCommands = [
     'keep *_CATopTagInfosPFlow_*_*',
     'keep *_prunedGenParticles_*_*',
     'drop recoPFCandidates_selectedPatJets*_*_*',
-    'drop recoBaseTagInfosOwned_selectedPatJets*_*_*',
     'drop CaloTowers_selectedPatJets*_*_*'
     #'keep recoTracks_generalTracks_*_*'
     ]
