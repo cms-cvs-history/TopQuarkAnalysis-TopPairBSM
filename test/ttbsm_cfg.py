@@ -265,6 +265,9 @@ process.pfJetsPFlow.doRhoFastjet = False
 process.patJetCorrFactorsPFlow.payload = inputJetCorrLabel[0]
 process.patJetCorrFactorsPFlow.levels = inputJetCorrLabel[1]
 process.patJetCorrFactorsPFlow.rho = cms.InputTag("kt6PFJetsPFlow", "rho")
+if not options.use41x :
+    process.pfPileUpPFlow.checkClosestZVertex = False
+
 
 # In order to have a coherent semileptonic channel also, add
 # some "loose" leptons to do QCD estimates.
