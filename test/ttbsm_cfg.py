@@ -39,9 +39,16 @@ options.parseArguments()
 
 if not options.useData :
     inputJetCorrLabel = ('AK5PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'])
-    process.source.fileNames = [
-        '/store/relval/CMSSW_4_2_2/RelValTTbar/GEN-SIM-RECO/START42_V11-v1/0005/50AC4DBF-746D-E011-8CF9-00248C55CC62.root'
-        ]
+
+    if options.use41x:
+        process.source.fileNames = [
+            '/store/relval/CMSSW_4_1_5/RelValTTbar/GEN-SIM-RECO/START311_V2-v1/0037/20A7B6E4-8F6C-E011-9E6B-003048678FE4.root',
+            ]
+    else :
+        process.source.fileNames = [
+            '/store/relval/CMSSW_4_2_2/RelValTTbar/GEN-SIM-RECO/START42_V11-v1/0005/50AC4DBF-746D-E011-8CF9-00248C55CC62.root'
+            ]
+    
 else :
     if options.use41x :
         inputJetCorrLabel = ('AK5PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual'])
@@ -91,10 +98,29 @@ if not options.use41x :
 else :
     # 4.1.x configuration
     fileTag = '41x'
-    if options.useData :
-        process.GlobalTag.globaltag = cms.string('GR_R_311_V2::All')
-    else :
-        process.GlobalTag.globaltag = cms.string('START311_V2::All')
+    process.load("CondCore.DBCommon.CondDBCommon_cfi")
+    process.jec = cms.ESSource("PoolDBESSource",
+                               DBParameters = cms.PSet(
+                                   messageLevel = cms.untracked.int32(0)
+                                   ),
+                               timetype = cms.string('runnumber'),
+                               toGet = cms.VPSet(
+                                   cms.PSet(
+                                       record = cms.string('JetCorrectionsRecord'),
+                                       tag    = cms.string('JetCorrectorParametersCollection_Jec10V3_AK5PFchs'),
+                                       label  = cms.untracked.string('AK5PFchs')
+                                       )
+                                   ),
+                               ## here you add as many jet types as you need (AK5Calo, AK5JPT, AK7PF, AK7Calo, KT4PF, KT4Calo, KT6PF, KT6Calo)
+                               connect = cms.string('sqlite_file:Jec10V3.db')
+                               )
+    process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
+
+
+    ## if options.useData :
+    ##     process.GlobalTag.globaltag = cms.string('GR_R_311_V2::All')
+    ## else :
+    ##     process.GlobalTag.globaltag = cms.string('START311_V2::All')
 
 
 
@@ -625,7 +651,6 @@ process.patseq = cms.Sequence(
     process.primaryVertexFilter*
     process.genParticlesForJetsNoNu*
     process.ca8GenJetsNoNu*
-    process.eidCiCSequence*    
     getattr(process,"patPF2PATSequence"+postfix)*
     process.looseLeptonSequence*
     process.patDefaultSequence*
@@ -641,7 +666,13 @@ process.patseq = cms.Sequence(
     )
 
 if options.use41x :
-    process.patseq.remove( process.eidCiCSequence )
+    process.patseq.replace( process.goodOfflinePrimaryVertices,
+                            process.offlinePrimaryVerticesDAF *
+                            process.goodOfflinePrimaryVertices )
+else :
+    process.patseq.replace( process.goodOfflinePrimaryVertices,
+                            process.goodOfflinePrimaryVertices *
+                            process.eidCiCSequence )
 
 if options.useData == True :
     process.patseq.remove( process.genParticlesForJetsNoNu )
