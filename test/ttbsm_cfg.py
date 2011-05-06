@@ -27,65 +27,77 @@ options.register ('writeFat',
                   VarParsing.varType.int,
                   "Output tracks and PF candidates")
 
-options.register ('use41x',
-                  False,
-                  VarParsing.multiplicity.singleton,
-                  VarParsing.varType.int,
-                  "Use the 41x options")
-
 
 options.parseArguments()
 
-
 if not options.useData :
-    inputJetCorrLabel = ('AK5PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'])
+    inputJetCorrLabel = ('AK5PF', ['L2Relative', 'L3Absolute'])
+    process.source.fileNames = [
+#        '/store/relval/CMSSW_4_2_1/RelValTTbar/GEN-SIM-RECO/START42_V10-v1/0025/72E96F34-C166-E011-9556-003048678FA6.root'
+#        '/store/mc/Spring11/WJetsToLNu_TuneZ2_7TeV-madgraph-tauola/AODSIM/PU_S1_START311_V1G1-v1/0005/A2A23D0D-1B55-E011-BF39-003048678FE6.root'
+        '/store/mc/Spring11/TTJets_TuneZ2_7TeV-madgraph-tauola/GEN-SIM-RECO/PU_S1_START311_V1G1-v1/0000/369F9723-124E-E011-B6A2-485B39800BDF.root',
+#'/store/mc/Spring11/QCD_Pt_15to3000_Flat_7TeV/GEN-SIM-RECO/START311_V1A-v1/0000/FEB02EA6-0747-E011-AB86-00E081791847.root',
+#'/store/mc/Spring11/QCD_Pt_15to3000_Flat_7TeV/GEN-SIM-RECO/START311_V1A-v1/0000/FE628AA2-0747-E011-965E-00E081791891.root',
+#'/store/mc/Spring11/QCD_Pt_15to3000_Flat_7TeV/GEN-SIM-RECO/START311_V1A-v1/0000/FE5AF9C2-2047-E011-91ED-003048D46072.root'
 
-    if options.use41x:
-        process.source.fileNames = [
-            '/store/relval/CMSSW_4_1_5/RelValTTbar/GEN-SIM-RECO/START311_V2-v1/0037/20A7B6E4-8F6C-E011-9E6B-003048678FE4.root',
-            ]
-    else :
-        process.source.fileNames = [
-            '/store/relval/CMSSW_4_2_2/RelValTTbar/GEN-SIM-RECO/START42_V11-v1/0005/50AC4DBF-746D-E011-8CF9-00248C55CC62.root'
-            ]
-    
+        ]
 else :
-    if options.use41x :
-        inputJetCorrLabel = ('AK5PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual'])
-        process.source.fileNames = [
-            '/store/data/Run2011A/Jet/AOD/PromptReco-v2/000/163/738/70A9D7BA-D974-E011-8DD6-003048F118D2.root',
-            '/store/data/Run2011A/Jet/AOD/PromptReco-v2/000/163/738/8A283D5E-D874-E011-B07B-0030487CD6B4.root',
-            '/store/data/Run2011A/Jet/AOD/PromptReco-v2/000/163/738/A6773B09-0075-E011-B535-001D09F2423B.root',
-            '/store/data/Run2011A/Jet/AOD/PromptReco-v2/000/163/738/C2A81E5B-D874-E011-9CC1-00304879FA4A.root',
-            '/store/data/Run2011A/Jet/AOD/PromptReco-v2/000/163/738/EAE095DA-DB74-E011-9B0C-003048F1183E.root'
+    inputJetCorrLabel = ('AK5PF', ['L2Relative', 'L3Absolute', 'L2L3Residual'])
+    process.source.fileNames = [
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/547/DAFCA3B7-B850-E011-9ADF-0030487C778E.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/502/7297DBD1-6B50-E011-9FA5-0030487CD162.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/500/9E1BCB0E-6C50-E011-BC4D-0030487CD7EE.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/499/3850D990-9450-E011-BF72-0030487CD716.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/498/AC8FE79D-8450-E011-A58B-0030487CAEAC.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/495/88BEEA68-3850-E011-9F13-0030487CD17C.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/494/1C35E662-3350-E011-BAA0-003048F1183E.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/488/66D0A0F1-1850-E011-97C0-003048F1BF68.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/486/E2FB2282-1850-E011-BA61-001D09F2527B.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/484/6E1A5CBE-1650-E011-B823-003048D2C108.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/472/CA224AEB-1450-E011-84A1-001D09F2527B.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/471/5C765497-1450-E011-AD91-001D09F248F8.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/469/204A3C03-1A50-E011-B8D7-0030487C8CB6.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/467/6ABD98CE-1B50-E011-9D5F-003048F11114.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/466/F296557B-1E50-E011-8C7F-0030487CD6B4.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/463/72D3943E-2350-E011-B098-001617C3B654.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/462/E650148E-2650-E011-96BD-001617C3B654.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/456/863BF1F0-4C50-E011-9ABC-001617C3B5E4.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/455/46A4141B-4A50-E011-8ED4-001D09F24934.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/454/C2041925-DC50-E011-B0C2-0030487C7828.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/450/2EE61936-5050-E011-9731-0030487C7392.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/449/5C5D099B-4C50-E011-9779-000423D98B6C.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/447/B8CFC010-5650-E011-A6CA-0030487CD162.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/446/6810F3AF-5C50-E011-9EA3-003048F11114.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/445/5E83EDE8-5650-E011-B45D-001D09F23A3E.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/444/0E40C747-AC50-E011-8A91-0030487CD718.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/443/EAA93DE5-5750-E011-A127-001617C3B76E.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/442/70B27507-5B50-E011-99A9-0030487CD162.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/439/6658D888-B34F-E011-BE9D-001D09F24D67.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/433/12B7CF7F-B54F-E011-94B6-001D09F23C73.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/432/96E7E8AA-1150-E011-878B-001D09F28F1B.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/431/44A96589-2D50-E011-861C-003048F118D4.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/428/00E2E174-B34F-E011-9858-003048F110BE.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/427/52C35785-814F-E011-A17C-003048F117EC.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/425/F4681D39-844F-E011-B3E5-003048F024F6.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/423/2A0114B3-7C4F-E011-B719-001D09F24303.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/421/0A0F17E0-774F-E011-93C1-000423D94E70.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/413/28A09525-EB4F-E011-9AE5-003048F0258C.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/410/8094C4AE-5F4F-E011-B390-003048F118D2.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/406/4E1472A9-5F4F-E011-B062-0030487C7828.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/405/3AB185A4-D64F-E011-8394-0030487C2B86.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/404/38F2FFDA-374F-E011-AD2A-003048F024F6.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/403/64B3598B-364F-E011-8683-001D09F29849.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/386/5059F123-0B4F-E011-8DDB-0030487C2B86.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/384/463D8003-094F-E011-A4B1-0030487CD17C.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/383/7EDAB706-0D4F-E011-BBBF-0030487C6A66.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/379/14D52E14-0C4F-E011-B5AF-003048F11C58.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/377/5CBF6B69-0B4F-E011-855D-0030487CD906.root',
+'/store/data/Run2011A/Jet/AOD/PromptReco-v1/000/160/329/6631A77A-2F4E-E011-AE5A-003048F118C2.root',
 
-            ]
-    else :
-        inputJetCorrLabel = ('AK5PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'])
-        process.source.fileNames = [
-            '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/FE6792BA-9A70-E011-940A-002618943970.root',
-            '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/FE0F23C8-9A70-E011-97A2-002618943821.root',
-            '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/FA7403C3-9A70-E011-BFE1-001A92810AA0.root',
-            '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/F4886DC3-9A70-E011-BCD1-003048679000.root',
-            '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/F232B0F1-9A70-E011-BA4E-003048678FE4.root',
-            '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/F0969EC4-9A70-E011-AAD9-003048678FC6.root',
-            '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/EEC627FE-9A70-E011-B1EA-0018F3D096C8.root',
-            '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/ECA837F0-9A70-E011-9637-002618943866.root',
-            '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/E6E258CD-9A70-E011-A3AB-001A92971B7C.root',
-            '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/E6249FB3-9A70-E011-88D9-003048678FB2.root',
-            '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/E25FFEE0-9A70-E011-BE2B-0018F3D0968A.root',
-            '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/E0D345D7-9A70-E011-BF5F-002618943957.root',
-            '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/D0EF4AC6-9A70-E011-ACD0-0026189437E8.root',
-            '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/CCFCF4BD-9A70-E011-B72A-0018F3D096B4.root',
-            '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/C68BFCEB-9A70-E011-A4BC-003048678B12.root',
-            '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/C04521C3-9A70-E011-9DC8-001A928116BC.root'
-            ]
+        ]
 
 
 print options
-
-print 'Running jet corrections: '
-print inputJetCorrLabel
 
 import sys
 
@@ -94,43 +106,13 @@ import sys
 ####### Global Setup ##########
 ###############################
 
-
-if not options.use41x :
-    # 4.2.x configuration
-    fileTag = '42x'
-    if options.useData :
-        process.GlobalTag.globaltag = cms.string( 'GR_R_42_V12::All' )
-    else :
-        process.GlobalTag.globaltag = cms.string( 'START42_V12::All' )
-
+if options.useData == False :
+    # global tag for MC
+    process.GlobalTag.globaltag = cms.string('START311_V2::All')
 else :
-    # 4.1.x configuration
-    fileTag = '41x'
-    process.load("CondCore.DBCommon.CondDBCommon_cfi")
-    process.jec = cms.ESSource("PoolDBESSource",
-                               DBParameters = cms.PSet(
-                                   messageLevel = cms.untracked.int32(0)
-                                   ),
-                               timetype = cms.string('runnumber'),
-                               toGet = cms.VPSet(
-                                   cms.PSet(
-                                       record = cms.string('JetCorrectionsRecord'),
-                                       tag    = cms.string('JetCorrectorParametersCollection_Jec10V3_AK5PFchs'),
-                                       label  = cms.untracked.string('AK5PFchs')
-                                       )
-                                   ),
-                               ## here you add as many jet types as you need (AK5Calo, AK5JPT, AK7PF, AK7Calo, KT4PF, KT4Calo, KT6PF, KT6Calo)
-                               connect = cms.string('sqlite_file:Jec10V3.db')
-                               )
-    process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
-
-
-    ## if options.useData :
-    ##     process.GlobalTag.globaltag = cms.string('GR_R_311_V2::All')
-    ## else :
-    ##     process.GlobalTag.globaltag = cms.string('START311_V2::All')
-
-
+    # global tag for 361 data
+    #process.GlobalTag.globaltag = cms.string('GR_R_38X_V14::All')
+    process.GlobalTag.globaltag = cms.string('GR_R_311_V2::All')
 
 # require scraping filter
 process.scrapingVeto = cms.EDFilter("FilterOutScraping",
@@ -154,45 +136,43 @@ switchOnTrigger( process, hltProcess=options.hltProcess )
 ####### DAF PV's     ##########
 ###############################
 
-pvSrc = 'offlinePrimaryVertices'
-if options.use41x :
-    pvSrc = 'offlinePrimaryVerticesDAF'
-    process.offlinePrimaryVerticesDAF = cms.EDProducer("PrimaryVertexProducer",
-        verbose = cms.untracked.bool(False),
-        algorithm = cms.string('AdaptiveVertexFitter'),
-        TrackLabel = cms.InputTag("generalTracks"),
-        useBeamConstraint = cms.bool(False),
-        beamSpotLabel = cms.InputTag("offlineBeamSpot"),
-        minNdof  = cms.double(0.0),
-        PVSelParameters = cms.PSet(
-            maxDistanceToBeam = cms.double(1.0)
-        ),
-        TkFilterParameters = cms.PSet(
-            algorithm=cms.string('filter'),
-            maxNormalizedChi2 = cms.double(20.0),
-            minPixelLayersWithHits=cms.int32(2),
-            minSiliconLayersWithHits = cms.int32(5),
-            maxD0Significance = cms.double(5.0), 
-            minPt = cms.double(0.0),
-            trackQuality = cms.string("any")
-        ),
 
-        TkClusParameters = cms.PSet(
-            algorithm   = cms.string("DA"),
-            TkDAClusParameters = cms.PSet(
-                coolingFactor = cms.double(0.6),  #  moderate annealing speed
-                Tmin = cms.double(4.),            #  end of annealing
-                vertexSize = cms.double(0.01),    #  ~ resolution / sqrt(Tmin)
-                d0CutOff = cms.double(3.),        # downweight high IP tracks 
-                dzCutOff = cms.double(4.)         # outlier rejection after freeze-out (T<Tmin)
-            )
+process.offlinePrimaryVerticesDAF = cms.EDProducer("PrimaryVertexProducer",
+    verbose = cms.untracked.bool(False),
+    algorithm = cms.string('AdaptiveVertexFitter'),
+    TrackLabel = cms.InputTag("generalTracks"),
+    useBeamConstraint = cms.bool(False),
+    beamSpotLabel = cms.InputTag("offlineBeamSpot"),
+    minNdof  = cms.double(0.0),
+    PVSelParameters = cms.PSet(
+        maxDistanceToBeam = cms.double(1.0)
+    ),
+    TkFilterParameters = cms.PSet(
+        algorithm=cms.string('filter'),
+        maxNormalizedChi2 = cms.double(20.0),
+        minPixelLayersWithHits=cms.int32(2),
+        minSiliconLayersWithHits = cms.int32(5),
+        maxD0Significance = cms.double(5.0), 
+        minPt = cms.double(0.0),
+        trackQuality = cms.string("any")
+    ),
+
+    TkClusParameters = cms.PSet(
+        algorithm   = cms.string("DA"),
+        TkDAClusParameters = cms.PSet(
+            coolingFactor = cms.double(0.6),  #  moderate annealing speed
+            Tmin = cms.double(4.),            #  end of annealing
+            vertexSize = cms.double(0.01),    #  ~ resolution / sqrt(Tmin)
+            d0CutOff = cms.double(3.),        # downweight high IP tracks 
+            dzCutOff = cms.double(4.)         # outlier rejection after freeze-out (T<Tmin)
         )
     )
+)
 
 
 process.primaryVertexFilter = cms.EDFilter("GoodVertexFilter",
-                                           vertexCollection = cms.InputTag(pvSrc),
-                                           minimumNDOF = cms.uint32(7) ,
+                                           vertexCollection = cms.InputTag('offlinePrimaryVertices'),
+                                           minimumNDOF = cms.uint32(4) ,
                                            maxAbsZ = cms.double(24), 
                                            maxd0 = cms.double(2) 
                                            )
@@ -204,10 +184,8 @@ from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector
 
 process.goodOfflinePrimaryVertices = cms.EDFilter(
     "PrimaryVertexObjectFilter",
-    filterParams = pvSelector.clone( maxZ = cms.double(24.0),
-                                     minNdof = cms.double(7.0)
-                                     ),
-    src=cms.InputTag(pvSrc)
+    filterParams = pvSelector.clone( maxZ = cms.double(24.0) ),
+    src=cms.InputTag('offlinePrimaryVertices')
     )
 
 
@@ -262,9 +240,6 @@ process.pfPileUpPFlow.Enable = True
 process.pfJetsPFlow.Vertices = cms.InputTag('goodOfflinePrimaryVertices')
 process.pfJetsPFlow.doAreaFastjet = True
 process.pfJetsPFlow.doRhoFastjet = False
-process.patJetCorrFactorsPFlow.payload = inputJetCorrLabel[0]
-process.patJetCorrFactorsPFlow.levels = inputJetCorrLabel[1]
-process.patJetCorrFactorsPFlow.rho = cms.InputTag("kt6PFJetsPFlow", "rho")
 
 # In order to have a coherent semileptonic channel also, add
 # some "loose" leptons to do QCD estimates.
@@ -316,43 +291,6 @@ process.looseLeptonSequence = cms.Sequence(
 if options.useData :
     removeMCMatching( process, ['All'] )
     process.looseLeptonSequence.remove( process.muonMatchLoosePFlow )
-
-
-###############################
-###### Electron ID ############
-###############################
-
-# NOTE: ADDING THE ELECTRON IDs FROM CiC ----- USED WITH 42X 
-
-
-if not options.use41x :
-    process.load('RecoEgamma.ElectronIdentification.cutsInCategoriesElectronIdentificationV06_cfi')
-    process.eidCiCSequence = cms.Sequence(
-        process.eidVeryLooseMC *
-        process.eidLooseMC *
-        process.eidMediumMC*
-        process.eidTightMC *
-        process.eidSuperTightMC *
-        process.eidHyperTight1MC *
-        process.eidHyperTight2MC *
-        process.eidHyperTight3MC *
-        process.eidHyperTight4MC
-        )
-    
-    for iele in [ process.patElectrons,
-                  process.patElectronsPFlow,
-                  process.patElectronsLoosePFlow ] :
-        iele.electronIDSources = cms.PSet(
-            eidVeryLooseMC = cms.InputTag("eidVeryLooseMC"),
-            eidLooseMC = cms.InputTag("eidLooseMC"),
-            eidMediumMC = cms.InputTag("eidMediumMC"),
-            eidTightMC = cms.InputTag("eidTightMC"),
-            eidSuperTightMC = cms.InputTag("eidSuperTightMC"),
-            eidHyperTight1MC = cms.InputTag("eidHyperTight1MC"),
-            eidHyperTight2MC = cms.InputTag("eidHyperTight2MC"),
-            eidHyperTight3MC = cms.InputTag("eidHyperTight3MC"),
-            eidHyperTight4MC = cms.InputTag("eidHyperTight4MC")        
-            )
 
 
 ###############################
@@ -480,7 +418,6 @@ process.CATopTagInfosGen = cms.EDProducer("CATopJetTagger",
 
 for ipostfix in [postfix] :
     for module in (
-        getattr(process,"kt6PFJets" + ipostfix),
         getattr(process,"ca8PFJets" + ipostfix),        
         getattr(process,"CATopTagInfos" + ipostfix),
         getattr(process,"caTopTag" + ipostfix),
@@ -490,12 +427,7 @@ for ipostfix in [postfix] :
 
 
 # Use the good primary vertices everywhere. 
-for imod in [process.patMuonsPFlow,
-             process.patMuonsLoosePFlow,
-             process.patElectronsPFlow,
-             process.patElectronsLoosePFlow,
-             process.patMuons,
-             process.patElectrons] :
+for imod in [process.patMuonsPFlow, process.patMuonsLoosePFlow, process.patElectronsPFlow, process.patElectronsLoosePFlow] :
     imod.pvSrc = "goodOfflinePrimaryVertices"
     imod.embedTrack = True
     
@@ -528,7 +460,6 @@ addJetCollection(process,
                  )
 
 
-
 addJetCollection(process, 
                  cms.InputTag('caTopTagPFlow'),
                  'CATopTag', 'PF',
@@ -541,11 +472,6 @@ addJetCollection(process,
                  genJetCollection = cms.InputTag("ca8GenJetsNoNu"),
                  doJetID = False
                  )
-
-for icorr in [process.patJetCorrFactorsCATopTagPF,
-              process.patJetCorrFactorsCA8PrunedPF,
-              process.patJetCorrFactorsCA8PF ] :
-    icorr.rho = cms.InputTag("kt6PFJetsPFlow", "rho")
 
 
 ###############################
@@ -564,6 +490,7 @@ for jetcoll in (process.patJetsPFlow,
         jetcoll.addGenPartonMatch = True
     # Add CATopTag info... piggy-backing on b-tag functionality
     jetcoll.addBTagInfo = True
+    jetcoll.addTagInfos = True
     # Add the calo towers and PFCandidates.
     # I'm being a little tricksy here, because I only
     # actually keep the products if the "writeFat" switch
@@ -581,14 +508,26 @@ for jetcoll in (process.patJetsPFlow,
 ###############################
 
 # AK5 Jets
+#   PF
 process.selectedPatJetsPFlow.cut = cms.string("pt > 20 & abs(eta) < 2.5")
-process.patJetsPFlow.addTagInfos = True
 process.patJetsPFlow.tagInfoSources = cms.VInputTag(
     cms.InputTag("secondaryVertexTagInfosAODPFlow")
     )
+
+process.patJetsCA8PF.tagInfoSources = cms.VInputTag(
+    )
+process.patJetsCA8PrunedPF.tagInfoSources = cms.VInputTag(
+    )
+
+
+process.patJetsPFlow.addTagInfos = True
+process.patJetsPFlow.embedCaloTowers = False
+process.patJetsPFlow.embedPFCandidates = False
+
 process.patJetsPFlow.userData.userFunctions = cms.vstring( "? hasTagInfo('secondaryVertex') && tagInfoSecondaryVertex('secondaryVertex').nVertices() > 0 ? "
                                                       "tagInfoSecondaryVertex('secondaryVertex').secondaryVertex(0).p4().mass() : 0")
 process.patJetsPFlow.userData.userFunctionLabels = cms.vstring('secvtxMass')
+
 
 # CA8 jets
 process.selectedPatJetsCA8PF.cut = cms.string("pt > 20 & abs(rapidity) < 2.5")
@@ -598,34 +537,26 @@ process.selectedPatJetsCA8PrunedPF.cut = cms.string("pt > 20 & abs(rapidity) < 2
 
 # CA8 TopJets
 process.selectedPatJetsCATopTagPF.cut = cms.string("pt > 20 & abs(rapidity) < 2.5")
-process.patJetsCATopTagPF.addTagInfos = True
 process.patJetsCATopTagPF.tagInfoSources = cms.VInputTag(
     cms.InputTag('CATopTagInfosPFlow')
     )
 
 # electrons
-process.selectedPatElectrons.cut = cms.string('pt > 10.0 & abs(eta) < 2.5')
-process.patElectrons.embedTrack = cms.bool(True)
 process.selectedPatElectronsPFlow.cut = cms.string('pt > 10.0 & abs(eta) < 2.5')
 process.patElectronsPFlow.embedTrack = cms.bool(True)
 process.selectedPatElectronsLoosePFlow.cut = cms.string('pt > 10.0 & abs(eta) < 2.5')
 process.patElectronsLoosePFlow.embedTrack = cms.bool(True)
 # muons
-process.selectedPatMuons.cut = cms.string('pt > 10.0 & abs(eta) < 2.5')
-process.patMuons.embedTrack = cms.bool(True)
 process.selectedPatMuonsPFlow.cut = cms.string("pt > 10.0 & abs(eta) < 2.5")
 process.patMuonsPFlow.embedTrack = cms.bool(True)
 process.selectedPatMuonsLoosePFlow.cut = cms.string("pt > 10.0 & abs(eta) < 2.5")
 process.patMuonsLoosePFlow.embedTrack = cms.bool(True)
 # taus
-process.selectedPatTausPFlow.cut = cms.string("pt > 10.0 & abs(eta) < 3")
-process.selectedPatTaus.cut = cms.string("pt > 10.0 & abs(eta) < 3")
-process.patTausPFlow.isoDeposits = cms.PSet()
-process.patTaus.isoDeposits = cms.PSet()
+process.selectedPatTausPFlow.cut = cms.string("pt > 5 & abs(eta) < 3")
 # photons
 process.patPhotonsPFlow.isoDeposits = cms.PSet()
-process.patPhotons.isoDeposits = cms.PSet()
-
+#taus
+process.patTausPFlow.isoDeposits = cms.PSet()
 
 # Apply jet ID to all of the jets upstream. We aren't going to screw around
 # with this, most likely. So, we don't really to waste time with it
@@ -661,6 +592,7 @@ process.patseq = cms.Sequence(
     process.ca8GenJetsNoNu*
     getattr(process,"patPF2PATSequence"+postfix)*
     process.looseLeptonSequence*
+    process.kt6PFJetsPFlow*
     process.patDefaultSequence*
     process.goodPatJetsPFlow*
     process.goodPatJetsCA8PF*
@@ -672,15 +604,6 @@ process.patseq = cms.Sequence(
     process.caTopTagGen*
     process.CATopTagInfosGen
     )
-
-if options.use41x :
-    process.patseq.replace( process.goodOfflinePrimaryVertices,
-                            process.offlinePrimaryVerticesDAF *
-                            process.goodOfflinePrimaryVertices )
-else :
-    process.patseq.replace( process.goodOfflinePrimaryVertices,
-                            process.goodOfflinePrimaryVertices *
-                            process.eidCiCSequence )
 
 if options.useData == True :
     process.patseq.remove( process.genParticlesForJetsNoNu )
@@ -697,18 +620,18 @@ process.p0 = cms.Path(
     )
 
 process.out.SelectEvents.SelectEvents = cms.vstring('p0')
-
+    
 # rename output file
 if options.useData :
     if options.writeFat :
-        process.out.fileName = cms.untracked.string('ttbsm_' + fileTag + '_data_fat.root')
+        process.out.fileName = cms.untracked.string('ttbsm_414_data_fat.root')
     else :
-        process.out.fileName = cms.untracked.string('ttbsm_' + fileTag + '_data.root')
+        process.out.fileName = cms.untracked.string('ttbsm_414_data.root')
 else :
     if options.writeFat :
-        process.out.fileName = cms.untracked.string('ttbsm_' + fileTag + '_mc_fat.root')
+        process.out.fileName = cms.untracked.string('ttbsm_414_mc_fat.root')
     else :
-        process.out.fileName = cms.untracked.string('ttbsm_' + fileTag + '_mc.root')
+        process.out.fileName = cms.untracked.string('ttbsm_414_mc.root')
 
 
 # reduce verbosity
@@ -734,7 +657,7 @@ process.out.outputCommands = [
     'drop patJets_selectedPat*_*_*',
     'drop *_selectedPatJets_*_*',    
     'keep *_patMETs*_*_*',
-#    'keep *_offlinePrimaryVertices*_*_*',
+    'keep *_offlinePrimaryVertices*_*_*',
     'keep *_goodOfflinePrimaryVertices*_*_*',    
     'drop patPFParticles_*_*_*',
     'drop patTaus_*_*_*',
