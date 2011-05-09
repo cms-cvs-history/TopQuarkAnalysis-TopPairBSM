@@ -120,7 +120,7 @@ else :
                                        )
                                    ),
                                ## here you add as many jet types as you need (AK5Calo, AK5JPT, AK7PF, AK7Calo, KT4PF, KT4Calo, KT6PF, KT6Calo)
-                               connect = cms.string('sqlite_file:Jec10V3.db')
+                               connect = cms.string('sqlite_file:/uscms_data/d2/ricardo/41XProductionV3/CMSSW_4_1_5/src/JEC/Jec10V3.db')
                                )
     process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 
@@ -326,25 +326,24 @@ if options.useData :
 ###############################
 
 # NOTE: ADDING THE ELECTRON IDs FROM CiC ----- USED WITH 42X 
-
-
-if not options.use41x :
-    process.load('RecoEgamma.ElectronIdentification.cutsInCategoriesElectronIdentificationV06_cfi')
-    process.eidCiCSequence = cms.Sequence(
-        process.eidVeryLooseMC *
-        process.eidLooseMC *
-        process.eidMediumMC*
-        process.eidTightMC *
-        process.eidSuperTightMC *
-        process.eidHyperTight1MC *
-        process.eidHyperTight2MC *
-        process.eidHyperTight3MC *
-        process.eidHyperTight4MC
-        )
     
-    for iele in [ process.patElectrons,
-                  process.patElectronsPFlow,
-                  process.patElectronsLoosePFlow ] :
+
+process.load('RecoEgamma.ElectronIdentification.cutsInCategoriesElectronIdentificationV06_cfi')
+process.eidCiCSequence = cms.Sequence(
+    process.eidVeryLooseMC *
+    process.eidLooseMC *
+    process.eidMediumMC*
+    process.eidTightMC *
+    process.eidSuperTightMC *
+    process.eidHyperTight1MC *
+    process.eidHyperTight2MC *
+    process.eidHyperTight3MC *
+    process.eidHyperTight4MC
+    )
+
+for iele in [ process.patElectrons,
+              process.patElectronsPFlow,
+              process.patElectronsLoosePFlow ] :
         iele.electronIDSources = cms.PSet(
             eidVeryLooseMC = cms.InputTag("eidVeryLooseMC"),
             eidLooseMC = cms.InputTag("eidLooseMC"),
@@ -679,7 +678,8 @@ process.patseq = cms.Sequence(
 if options.use41x :
     process.patseq.replace( process.goodOfflinePrimaryVertices,
                             process.offlinePrimaryVerticesDAF *
-                            process.goodOfflinePrimaryVertices )
+                            process.goodOfflinePrimaryVertices *
+                            process.eidCiCSequence )
 else :
     process.patseq.replace( process.goodOfflinePrimaryVertices,
                             process.goodOfflinePrimaryVertices *
@@ -719,11 +719,9 @@ process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(100)
 
 
 # process all the events
-process.maxEvents.input = 2000
+process.maxEvents.input = 300
 process.options.wantSummary = True
 process.out.dropMetaData = cms.untracked.string("DROPPED")
-
-
 
 
 process.source.inputCommands = cms.untracked.vstring("keep *", "drop *_MEtoEDMConverter_*_*")
@@ -796,4 +794,4 @@ if options.writeFat :
             ]
             
 
-#open('junk.py','w').write(process.dumpPython())
+open('junk.py','w').write(process.dumpPython())
