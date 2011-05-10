@@ -120,7 +120,7 @@ else :
                                        )
                                    ),
                                ## here you add as many jet types as you need (AK5Calo, AK5JPT, AK7PF, AK7Calo, KT4PF, KT4Calo, KT6PF, KT6Calo)
-                               connect = cms.string('sqlite_file:/uscms_data/d2/ricardo/41XProductionV3/CMSSW_4_1_5/src/JEC/Jec10V3.db')
+                               connect = cms.string('sqlite_file:Jec10V3.db')
                                )
     process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 
@@ -719,7 +719,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(100)
 
 
 # process all the events
-process.maxEvents.input = 300
+process.maxEvents.input = 100
 process.options.wantSummary = True
 process.out.dropMetaData = cms.untracked.string("DROPPED")
 
