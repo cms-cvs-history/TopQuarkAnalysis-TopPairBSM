@@ -259,7 +259,7 @@ from PhysicsTools.PatAlgos.tools.pfTools import *
 postfix = "PFlow"
 usePF2PAT(process,runPF2PAT=True, jetAlgo='AK5', runOnMC=not options.useData, postfix=postfix)
 process.pfPileUpPFlow.Enable = True
-process.pfJetsPFlow.Vertices = cms.InputTag('goodOfflinePrimaryVertices')
+process.pfPileUpPFlow.Vertices = 'goodOfflinePrimaryVertices'
 process.pfJetsPFlow.doAreaFastjet = True
 process.pfJetsPFlow.doRhoFastjet = False
 process.patJetCorrFactorsPFlow.payload = inputJetCorrLabel[0]
@@ -369,7 +369,12 @@ process.kt6PFJetsPFlow = kt4PFJets.clone(
     doRhoFastjet = cms.bool(True),
     voronoiRfact = cms.double(0.9)
     )
-
+process.kt6PFJets = kt4PFJets.clone(
+    rParam = cms.double(0.6),
+    doAreaFastjet = cms.bool(True),
+    doRhoFastjet = cms.bool(True),
+    voronoiRfact = cms.double(0.9)
+    )
 
 
 ###############################
@@ -482,6 +487,7 @@ process.CATopTagInfosGen = cms.EDProducer("CATopJetTagger",
 
 for ipostfix in [postfix] :
     for module in (
+        getattr(process,"kt6PFJets"),
         getattr(process,"kt6PFJets" + ipostfix),
         getattr(process,"ca8PFJets" + ipostfix),        
         getattr(process,"CATopTagInfos" + ipostfix),
