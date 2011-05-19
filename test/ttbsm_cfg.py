@@ -144,8 +144,8 @@ process.load('CommonTools/RecoAlgos/HBHENoiseFilter_cfi')
 
 
 # switch on PAT trigger
-from PhysicsTools.PatAlgos.tools.trigTools import switchOnTrigger
-switchOnTrigger( process, hltProcess=options.hltProcess )
+#from PhysicsTools.PatAlgos.tools.trigTools import switchOnTrigger
+#switchOnTrigger( process, hltProcess=options.hltProcess )
 
 
 
@@ -725,7 +725,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(100)
 
 
 # process all the events
-process.maxEvents.input = 100
+process.maxEvents.input = -1
 process.options.wantSummary = True
 process.out.dropMetaData = cms.untracked.string("DROPPED")
 
@@ -747,10 +747,10 @@ process.out.outputCommands = [
     'drop patTaus_*_*_*',
     'keep recoPFJets_caPruned*_*_*',
     'keep recoPFJets_caTopTag*_*_*',
-    'keep patTriggerObjects_patTrigger*_*_*',
-    'keep patTriggerFilters_patTrigger*_*_*',
-    'keep patTriggerPaths_patTrigger*_*_*',
-    'keep patTriggerEvent_patTriggerEvent*_*_*',
+    'keep patTriggerObjects_patTriggerPFlow_*_*',
+    'keep patTriggerFilters_patTriggerPFlow_*_*',
+    'keep patTriggerPaths_patTriggerPFlow_*_*',
+    'keep patTriggerEvent_patTriggerEventPFlow_*_*',
     'keep *_cleanPatPhotonsTriggerMatch*_*_*',
     'keep *_cleanPatElectronsTriggerMatch*_*_*',
     'keep *_cleanPatMuonsTriggerMatch*_*_*',
