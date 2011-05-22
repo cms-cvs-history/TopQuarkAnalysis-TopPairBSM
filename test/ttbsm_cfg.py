@@ -33,6 +33,13 @@ options.register ('use41x',
                   VarParsing.varType.int,
                   "Use the 41x options")
 
+options.register ('forceCheckClosestZVertex',
+                  False,
+                  VarParsing.multiplicity.singleton,
+                  VarParsing.varType.int,
+                  "Force the check of the closest z vertex")
+
+
 
 options.parseArguments()
 
@@ -265,7 +272,7 @@ process.pfJetsPFlow.doRhoFastjet = False
 process.patJetCorrFactorsPFlow.payload = inputJetCorrLabel[0]
 process.patJetCorrFactorsPFlow.levels = inputJetCorrLabel[1]
 process.patJetCorrFactorsPFlow.rho = cms.InputTag("kt6PFJetsPFlow", "rho")
-if not options.use41x :
+if not options.use41x and not options.forceCheckClosestZVertex :
     process.pfPileUpPFlow.checkClosestZVertex = False
 
 
