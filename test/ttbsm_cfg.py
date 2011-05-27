@@ -113,29 +113,10 @@ if not options.use41x :
 else :
     # 4.1.x configuration
     fileTag = '41x'
-    process.load("CondCore.DBCommon.CondDBCommon_cfi")
-    process.jec = cms.ESSource("PoolDBESSource",
-                               DBParameters = cms.PSet(
-                                   messageLevel = cms.untracked.int32(0)
-                                   ),
-                               timetype = cms.string('runnumber'),
-                               toGet = cms.VPSet(
-                                   cms.PSet(
-                                       record = cms.string('JetCorrectionsRecord'),
-                                       tag    = cms.string('JetCorrectorParametersCollection_Jec10V3_AK5PFchs'),
-                                       label  = cms.untracked.string('AK5PFchs')
-                                       )
-                                   ),
-                               ## here you add as many jet types as you need (AK5Calo, AK5JPT, AK7PF, AK7Calo, KT4PF, KT4Calo, KT6PF, KT6Calo)
-                               connect = cms.string('sqlite_file:Jec10V3.db')
-                               )
-    process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
-
-
-    ## if options.useData :
-    ##     process.GlobalTag.globaltag = cms.string('GR_R_311_V2::All')
-    ## else :
-    ##     process.GlobalTag.globaltag = cms.string('START311_V2::All')
+    if options.useData :
+        process.GlobalTag.globaltag = cms.string('GR_R_41_V0::All')
+    else :
+        process.GlobalTag.globaltag = cms.string('START41_V0::All')
 
 
 
@@ -148,6 +129,10 @@ process.scrapingVeto = cms.EDFilter("FilterOutScraping",
                                     )
 # HB + HE noise filtering
 process.load('CommonTools/RecoAlgos/HBHENoiseFilter_cfi')
+# Modify defaults setting to avoid an over-efficiency in the presence of OFT PU
+process.HBHENoiseFilter.minIsolatedNoiseSumE = cms.double(999999.)
+process.HBHENoiseFilter.minNumIsolatedNoiseChannels = cms.int32(999999)
+process.HBHENoiseFilter.minIsolatedNoiseSumEt = cms.double(999999.)
 
 
 # switch on PAT trigger
@@ -163,39 +148,9 @@ process.load('CommonTools/RecoAlgos/HBHENoiseFilter_cfi')
 
 pvSrc = 'offlinePrimaryVertices'
 if options.use41x :
-    pvSrc = 'offlinePrimaryVerticesDAF'
-    process.offlinePrimaryVerticesDAF = cms.EDProducer("PrimaryVertexProducer",
-        verbose = cms.untracked.bool(False),
-        algorithm = cms.string('AdaptiveVertexFitter'),
-        TrackLabel = cms.InputTag("generalTracks"),
-        useBeamConstraint = cms.bool(False),
-        beamSpotLabel = cms.InputTag("offlineBeamSpot"),
-        minNdof  = cms.double(0.0),
-        PVSelParameters = cms.PSet(
-            maxDistanceToBeam = cms.double(1.0)
-        ),
-        TkFilterParameters = cms.PSet(
-            algorithm=cms.string('filter'),
-            maxNormalizedChi2 = cms.double(20.0),
-            minPixelLayersWithHits=cms.int32(2),
-            minSiliconLayersWithHits = cms.int32(5),
-            maxD0Significance = cms.double(5.0), 
-            minPt = cms.double(0.0),
-            trackQuality = cms.string("any")
-        ),
-
-        TkClusParameters = cms.PSet(
-            algorithm   = cms.string("DA"),
-            TkDAClusParameters = cms.PSet(
-                coolingFactor = cms.double(0.6),  #  moderate annealing speed
-                Tmin = cms.double(4.),            #  end of annealing
-                vertexSize = cms.double(0.01),    #  ~ resolution / sqrt(Tmin)
-                d0CutOff = cms.double(3.),        # downweight high IP tracks 
-                dzCutOff = cms.double(4.)         # outlier rejection after freeze-out (T<Tmin)
-            )
-        )
-    )
-
+    # redo DAF vertices
+    process.load("RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi")
+    
 
 process.primaryVertexFilter = cms.EDFilter("GoodVertexFilter",
                                            vertexCollection = cms.InputTag(pvSrc),
@@ -688,9 +643,11 @@ process.patseq = cms.Sequence(
     process.CATopTagInfosGen
     )
 
+
 if options.use41x :
+
     process.patseq.replace( process.goodOfflinePrimaryVertices,
-                            process.offlinePrimaryVerticesDAF *
+                            process.offlinePrimaryVertices*
                             process.goodOfflinePrimaryVertices *
                             process.eidCiCSequence )
 else :
