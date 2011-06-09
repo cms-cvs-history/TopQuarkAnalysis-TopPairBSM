@@ -53,8 +53,10 @@ if not options.useData :
             ]
     else :
         process.source.fileNames = [
-            '/store/relval/CMSSW_4_2_2/RelValTTbar/GEN-SIM-RECO/START42_V11-v1/0005/50AC4DBF-746D-E011-8CF9-00248C55CC62.root'
+            '/store/mc/Summer11/QCD_Pt-15to3000_TuneZ2_Flat_7TeV_pythia6/AODSIM/PU_S3_START42_V11-v2/0000/90F88CFE-767E-E011-9C38-002618943985.root'
+#            '/store/relval/CMSSW_4_2_2/RelValTTbar/GEN-SIM-RECO/START42_V11-v1/0005/50AC4DBF-746D-E011-8CF9-00248C55CC62.root'
             ]
+#        process.source.eventsToProcess = cms.untracked.VEventRange('1:9375817')
     
 else :
     if options.use41x :
@@ -153,8 +155,8 @@ if options.use41x :
     
 
 process.primaryVertexFilter = cms.EDFilter("GoodVertexFilter",
-                                           vertexCollection = cms.InputTag(pvSrc),
-                                           minimumNDOF = cms.uint32(7) ,
+                                           vertexCollection = cms.InputTag("goodOfflinePrimaryVertices"),
+                                           minimumNDOF = cms.uint32(3) , # this is > 3
                                            maxAbsZ = cms.double(24), 
                                            maxd0 = cms.double(2) 
                                            )
@@ -167,7 +169,7 @@ from PhysicsTools.SelectorUtils.pvSelector_cfi import pvSelector
 process.goodOfflinePrimaryVertices = cms.EDFilter(
     "PrimaryVertexObjectFilter",
     filterParams = pvSelector.clone( maxZ = cms.double(24.0),
-                                     minNdof = cms.double(7.0)
+                                     minNdof = cms.double(4.0) # this is >= 4
                                      ),
     src=cms.InputTag(pvSrc)
     )
@@ -324,20 +326,39 @@ for iele in [ process.patElectrons,
 ###############################
 
 from RecoJets.JetProducers.kt4PFJets_cfi import kt4PFJets
-process.kt6PFJetsPFlow = kt4PFJets.clone(
+process.kt6PFJetsPFlowVoronoi = kt4PFJets.clone(
     rParam = cms.double(0.6),
     src = cms.InputTag('pfNoElectron'+postfix),
     doAreaFastjet = cms.bool(True),
     doRhoFastjet = cms.bool(True),
+    Rho_EtaMax = cms.double(6.0),
     voronoiRfact = cms.double(0.9)
     )
-process.kt6PFJets = kt4PFJets.clone(
+process.kt6PFJetsVoronoi = kt4PFJets.clone(
     rParam = cms.double(0.6),
     doAreaFastjet = cms.bool(True),
     doRhoFastjet = cms.bool(True),
+    Rho_EtaMax = cms.double(6.0),
     voronoiRfact = cms.double(0.9)
     )
 
+process.kt6PFJets = kt4PFJets.clone(
+    rParam = cms.double(0.6),
+    doAreaFastjet = cms.bool(True),
+    doRhoFastjet = cms.bool(True)
+    )
+process.kt6PFJetsPFlow = kt4PFJets.clone(
+    rParam = cms.double(0.6),
+    src = cms.InputTag('pfNoElectron'+postfix),
+    doAreaFastjet = cms.bool(True),
+    doRhoFastjet = cms.bool(True)
+    )
+process.kt4PFJetsPFlow = kt4PFJets.clone(
+    rParam = cms.double(0.4),
+    src = cms.InputTag('pfNoElectron'+postfix),
+    doAreaFastjet = cms.bool(True),
+    doRhoFastjet = cms.bool(True)
+    )
 
 ###############################
 ###### Bare CA 0.8 jets #######
@@ -347,7 +368,9 @@ process.ca8PFJetsPFlow = ca4PFJets.clone(
     rParam = cms.double(0.8),
     src = cms.InputTag('pfNoElectron'+postfix),
     doAreaFastjet = cms.bool(True),
-    doRhoFastjet = cms.bool(True)
+    doRhoFastjet = cms.bool(True),
+    Rho_EtaMax = cms.double(6.0),
+    Ghost_EtaMax = cms.double(7.0)
     )
 
 ###############################
@@ -450,7 +473,10 @@ process.CATopTagInfosGen = cms.EDProducer("CATopJetTagger",
 for ipostfix in [postfix] :
     for module in (
         getattr(process,"kt6PFJets"),
+        getattr(process,"kt6PFJetsVoronoi"),
         getattr(process,"kt6PFJets" + ipostfix),
+        getattr(process,"kt4PFJets" + ipostfix),
+        getattr(process,"kt6PFJets" + ipostfix + "Voronoi"),
         getattr(process,"ca8PFJets" + ipostfix),        
         getattr(process,"CATopTagInfos" + ipostfix),
         getattr(process,"caTopTag" + ipostfix),
@@ -620,7 +646,6 @@ process.goodPatJetsCATopTagPF = cms.EDFilter("PFJetIDSelectionFunctorFilter",
 
 # let it run
 
-
 process.patseq = cms.Sequence(
     process.scrapingVeto*
     process.HBHENoiseFilter*
@@ -683,7 +708,6 @@ else :
     else :
         process.out.fileName = cms.untracked.string('ttbsm_' + fileTag + '_mc.root')
 
-
 # reduce verbosity
 process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(100)
 
@@ -706,6 +730,7 @@ process.out.outputCommands = [
     'drop *_selectedPatJets_*_*',    
     'keep *_patMETs*_*_*',
 #    'keep *_offlinePrimaryVertices*_*_*',
+#    'keep *_kt6PFJets*_*_*',
     'keep *_goodOfflinePrimaryVertices*_*_*',    
     'drop patPFParticles_*_*_*',
     'drop patTaus_*_*_*',
@@ -721,7 +746,7 @@ process.out.outputCommands = [
     'keep *_cleanPatTausTriggerMatch*_*_*',
     'keep *_cleanPatJetsTriggerMatch*_*_*',
     'keep *_patMETsTriggerMatch*_*_*',
-    'keep double_*PFlow*_*_PAT',
+    'keep double_*_*_PAT',
     'keep *_TriggerResults_*_*',
     'keep *_hltTriggerSummaryAOD_*_*',
     'keep *_ak5GenJetsNoNu_*_*',
@@ -762,6 +787,5 @@ if options.writeFat :
         process.out.outputCommands += [
             'keep *_genParticles_*_*'
             ]
-            
 
 open('junk.py','w').write(process.dumpPython())
