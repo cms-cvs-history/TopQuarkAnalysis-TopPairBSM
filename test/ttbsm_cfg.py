@@ -53,7 +53,14 @@ if not options.useData :
             ]
     else :
         process.source.fileNames = [
-            '/store/mc/Summer11/QCD_Pt-15to3000_TuneZ2_Flat_7TeV_pythia6/AODSIM/PU_S3_START42_V11-v2/0000/90F88CFE-767E-E011-9C38-002618943985.root'
+            '/store/mc/Summer11/TTJets_TuneZ2_7TeV-madgraph-tauola/AODSIM/PU_S4_START42_V11-v1/0000/18F1D3EA-E597-E011-8452-00304867BFBC.root'
+            ## '/store/mc/Summer11/TTJets_TuneZ2_7TeV-madgraph-tauola/AODSIM/PU_S4_START42_V11-v1/0000/6C8DAC5B-7E98-E011-828B-0018F34D0D62.root',
+            ## '/store/mc/Summer11/TTJets_TuneZ2_7TeV-madgraph-tauola/AODSIM/PU_S4_START42_V11-v1/0000/6C4B1EFF-EC97-E011-815F-00261894392C.root',
+            ## '/store/mc/Summer11/TTJets_TuneZ2_7TeV-madgraph-tauola/AODSIM/PU_S4_START42_V11-v1/0000/6C3EFC8A-0D98-E011-BFC7-001A92971B48.root',
+            ## '/store/mc/Summer11/TTJets_TuneZ2_7TeV-madgraph-tauola/AODSIM/PU_S4_START42_V11-v1/0000/6AC2BEC4-7A98-E011-B956-001A92971B94.root',
+            ## '/store/mc/Summer11/TTJets_TuneZ2_7TeV-madgraph-tauola/AODSIM/PU_S4_START42_V11-v1/0000/6A6D2F76-E097-E011-B3F6-003048678C06.root',
+            ## '/store/mc/Summer11/TTJets_TuneZ2_7TeV-madgraph-tauola/AODSIM/PU_S4_START42_V11-v1/0000/68DD1400-EF97-E011-B12A-003048D15D04.root'
+#            '/store/mc/Summer11/QCD_Pt-15to3000_TuneZ2_Flat_7TeV_pythia6/AODSIM/PU_S3_START42_V11-v2/0000/90F88CFE-767E-E011-9C38-002618943985.root'
 #            '/store/relval/CMSSW_4_2_2/RelValTTbar/GEN-SIM-RECO/START42_V11-v1/0005/50AC4DBF-746D-E011-8CF9-00248C55CC62.root'
             ]
 #        process.source.eventsToProcess = cms.untracked.VEventRange('1:9375817')
@@ -195,9 +202,9 @@ process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
 process.prunedGenParticles = cms.EDProducer("GenParticlePruner",
                                             src = cms.InputTag("genParticles"),
                                             select = cms.vstring(
-                                                "drop  *",
-                                                "keep status = 3", #keeps all particles from the hard matrix element
-                                                "+keep (abs(pdgId) = 11 | abs(pdgId) = 13) & status = 1" #keeps all stable muons and electrons and their (direct) mothers.
+                                                "drop  *"
+                                                ,"keep status = 3" #keeps all particles from the hard matrix element
+                                                ,"+keep (abs(pdgId) = 11 | abs(pdgId) = 13) & status = 1" #keeps all stable muons and electrons and their (direct) mothers.
                                                 )
                                             )
 
@@ -473,10 +480,10 @@ process.CATopTagInfosGen = cms.EDProducer("CATopJetTagger",
 for ipostfix in [postfix] :
     for module in (
         getattr(process,"kt6PFJets"),
-        getattr(process,"kt6PFJetsVoronoi"),
+#        getattr(process,"kt6PFJetsVoronoi"),
         getattr(process,"kt6PFJets" + ipostfix),
         getattr(process,"kt4PFJets" + ipostfix),
-        getattr(process,"kt6PFJets" + ipostfix + "Voronoi"),
+#        getattr(process,"kt6PFJets" + ipostfix + "Voronoi"),
         getattr(process,"ca8PFJets" + ipostfix),        
         getattr(process,"CATopTagInfos" + ipostfix),
         getattr(process,"caTopTag" + ipostfix),
@@ -662,7 +669,7 @@ process.patseq = cms.Sequence(
     process.goodPatJetsCA8PrunedPF*
     process.goodPatJetsCATopTagPF*
     process.flavorHistorySeq*
-    process.prunedGenParticles*
+#    process.prunedGenParticles*
     process.caPrunedGen*
     process.caTopTagGen*
     process.CATopTagInfosGen
@@ -688,7 +695,7 @@ if options.useData == True :
     process.patseq.remove( process.caPrunedGen )
     process.patseq.remove( process.caTopTagGen )
     process.patseq.remove( process.CATopTagInfosGen )
-    process.patseq.remove( process.prunedGenParticles )
+#    process.patseq.remove( process.prunedGenParticles )
 
 process.p0 = cms.Path(
     process.patseq

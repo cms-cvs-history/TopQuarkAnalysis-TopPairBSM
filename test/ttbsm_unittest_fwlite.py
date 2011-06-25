@@ -4,7 +4,7 @@ import ROOT
 import sys
 from DataFormats.FWLite import Events, Handle
 
-files = ["ttbsm_42x_mc.root"]
+files = ["dcap:///pnfs/cms/WAX/11/store/user/lpctlbsm/srappocc/QCD_Pt-15to3000_TuneZ2_Flat_7TeV_pythia6/ttbsm_v8_Summer11-PU_S3_-START42_V11-v2/d870fa9b0dd695e8eb649b7e725d070f/ttbsm_42x_mc_74_2_Bzl.root"]
 events = Events (files)
 handle1  = Handle ("std::vector<pat::Jet>")
 handle2  = Handle ("std::vector<pat::Jet>")
@@ -67,8 +67,11 @@ for event in events:
 
     ijet = 0
     for jet in jets3 :
-        print 'Jet {0:4.0f}, pt = {1:6.2f}, eta = {2:6.2f}, phi = {3:6.2f}, m = {4:6.2f}, nda = {5:3.0f}, vtxmass = {6:6.2f}'.format(
-            ijet, jet.pt(), jet.eta(), jet.phi(), jet.mass(), jet.numberOfDaughters(), jet.userFloat('secvtxMass')
+        print ("Jet {0:4.0f}, pt = {1:6.2f}, eta = {2:6.2f}, phi = {3:6.2f}, m = {4:6.2f}, " +
+               "nda = {5:3.0f}, vtxmass = {6:6.2f}, area = {7:6.2f}, L1 = {8:6.2f}, L2 = {9:6.2f}, L3 = {10:6.2f}, " +
+               "currLevel = {11:s}").format(
+            ijet, jet.pt(), jet.eta(), jet.phi(), jet.mass(), jet.numberOfDaughters(), jet.userFloat('secvtxMass'),
+            jet.jetArea(), jet.jecFactor("L1FastJet"), jet.jecFactor("L2Relative"), jet.jecFactor("L3Absolute"), jet.currentJECLevel()
             )
         ijet += 1
 
