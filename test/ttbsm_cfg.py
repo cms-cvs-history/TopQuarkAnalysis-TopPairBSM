@@ -77,7 +77,7 @@ else :
 
             ]
     else :
-        inputJetCorrLabel = ('AK5PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'])
+        inputJetCorrLabel = ('AK5PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual'])
         process.source.fileNames = [
             '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/FE6792BA-9A70-E011-940A-002618943970.root',
             '/store/data/Run2010A/JetMET/AOD/Apr21ReReco-v1/0000/FE0F23C8-9A70-E011-97A2-002618943821.root',
@@ -115,9 +115,9 @@ if not options.use41x :
     # 4.2.x configuration
     fileTag = '42x'
     if options.useData :
-        process.GlobalTag.globaltag = cms.string( 'GR_R_42_V12::All' )
+        process.GlobalTag.globaltag = cms.string( 'GR_R_42_V19::All' )
     else :
-        process.GlobalTag.globaltag = cms.string( 'START42_V12::All' )
+        process.GlobalTag.globaltag = cms.string( 'START42_V13::All' )
 
 else :
     # 4.1.x configuration
