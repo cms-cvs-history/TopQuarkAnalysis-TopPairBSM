@@ -246,10 +246,18 @@ process.pfIsolatedMuonsLoosePFlow = process.pfIsolatedMuonsPFlow.clone(
     combinedIsolationCut = cms.double(999.0) 
     )
 
+
+
+
 process.patMuonsLoosePFlow = process.patMuonsPFlow.clone(
-    pfMuonSource = cms.InputTag("pfIsolatedMuonsLoosePFlow")
-    )
+   pfMuonSource = cms.InputTag("pfIsolatedMuonsLoosePFlow"),
+   genParticleMatch = cms.InputTag("muonMatchLoosePFlow")
+   )
+
+tmp = process.muonMatchPFlow.src
 adaptPFMuons( process, process.patMuonsLoosePFlow, "PFlow")
+process.muonMatchPFlow.src = tmp
+
 process.muonMatchLoosePFlow = process.muonMatchPFlow.clone(
     src = cms.InputTag("pfIsolatedMuonsLoosePFlow")
     )
