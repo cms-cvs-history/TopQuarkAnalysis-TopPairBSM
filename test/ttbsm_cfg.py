@@ -231,6 +231,9 @@ postfix = "PFlow"
 usePF2PAT(process,runPF2PAT=True, jetAlgo='AK5', runOnMC=not options.useData, postfix=postfix)
 process.pfPileUpPFlow.Enable = True
 process.pfPileUpPFlow.Vertices = 'goodOfflinePrimaryVertices'
+process.pfElectronsFromVertexPFlow.vertices = 'goodOfflinePrimaryVertices'
+process.pfMuonsFromVertexPFlow.vertices = 'goodOfflinePrimaryVertices'
+
 process.pfJetsPFlow.doAreaFastjet = True
 process.pfJetsPFlow.doRhoFastjet = False
 process.patJetCorrFactorsPFlow.payload = inputJetCorrLabel[0]
@@ -585,6 +588,17 @@ for jetcoll in (process.patJetsPFlow,
     jetcoll.embedPFCandidates = True
 
 
+
+#################################################
+#### Fix the PV collections for the future ######
+#################################################
+for module in [process.patJetCorrFactors,
+               process.patJetCorrFactorsPFlow,
+               process.patJetCorrFactorsCATopTagPF,
+               process.patJetCorrFactorsCA8PrunedPF,
+               process.patJetCorrFactorsCA8PF
+               ]:
+    module.primaryVertices = "goodOfflinePrimaryVertices"
 
 
 ###############################
