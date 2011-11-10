@@ -52,6 +52,7 @@ options.register ('useSusyFilter',
                   VarParsing.varType.int,
                   "Use the SUSY event filter")
 
+
 options.parseArguments()
 
 
@@ -414,6 +415,15 @@ process.kt4PFJetsPFlow = kt4PFJets.clone(
     doRhoFastjet = cms.bool(True)
     )
 
+process.kt6PFJetsForIsolationPFlow = kt4PFJets.clone(
+    rParam = cms.double(0.6),
+    src = cms.InputTag('pfNoElectron'+postfix),
+    doAreaFastjet = cms.bool(True),
+    doRhoFastjet = cms.bool(True),
+    Rho_EtaMax = cms.double(2.5),
+    Ghost_EtaMax = cms.double(3.2)
+    )
+
 ###############################
 ###### Bare CA 0.8 jets #######
 ###############################
@@ -529,6 +539,7 @@ for ipostfix in [postfix] :
         getattr(process,"kt6PFJets"),
 #        getattr(process,"kt6PFJetsVoronoi"),
         getattr(process,"kt6PFJets" + ipostfix),
+	getattr(process,"kt6PFJetsForIsolation" + ipostfix),
         getattr(process,"kt4PFJets" + ipostfix),
 #        getattr(process,"kt6PFJets" + ipostfix + "Voronoi"),
         getattr(process,"ca8PFJets" + ipostfix),        
