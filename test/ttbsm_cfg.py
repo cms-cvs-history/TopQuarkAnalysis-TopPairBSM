@@ -288,7 +288,11 @@ if options.release == '42x' :
 
 	process.pfIsolatedMuonsPFlow.combinedIsolationCut = 0.2
 elif options.release == '52x' :
+
+	process.pfIsolatedMuonsPFlow.doDeltaBetaCorrection = True
 	process.pfIsolatedMuonsPFlow.isolationCut = 0.2
+	process.pfIsolatedElectronsPFlow.doDeltaBetaCorrection = True
+	process.pfIsolatedElectronsPFlow.isolationCut = 0.2
 
 # In order to have a coherent semileptonic channel also, add
 # some "loose" leptons to do QCD estimates.
@@ -1129,6 +1133,7 @@ process.patMuonsPFlow.embedTrack = cms.bool(True)
 process.selectedPatMuonsLoosePFlow.cut = cms.string("pt > 10.0 & abs(eta) < 2.5")
 process.patMuonsLoosePFlow.embedTrack = cms.bool(True)
 # taus
+process.hpsPFTauProducerPFlow.src = cms.InputTag("hpsPFTauProducerSansRefsPFlow")
 process.selectedPatTausPFlow.cut = cms.string("pt > 10.0 & abs(eta) < 3")
 process.selectedPatTaus.cut = cms.string("pt > 10.0 & abs(eta) < 3")
 process.patTausPFlow.isoDeposits = cms.PSet()
@@ -1560,7 +1565,8 @@ process.out.outputCommands = [
     'drop patJets_goodPatJetsAK8FilteredPF_*_*',
     'drop patJets_goodPatJetsAK8PrunedPF_*_*',
     'drop patJets_goodPatJetsAK8TrimmedPF_*_*',
-    'drop recoGenJets_selectedPatJets*_*_*'
+    'drop recoGenJets_selectedPatJets*_*_*',
+    'keep *_*_*_rho'
     #'keep recoTracks_generalTracks_*_*'
     ]
 
