@@ -289,9 +289,9 @@ if options.release == '42x' :
 	process.pfIsolatedMuonsPFlow.combinedIsolationCut = 0.2
 elif options.release == '52x' :
 
-	process.pfIsolatedMuonsPFlow.doDeltaBetaCorrection = True
+#	process.pfIsolatedMuonsPFlow.doDeltaBetaCorrection = True
 	process.pfIsolatedMuonsPFlow.isolationCut = 0.2
-	process.pfIsolatedElectronsPFlow.doDeltaBetaCorrection = True
+#	process.pfIsolatedElectronsPFlow.doDeltaBetaCorrection = True
 	process.pfIsolatedElectronsPFlow.isolationCut = 0.2
 
 # In order to have a coherent semileptonic channel also, add
