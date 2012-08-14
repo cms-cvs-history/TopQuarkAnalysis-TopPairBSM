@@ -105,15 +105,6 @@ if options.useData :
         process.GlobalTag.globaltag = cms.string( 'GR_P_V40_AN1::All' )
     else:
         process.GlobalTag.globaltag = cms.string( options.globalTag )
-    # Jet Probability Calibration for 52x and 53x data
-    process.GlobalTag.toGet = cms.VPSet(
-        cms.PSet(record = cms.string("BTagTrackProbability2DRcd"),
-                 tag = cms.string("TrackProbabilityCalibration_2D_2012DataTOT_v1_offline"),
-                 connect = cms.untracked.string("frontier://FrontierPrep/CMS_COND_BTAU")),
-        cms.PSet(record = cms.string("BTagTrackProbability3DRcd"),
-                 tag = cms.string("TrackProbabilityCalibration_3D_2012DataTOT_v1_offline"),
-                 connect = cms.untracked.string("frontier://FrontierPrep/CMS_COND_BTAU"))
-    )
 else :
     if options.globalTag is '':
         process.GlobalTag.globaltag = cms.string( 'START53_V7E::All' )
