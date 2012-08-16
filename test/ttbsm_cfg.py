@@ -646,7 +646,7 @@ addJetCollection(process,
                  cms.InputTag('caPrunedPFlow'),
                  'CA8Pruned', 'PF',
                  doJTA=False,
-                 doBTagging=False,
+                 doBTagging=True,
                  jetCorrLabel=inputJetCorrLabel,
                  doType1MET=True,
                  doL1Cleaning=False,
@@ -924,7 +924,7 @@ for jetcoll in (process.patJetsPFlow,
 # Add CATopTag and b-tag info... piggy-backing on b-tag functionality
 process.patJetsPFlow.addBTagInfo = True
 process.patJetsCATopTagPF.addBTagInfo = True
-
+process.patJetsCA8PrunedPF.addBTagInfo = True
 
 
 # Do some configuration of the jet substructure things
