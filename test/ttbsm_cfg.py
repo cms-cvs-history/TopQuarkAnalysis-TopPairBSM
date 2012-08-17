@@ -9,6 +9,12 @@ from PhysicsTools.PatAlgos.tools.coreTools import *
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('python')
 
+options.register ('tlbsmTag',
+                  'tlbsm_53x_v1',
+                  VarParsing.multiplicity.singleton,
+                  VarParsing.varType.string,
+                  'TLBSM tag use in production')
+
 options.register ('useData',
                   False,
                   VarParsing.multiplicity.singleton,
@@ -96,9 +102,6 @@ import sys
 ###############################
 ####### Global Setup ##########
 ###############################
-
-# 4.2.x or 52x configuration
-fileTag = "53x"
 
 if options.useData :
     if options.globalTag is '':
@@ -1456,14 +1459,14 @@ process.out.SelectEvents.SelectEvents = cms.vstring('p0')
 # rename output file
 if options.useData :
     if options.writeFat :
-        process.out.fileName = cms.untracked.string('ttbsm_' + fileTag + '_data_fat.root')
+        process.out.fileName = cms.untracked.string('ttbsm_' + options.tlbsmTag + '_data_fat.root')
     else :
-        process.out.fileName = cms.untracked.string('ttbsm_' + fileTag + '_data.root')
+        process.out.fileName = cms.untracked.string('ttbsm_' + options.tlbsmTag + '_data.root')
 else :
     if options.writeFat :
-        process.out.fileName = cms.untracked.string('ttbsm_' + fileTag + '_mc_fat.root')
+        process.out.fileName = cms.untracked.string('ttbsm_' + options.tlbsmTag + '_mc_fat.root')
     else :
-        process.out.fileName = cms.untracked.string('ttbsm_' + fileTag + '_mc.root')
+        process.out.fileName = cms.untracked.string('ttbsm_' + options.tlbsmTag + '_mc.root')
 
 
 # reduce verbosity
