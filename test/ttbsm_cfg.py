@@ -71,17 +71,27 @@ options.register ('useExtraJetColls',
                   VarParsing.varType.int,
                   "Write extra jet collections for substructure studies")
 
+
 options.register ('usePythia8',
                   False,
                   VarParsing.multiplicity.singleton,
                   VarParsing.varType.int,
                   "Use status codes from Pythia8 rather than Pythia6")
 
+
 options.register ('usePythia6andPythia8',
                   False,
                   VarParsing.multiplicity.singleton,
                   VarParsing.varType.int,
                   "Use status codes from Pythia8 and Pythia6")
+
+
+options.register ('runOnFastSim',
+                  False,
+                  VarParsing.multiplicity.singleton,
+                  VarParsing.varType.int,
+                  "Option needed to run on fastsim.")
+
 
 options.parseArguments()
 
@@ -283,51 +293,17 @@ from PhysicsTools.PatAlgos.tools.pfTools import *
 postfix = "PFlow"
 usePF2PAT(process,runPF2PAT=True, jetAlgo='AK5', runOnMC=not options.useData, postfix=postfix,
 	  jetCorrections=inputJetCorrLabel, pvCollection=cms.InputTag('goodOfflinePrimaryVertices'), typeIMetCorrections=True)
-#useGsfElectrons(process,postfix,dR="03")
+useGsfElectrons(process,postfix,dR="03")
 if not options.forceCheckClosestZVertex :
     process.pfPileUpPFlow.checkClosestZVertex = False
 
-# change the cone size of electron isolation to 0.3 as default.
-process.pfIsolatedElectronsPFlow.isolationValueMapsCharged = cms.VInputTag(cms.InputTag("elPFIsoValueCharged03PFIdPFlow"))
-process.pfIsolatedElectronsPFlow.deltaBetaIsolationValueMap = cms.InputTag("elPFIsoValuePU03PFIdPFlow")
-process.pfIsolatedElectronsPFlow.isolationValueMapsNeutral = cms.VInputTag(cms.InputTag("elPFIsoValueNeutral03PFIdPFlow"), cms.InputTag("elPFIsoValueGamma03PFIdPFlow"))
-
-process.pfElectronsPFlow.isolationValueMapsCharged  = cms.VInputTag(cms.InputTag("elPFIsoValueCharged03PFIdPFlow"))
-process.pfElectronsPFlow.deltaBetaIsolationValueMap = cms.InputTag("elPFIsoValuePU03PFIdPFlow" )
-process.pfElectronsPFlow.isolationValueMapsNeutral  = cms.VInputTag(cms.InputTag( "elPFIsoValueNeutral03PFIdPFlow"), cms.InputTag("elPFIsoValueGamma03PFIdPFlow"))
-
-process.patElectronsPFlow.isolationValues = cms.PSet(
-        pfChargedHadrons = cms.InputTag("elPFIsoValueCharged03PFIdPFlow"),
-        pfChargedAll = cms.InputTag("elPFIsoValueChargedAll03PFIdPFlow"),
-        pfPUChargedHadrons = cms.InputTag("elPFIsoValuePU03PFIdPFlow"),
-        pfNeutralHadrons = cms.InputTag("elPFIsoValueNeutral03PFIdPFlow"),
-        pfPhotons = cms.InputTag("elPFIsoValueGamma03PFIdPFlow")
-        )
 
 postfixLoose = "PFlowLoose"
 usePF2PAT(process,runPF2PAT=True, jetAlgo='AK5', runOnMC=not options.useData, postfix=postfixLoose,
 	  jetCorrections=inputJetCorrLabel, pvCollection=cms.InputTag('goodOfflinePrimaryVertices'), typeIMetCorrections=True)
-#useGsfElectrons(process,postfixLoose,dR="03")
+useGsfElectrons(process,postfixLoose,dR="03")
 if not options.forceCheckClosestZVertex :
     process.pfPileUpPFlowLoose.checkClosestZVertex = False
-    
-    
-# change the cone size of electron isolation to 0.3 as default.
-process.pfIsolatedElectronsPFlowLoose.isolationValueMapsCharged = cms.VInputTag(cms.InputTag("elPFIsoValueCharged03PFIdPFlowLoose"))
-process.pfIsolatedElectronsPFlowLoose.deltaBetaIsolationValueMap = cms.InputTag("elPFIsoValuePU03PFIdPFlowLoose")
-process.pfIsolatedElectronsPFlowLoose.isolationValueMapsNeutral = cms.VInputTag(cms.InputTag("elPFIsoValueNeutral03PFIdPFlowLoose"), cms.InputTag("elPFIsoValueGamma03PFIdPFlowLoose"))
-
-process.pfElectronsPFlowLoose.isolationValueMapsCharged  = cms.VInputTag(cms.InputTag("elPFIsoValueCharged03PFIdPFlowLoose"))
-process.pfElectronsPFlowLoose.deltaBetaIsolationValueMap = cms.InputTag("elPFIsoValuePU03PFIdPFlowLoose" )
-process.pfElectronsPFlowLoose.isolationValueMapsNeutral  = cms.VInputTag(cms.InputTag( "elPFIsoValueNeutral03PFIdPFlowLoose"), cms.InputTag("elPFIsoValueGamma03PFIdPFlowLoose"))
-
-process.patElectronsPFlowLoose.isolationValues = cms.PSet(
-    pfChargedHadrons = cms.InputTag("elPFIsoValueCharged03PFIdPFlowLoose"),
-    pfChargedAll = cms.InputTag("elPFIsoValueChargedAll03PFIdPFlowLoose"),
-    pfPUChargedHadrons = cms.InputTag("elPFIsoValuePU03PFIdPFlowLoose"),
-    pfNeutralHadrons = cms.InputTag("elPFIsoValueNeutral03PFIdPFlowLoose"),
-    pfPhotons = cms.InputTag("elPFIsoValueGamma03PFIdPFlowLoose")
-    )
 
 # Set up "loose" leptons. 
 
@@ -1496,6 +1472,9 @@ if options.useData :
             process.patseq.remove( process.ca12FilteredGenLite )
             process.patseq.remove( process.ca12MassDropFilteredGenLite )
 
+if options.runOnFastSim:
+    process.patseq.remove( process.HBHENoiseFilter )
+
 if options.writeSimpleInputs :
 	process.patseq *= cms.Sequence(process.pfInputs)
 
@@ -1525,14 +1504,14 @@ process.out.SelectEvents.SelectEvents = cms.vstring('p0')
 # rename output file
 if options.useData :
     if options.writeFat :
-        process.out.fileName = cms.untracked.string('ttbsm_' + options.tlbsmTag + '_data_fat.root')
+        process.out.fileName = cms.untracked.string(options.tlbsmTag + '_data_fat.root')
     else :
-        process.out.fileName = cms.untracked.string('ttbsm_' + options.tlbsmTag + '_data.root')
+        process.out.fileName = cms.untracked.string(options.tlbsmTag + '_data.root')
 else :
     if options.writeFat :
-        process.out.fileName = cms.untracked.string('ttbsm_' + options.tlbsmTag + '_mc_fat.root')
+        process.out.fileName = cms.untracked.string(options.tlbsmTag + '_mc_fat.root')
     else :
-        process.out.fileName = cms.untracked.string('ttbsm_' + options.tlbsmTag + '_mc.root')
+        process.out.fileName = cms.untracked.string(options.tlbsmTag + '_mc.root')
 
 
 # reduce verbosity
@@ -1601,7 +1580,7 @@ process.out.outputCommands = [
     'drop recoGenJets_selectedPatJets*_*_*',
     'keep *_*_rho_*',
     'drop *_*PFlowLoose*_*_*',
-    'keep patElectrons_selected*PFlowLoose*_*_*',
+    #'keep patElectrons_selected*PFlowLoose*_*_*',
     'keep patMuons_selected*PFlowLoose*_*_*',
     'keep *_patConversions*_*_*',
     #'keep patTaus_*PFlowLoose*_*_*',
@@ -1610,7 +1589,7 @@ process.out.outputCommands = [
     'keep *_pfType1CorrectedMet_*_*',
     'keep *_pfType1p2CorrectedMet_*_*'
     #'keep recoTracks_generalTracks_*_*'
-    ]
+   ]
 
 if options.useData :
     process.out.outputCommands += ['drop *_MEtoEDMConverter_*_*',
