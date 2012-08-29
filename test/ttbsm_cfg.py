@@ -1405,7 +1405,7 @@ if options.useData :
             process.patseq.remove( process.ca12MassDropFilteredGenLite )
 
 if options.runOnFastSim:
-    process.patseq.remove(process.HBHENoiseFilter)
+    process.patseq.remove( process.HBHENoiseFilter )
 
 if options.writeSimpleInputs :
 	process.patseq *= cms.Sequence(process.pfInputs)
