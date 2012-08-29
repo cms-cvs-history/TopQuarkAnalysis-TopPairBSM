@@ -65,6 +65,12 @@ options.register ('useExtraJetColls',
                   VarParsing.varType.int,
                   "Write extra jet collections for substructure studies")
 
+options.register ('runOnFastSim',
+                  False,
+                  VarParsing.multiplicity.singleton,
+                  VarParsing.varType.int,
+                  "Option needed to run on fastsim.")
+
 options.parseArguments()
 
 
@@ -1397,6 +1403,9 @@ if options.useData :
             process.patseq.remove( process.ca8PrunedGenLite )
             process.patseq.remove( process.ca12FilteredGenLite )
             process.patseq.remove( process.ca12MassDropFilteredGenLite )
+
+if options.runOnFastSim:
+    process.patseq.remove(process.HBHENoiseFilter)
 
 if options.writeSimpleInputs :
 	process.patseq *= cms.Sequence(process.pfInputs)
