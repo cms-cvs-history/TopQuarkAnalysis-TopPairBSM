@@ -10,7 +10,7 @@ from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('python')
 
 options.register ('tlbsmTag',
-                  'tlbsm_53x_v1',
+                  'tlbsm_53x_v2',
                   VarParsing.multiplicity.singleton,
                   VarParsing.varType.string,
                   'TLBSM tag use in production')
