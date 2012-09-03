@@ -56,7 +56,6 @@ def SelectSite(dataset):
             break
         elif 'T2_US' in site:
             result = 'T2_US'
-            break
     return result
 
 
