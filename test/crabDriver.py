@@ -211,7 +211,7 @@ def main():
     )
 
     parser.add_option(
-        '--eventsize', type='float', default=54.0,
+        '--eventsize', type='float', default=65.0,
         help='Event size in Kb use to compute the number of crab jobs.'
     )
 

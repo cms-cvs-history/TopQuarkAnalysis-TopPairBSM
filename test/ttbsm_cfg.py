@@ -92,11 +92,13 @@ options.register ('runOnFastSim',
                   VarParsing.varType.int,
                   "Option needed to run on fastsim.")
 
+
 options.register('doJetTauCrossCleaning',
                  False,
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.int,
                  "Enable cleaning the jet collections based on taus")
+
 
 options.parseArguments()
 
