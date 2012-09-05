@@ -92,6 +92,11 @@ options.register ('runOnFastSim',
                   VarParsing.varType.int,
                   "Option needed to run on fastsim.")
 
+options.register('doJetTauCrossCleaning',
+                 False,
+                 VarParsing.multiplicity.singleton,
+                 VarParsing.varType.int,
+                 "Enable cleaning the jet collections based on taus")
 
 options.parseArguments()
 
@@ -338,6 +343,16 @@ process.patElectronsPFlowLoose.isolationValues = cms.PSet(
     pfNeutralHadrons = cms.InputTag("elPFIsoValueNeutral03PFIdPFlowLoose"),
     pfPhotons = cms.InputTag("elPFIsoValueGamma03PFIdPFlowLoose")
     )
+
+# enable/disable tau cleaning
+if not options.doJetTauCrossCleaning:
+    # if jetCrossCleaning is false, we want to disable
+    # the cross cleaning (which is on by default)
+    getattr(process,"pfNoTau"+postfix).enable = False
+    getattr(process,"pfNoTau"+postfixLoose).enable = False
+else:
+    getattr(process,"pfNoTau"+postfix).enable = False
+    getattr(process,"pfNoTau"+postfixLoose).enable = False
 
 # Set up "loose" leptons. 
 
