@@ -107,7 +107,7 @@ if not options.useData :
     inputJetCorrLabel = ('AK5PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'])
 
     process.source.fileNames = [
-        '/store/mc/Summer12/TTJets_MassiveBinDECAY_TuneZ2star_8TeV-madgraph-tauola/AODSIM/PU_S7_START52_V9-v2/0000/00024240-BCB8-E111-A547-00304867901A.root'
+        'File: /store/mc/Summer12_DR53X/TTJets_MassiveBinDECAY_TuneZ2star_8TeV-madgraph-tauola/AODSIM/PU_S10_START53_V7A-v1/0000/0076C8E3-9AE1-E111-917C-003048D439AA.root'
     ]
 
 else :
