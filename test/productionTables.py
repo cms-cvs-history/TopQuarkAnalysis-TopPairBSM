@@ -59,13 +59,13 @@ def SelectedSites(dataset):
 
 def DataProductionTable(datasets):
     print '%TABLE{"headerrows="1"}%'
-    print '%EDITTABLE{ format="| label | select, 1, OUTSITE, INSITE, SUBMITTED, DONE, ELEVATING, ELEVATED, TRANSFERRED, DELETED | text, 40 | text, 8 | text, 100 |" changerows="off" }%'
-    print '| *Parent Sample* | *Status* | *Submitter* | *Lumi [pb-1]* | *PAT* |'
+    print '%EDITTABLE{ format="| label | select, 1, OUTSITE, INSITE, SUBMITTED, DONE, ELEVATING, ELEVATED, TRANSFERRED, DELETED | text, 40 | text, 40 | text, 8 | text, 100 |" changerows="off" }%'
+    print '| *Parent Sample* | *Status* | *Submitter* | *Lumimask* | *Lumi [pb-1]* | *PAT* |'
     for dataset in sorted(datasets.keys()):
         if datasets[dataset]:
-            print '| =%s= | INSITE | full name | 0 | =PAT= |' % dataset
+            print '| =%s= | INSITE | full name | json | 0 | =PAT= |' % dataset
         else:
-            print '| =%s= | OUTSITE | full name | 0 | =PAT= |' % dataset
+            print '| =%s= | OUTSITE | full name | json | 0 | =PAT= |' % dataset
 
 
 def MCProductionTable(datasets):
