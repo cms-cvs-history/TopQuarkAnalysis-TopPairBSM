@@ -56,6 +56,9 @@ def SelectSite(dataset):
             break
         elif 'T2_US' in site:
             result = 'T2_US'
+        elif 'T2' in site:
+            result = 'T2'
+    print 'Dataset located at : %s' % ', '.join(sites)
     return result
 
 
@@ -73,92 +76,64 @@ def GetDatasetNEvents(name):
     return nevents
 
 
-def CreateDataCrabConfig(options):
+def CreateCrabConfig(options, isdata):
     """
     Creates a crab config file for processing data
     """
-    if not options.lumimask:
-        raise exceptions.ValueError('Missing lumimask for a data job.')
-    elif not os.path.isfile(options.lumimask):
-        raise exceptions.IOError('Lumimask file %s does not exist.' % options.lumimask)
+    if isdata:
+        if not options.lumimask:
+            raise exceptions.ValueError('Missing lumimask for a data job.')
+        elif not os.path.isfile(options.lumimask):
+            raise exceptions.IOError('Lumimask file %s does not exist.' % options.lumimask)
 
     scheduler = 'condor'
     use_server = '0'
     grid = ''
 
-    site = SelectSite(options.dataset)
-
-    if site == 'T2_US':
-        scheduler = 'glidein'
-        use_server = '1'
-        grid = '[GRID]\nse_white_list = T2_US_*'  
-    elif site != 'FNAL':
-        raise exceptions.ValueError('Neither FNAL nor T2_US have the dataset.')
-
-    nevents = GetDatasetNEvents(options.dataset)    
+    nevents = GetDatasetNEvents(options.dataset)
     njobs = int(nevents*options.eventsize/(1000*options.filesize))
 
-    datasetblock = 'total_number_of_lumis = -1\n'
-    datasetblock = datasetblock + 'number_of_jobs = %d\n' % int(njobs)
-    datasetblock = datasetblock + 'lumi_mask = %s' % options.lumimask
-   
-    pycfg_params = 'tlbsmTag=%s useData=1' % options.tag.lower()
-    if options.pycfg :
-        pycfg_params = pycfg_params + ' ' + options.pycfg
-
-    publish_data_name = options.dataset.split('/')[2] + '_' + options.tag
-    ui_working_dir = options.dataset.replace('/AOD','').replace('/','_')[1:] + '_' + options.tag
-
-    settings = {
-        'scheduler': scheduler,
-        'use_server': use_server,
-        'datasetpath': options.dataset,
-        'pycfg_params': pycfg_params,
-        'datasetblock': datasetblock,
-        'publish_data_name': publish_data_name,
-        'ui_working_dir': ui_working_dir,
-        'grid': grid
-    }
-
-    filename = '%s/src/TopQuarkAnalysis/TopPairBSM/test/crab_template.cfg' % os.environ['CMSSW_BASE']
-    file = open(filename)
-    template = string.Template(file.read())
-    file.close()
-    file = open('crab_%s.cfg' % ui_working_dir, 'w')
-    file.write(template.safe_substitute(settings))
-    file.close()
-
-
-def CreateMCCrabConfig(options):
-    """
-    Creates a crab config file for processing mc 
-    """
-
-    scheduler = 'condor'
-    use_server = '0'
-    grid = ''
-
     site = SelectSite(options.dataset)
 
     if site == 'T2_US':
-        scheduler = 'glidein'
-        use_server = '1'
+        scheduler = 'remoteGlidein'
+        use_server = '0'
         grid = '[GRID]\nse_white_list = T2_US_*'
+    elif site == 'T2':
+        print 'Warning: Neither FNAL nor T2_US have the dataset.'
+        print 'This could mean more chances of problems in the stageout (exit code 60317).'
+        print 'Increasing the number of jobs by facto 4.'
+        scheduler = 'remoteGlidein'
+        use_server = '0'
+        njobs = 4*njobs
     elif site != 'FNAL':
-        raise exceptions.ValueError('Neither FNAL nor T2_US have the dataset.')
+        raise exceptions.ValueError('No T2 site contains this dataset.')
 
-    nevents = GetDatasetNEvents(options.dataset)    
-    njobs = int(nevents*options.eventsize/(1000*options.filesize))
+    if njobs > 5000:
+        print 'Warning: the number of jobs for this samples was reduce to 5000.'
+        njobs = 5000
 
-    datasetblock = 'total_number_of_events = -1\n'
-    datasetblock = datasetblock + 'number_of_jobs = %d' % int(njobs)
-   
-    pycfg_params = 'tlbsmTag=%s useData=0' % options.tag.lower()
-    if options.pycfg :
-        pycfg_params = pycfg_params + ' ' + options.pycfg
-
-    publish_data_name = options.dataset.split('/')[2] + '_' + options.tag
-    ui_working_dir = options.dataset.replace('/AODSIM','').replace('/','_')[1:] + '_' + options.tag
+    if not isdata:
+        datasetblock = 'total_number_of_events = -1\n'
+        datasetblock = datasetblock + 'number_of_jobs = %d' % int(njobs)
+    
+        pycfg_params = 'tlbsmTag=%s useData=0' % options.tag.lower()
+        if options.pycfg : 
+            pycfg_params = pycfg_params + ' ' + options.pycfg
+        
+        publish_data_name = options.dataset.split('/')[2] + '_' + options.tag
+        ui_working_dir = options.dataset.replace('/AODSIM','').replace('/','_')[1:] + '_' + options.tag
+    else:
+        datasetblock = 'total_number_of_lumis = -1\n'
+        datasetblock = datasetblock + 'number_of_jobs = %d\n' % int(njobs) 
+        datasetblock = datasetblock + 'lumi_mask = %s' % options.lumimask
+        
+        pycfg_params = 'tlbsmTag=%s useData=1' % options.tag.lower()
+        if options.pycfg :  
+            pycfg_params = pycfg_params + ' ' + options.pycfg
+    
+        publish_data_name = options.dataset.split('/')[2] + '_' + options.tag
+        ui_working_dir = options.dataset.replace('/AOD','').replace('/','_')[1:] + '_' + options.tag
 
     settings = {
         'scheduler': scheduler,
@@ -223,9 +198,9 @@ def main():
     (options, args) = parser.parse_args()
 
     if not 'AODSIM' in options.dataset:
-        CreateDataCrabConfig(options)
+        CreateCrabConfig(options, isdata = True)
     elif 'AOD' in options.dataset:
-        CreateMCCrabConfig(options)
+        CreateCrabConfig(options, isdata = False)
     else:
         raise exceptions.ValueError('Dataset privided is not AOD or AODSIM.')
 
