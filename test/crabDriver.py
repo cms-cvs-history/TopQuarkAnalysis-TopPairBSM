@@ -56,7 +56,7 @@ def SelectSite(dataset):
             break
         elif 'T2_US' in site:
             result = 'T2_US'
-        elif 'T2' in site:
+        elif 'T2' in site and result != 'T2_US':
             result = 'T2'
     print 'Dataset located at : %s' % ', '.join(sites)
     return result
