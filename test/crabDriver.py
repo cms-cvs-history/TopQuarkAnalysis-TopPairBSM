@@ -135,6 +135,14 @@ def CreateCrabConfig(options, isdata):
         publish_data_name = options.dataset.split('/')[2] + '_' + options.tag
         ui_working_dir = options.dataset.replace('/AOD','').replace('/','_')[1:] + '_' + options.tag
 
+    if options.extension > 0 and isdata:
+        publish_data_name = publish_data_name + '_extension_v%d' % options.extension
+        ui_working_dir = ui_working_dir + '_extension_v%d' % options.extension
+
+    if options.bugfix > 0:
+        publish_data_name = publish_data_name + '_bugfix_v%d' % options.bugfix
+        ui_working_dir = ui_working_dir + '_bugfix_v%d' % options.bugfix
+
     settings = {
         'scheduler': scheduler,
         'use_server': use_server,
@@ -178,6 +186,16 @@ def main():
     parser.add_option(
         '--tag', type='string', default='TLBSM_53x_v2',
         help='Version of tlbsm, the tag has to follow the format TLBSM_XXX_vX.'
+    )
+
+    parser.add_option(
+        '--extension', type='int', default=0,
+        help='Version when extending a dataset (starting from 1).'
+    )
+
+    parser.add_option(
+        '--bugfix', type='int', default=0,
+        help='Version of bugfix when redoing a dataset (starting from 1).'
     )
 
     parser.add_option(
