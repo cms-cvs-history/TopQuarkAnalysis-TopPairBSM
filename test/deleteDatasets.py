@@ -105,7 +105,7 @@ def DeleteDataset(name, whitelist=['lpctlbsm','b2g12006']):
             (prefix+location), os.path.dirname(prefix+location)
         )
         print '  action %s' % cmd
-        # subprocess.call(cmd, shell = True)
+        #subprocess.call(cmd, shell = True)
     else:
         cmd = 'none'
         print '  action %s' % cmd

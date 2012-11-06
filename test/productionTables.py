@@ -51,7 +51,7 @@ def SelectedSites(dataset):
     sites = GetDatasetSites(dataset)
     result = False
     for site, frac in sites.iteritems():
-        if 'FNAL' in site or 'T2_US' in site and frac == 100.0:
+        if 'FNAL' in site or 'T2' in site and frac == 100.0:
             result = True
         print 'Site %s (%0.1f)'% (site,frac)
     return result
@@ -59,24 +59,20 @@ def SelectedSites(dataset):
 
 def DataProductionTable(datasets):
     print '%TABLE{"headerrows="1"}%'
-    print '%EDITTABLE{ format="| label | select, 1, OUTSITE, INSITE, SUBMITTED, DONE, ELEVATING, ELEVATED, TRANSFERRED, DELETED | text, 40 | text, 40 | text, 8 | text, 100 |" changerows="off" }%'
+    print '%EDITTABLE{ format="| label | select, 1, NEW, SUBMITTED, DONE, ELEVATING, ELEVATED, DELETED | text, 40 | text, 40 | text, 8 | text, 100 |" changerows="off" }%'
     print '| *Parent Sample* | *Status* | *Submitter* | *Lumimask* | *Lumi [pb-1]* | *PAT* |'
     for dataset in sorted(datasets.keys()):
         if datasets[dataset]:
-            print '| =%s= | INSITE | full name | json | 0 | =PAT= |' % dataset
-        else:
-            print '| =%s= | OUTSITE | full name | json | 0 | =PAT= |' % dataset
+            print '| =%s= | NEW | full name | json | 0 | =PAT= |' % dataset
 
 
 def MCProductionTable(datasets):
     print '%TABLE{"headerrows="1"}%'
-    print '%EDITTABLE{ format="| label | select, 1, OUTSITE, INSITE, SUBMITTED, DONE, ELEVATING, ELEVATED, TRANSFERRED, DELETED | text, 40 | text, 8 | text, 8 | text, 100 |" changerows="off" }%'  
+    print '%EDITTABLE{ format="| label | select, 1, NEW, SUBMITTED, DONE, ELEVATING, ELEVATED, DELETED | text, 40 | text, 8 | text, 8 | text, 100 |" changerows="off" }%'  
     print '| *Parent Sample* | *Status* | *Submitter* | *N_total* | *N_selected* | *PAT* |'
     for dataset in sorted(datasets.keys()):
         if datasets[dataset]:
-            print '| =%s= | INSITE | full name | 0 | 0 | =PAT= |' % dataset
-        else:
-            print '| =%s= | OUTSITE | full name | 0 | 0 | =PAT= |' % dataset
+            print '| =%s= | NEW | full name | 0 | 0 | =PAT= |' % dataset
 
 
 def main():
@@ -106,10 +102,10 @@ def main():
         datasets = {}
         for dataset in sorted(filelist.readlines()):
             if SelectedSites(dataset.rstrip()):
-                print 'Dataset in selected sites (INSITE).\n'
+                print 'Dataset located at FNAL or T2.\n'
                 datasets[dataset.rstrip()] = True
             else:
-                print
+                print 'Dataset is neither FNAL nor T2.\n'
                 datasets[dataset.rstrip()] = False
         if options.type.lower() == 'mc':
             MCProductionTable(datasets) 
