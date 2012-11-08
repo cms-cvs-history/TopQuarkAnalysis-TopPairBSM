@@ -26,31 +26,31 @@ def DASQuery(query, ntries = 6, sleep = 1):
     raise exceptions.StopIteration('Failed das quary after %d iterations' % ntries)
 
 
-def GetDatasetSites(name):
+def GetDatasetSites(name, fraction = 100.0):
     """
     Get dataset number of events from das
     """
     dasquery = 'site dataset = %s' % name
     payload = DASQuery(dasquery)
-    sites = []
+    sites = {}
     try:
         for site in payload['data']:
             site = site['site'][0]
             dataset_fraction = float(site['dataset_fraction'].rstrip('%'))
-            if dataset_fraction == 100.0:
-                sites.append(site['name'])
+            if dataset_fraction >= fraction:
+                sites[site['name']] = dataset_fraction 
     except:
         raise exceptions.ValueError('Error when parsing the dataset sites')
     return sites
 
 
-def SelectSite(dataset):
+def SelectSite(dataset, fraction=100.0):
     """
     Select the site to run (FNAL or T2_US)
     """
-    sites = GetDatasetSites(dataset)
+    sites = GetDatasetSites(dataset, fraction)
     result = ''
-    for site in sites:
+    for site in sites.keys():
         if 'FNAL' in site:
             result = 'FNAL'
             break
@@ -58,7 +58,10 @@ def SelectSite(dataset):
             result = 'T2_US'
         elif 'T2' in site and result != 'T2_US':
             result = 'T2'
-    print 'Dataset located at : %s' % ', '.join(sites)
+    report = ''
+    for site in sites.keys():
+        report = report + ', %s(%%%0.2f)' % (site, sites[site]) 
+    print 'Dataset located at : %s' % report[2:]
     return result
 
 
@@ -93,7 +96,7 @@ def CreateCrabConfig(options, isdata):
     nevents = GetDatasetNEvents(options.dataset)
     njobs = int(nevents*options.eventsize/(1000*options.filesize))
 
-    site = SelectSite(options.dataset)
+    site = SelectSite(options.dataset, options.fraction)
 
     if site == 'T2_US':
         scheduler = 'remoteGlidein'
@@ -176,6 +179,11 @@ def main():
     parser.add_option(
         '--dataset', type='string',
         help='Dataset in AOD or AODSIM format use as input to tlbsm.'
+    )
+
+    parser.add_option(
+        '--fraction', type='float', default=100.0,
+        help='Minimal fraction tolerated of the dataset present in the sites.'
     )
 
     parser.add_option(
