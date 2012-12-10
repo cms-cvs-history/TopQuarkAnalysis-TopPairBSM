@@ -1571,6 +1571,7 @@ if options.useData :
 
 if options.runOnFastSim:
     process.patseq.remove( process.HBHENoiseFilter )
+    process.patseq.remove( process.CSCTightHaloFilter ) 
 
 if options.writeSimpleInputs :
 	process.patseq *= cms.Sequence(process.pfInputs)
