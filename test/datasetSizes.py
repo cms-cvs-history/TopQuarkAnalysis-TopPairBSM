@@ -62,7 +62,7 @@ def GetDatasetSizeInLocation(name):
     """
     Get dataset size from das
     """
-    cmd = 'du -b %s' % name
+    cmd = 'dcdu -b %s' % name
     stdout = tempfile.TemporaryFile()
     subprocess.check_call(cmd, shell = True, stdout=stdout)
     stdout.seek(0)

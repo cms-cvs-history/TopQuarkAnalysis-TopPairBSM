@@ -12,7 +12,7 @@ def DASQuery(query, ntries = 6, sleep = 1):
     Query das expecting to execute python client
     """
     das = '%s/src/TopQuarkAnalysis/TopPairBSM/test/das.py' % os.environ['CMSSW_BASE']
-    dasquery = '%s --query "%s" --format json' % (das, query)
+    dasquery = '%s --query "%s" --format json --limit 10000' % (das, query)
     for n in range(ntries):
         stdout = tempfile.TemporaryFile()
         subprocess.check_call(dasquery, shell = True, stdout=stdout)
@@ -51,12 +51,12 @@ def SelectSite(dataset, fraction=100.0):
     sites = GetDatasetSites(dataset, fraction)
     result = ''
     for site in sites.keys():
-        if 'FNAL' in site:
-            result = 'FNAL'
-            break
-        elif 'T2_US' in site:
+        if 'T2_US' in site:
             result = 'T2_US'
-        elif 'T2' in site and result != 'T2_US':
+            break
+        elif 'FNAL' in site:
+            result = 'FNAL'
+        elif 'T2' in site and result != 'FNAL':
             result = 'T2'
     report = ''
     for site in sites.keys():
