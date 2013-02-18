@@ -10,7 +10,7 @@ from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('python')
 
 options.register ('tlbsmTag',
-                  'tlbsm_53x_v2',
+                  'tlbsm_53x_v3',
                   VarParsing.multiplicity.singleton,
                   VarParsing.varType.string,
                   'TLBSM tag use in production')
@@ -113,7 +113,7 @@ if not options.useData :
 else :
     inputJetCorrLabel = ('AK5PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute', 'L2L3Residual'])
     process.source.fileNames = [
-        '/store/data/Run2012A/Jet/AOD/23May2012-v2/0000/FCCBC3B4-C2A5-E111-B4E8-00A0D1EE8ECC.root'
+        '/store/data/Run2012A/Jet/AOD/22Jan2013-v1/30002/909488FF-8D72-E211-893B-0026189438EF.root'
     ]
 
 #process.source.eventsToProcess = cms.untracked.VEventRange( ['1:86747'] )

@@ -36,7 +36,11 @@ def GetDatasetSites(name, fraction = 100.0):
     try:
         for site in payload['data']:
             site = site['site'][0]
-            dataset_fraction = float(site['dataset_fraction'].rstrip('%'))
+            dataset_fraction = 0.0
+            if 'dataset_fraction' in site: 
+                dataset_fraction = float(site['dataset_fraction'].rstrip('%'))
+            elif 'replica_fraction' in site:
+                dataset_fraction = float(site['replica_fraction'].rstrip('%')) 
             if dataset_fraction >= fraction:
                 sites[site['name']] = dataset_fraction 
     except:
