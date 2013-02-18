@@ -134,12 +134,12 @@ import sys
 
 if options.useData :
     if options.globalTag is '':
-        process.GlobalTag.globaltag = cms.string( 'GR_P_V40_AN1::All' )
+        process.GlobalTag.globaltag = cms.string( 'GR_P_V42_AN3::All' )
     else:
         process.GlobalTag.globaltag = cms.string( options.globalTag )
 else :
     if options.globalTag is '':
-        process.GlobalTag.globaltag = cms.string( 'START53_V7E::All' )
+        process.GlobalTag.globaltag = cms.string( 'START53_V7G::All' )
     else:
         process.GlobalTag.globaltag = cms.string( options.globalTag )
 
