@@ -186,6 +186,8 @@ process.goodVertices = cms.EDFilter(
 ## The tracking failure filter _______________________________________________||
 process.load('RecoMET.METFilters.trackingFailureFilter_cfi')
 
+## Add the latest Tau discriminators _________________________________________||
+process.load("RecoTauTag.Configuration.RecoPFTauTag_cff")
 
 # switch on PAT trigger
 #from PhysicsTools.PatAlgos.tools.trigTools import switchOnTrigger
@@ -1499,6 +1501,7 @@ process.patseq = cms.Sequence(
     process.caTopTagGen*
     process.CATopTagInfosGen*
     process.kt6PFJetsForIsolation*
+    process.recoTauClassicHPSSequence*
     getattr(process,"patPF2PATSequence"+postfixLoose)#*
 #    process.miniPFLeptonSequence
     )
