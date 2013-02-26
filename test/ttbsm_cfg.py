@@ -134,7 +134,7 @@ import sys
 
 if options.useData :
     if options.globalTag is '':
-        process.GlobalTag.globaltag = cms.string( 'GR_P_V42_AN3::All' )
+        process.GlobalTag.globaltag = cms.string( 'GR_P_V42_AN4::All' )
     else:
         process.GlobalTag.globaltag = cms.string( options.globalTag )
 else :
@@ -185,6 +185,45 @@ process.goodVertices = cms.EDFilter(
 
 ## The tracking failure filter _______________________________________________||
 process.load('RecoMET.METFilters.trackingFailureFilter_cfi')
+process.load('RecoMET.METFilters.trackingPOGFilters_cfi')
+
+# Tracking coherent noise filter 
+process.manystripclus53X = cms.EDFilter('ByClusterSummaryMultiplicityPairEventFilter',
+        multiplicityConfig = cms.PSet(
+            firstMultiplicityConfig = cms.PSet(
+                clusterSummaryCollection = cms.InputTag("clusterSummaryProducer"),
+                subDetEnum = cms.int32(5),
+                subDetVariable = cms.string("pHits")
+                ),
+            secondMultiplicityConfig = cms.PSet(
+                clusterSummaryCollection = cms.InputTag("clusterSummaryProducer"),
+                subDetEnum = cms.int32(0),
+                subDetVariable = cms.string("cHits")
+                ),
+            ),
+        cut = cms.string("( mult2 > 20000+7*mult1)")
+)
+
+process.toomanystripclus53X = cms.EDFilter('ByClusterSummaryMultiplicityPairEventFilter',
+        multiplicityConfig = cms.PSet(
+            firstMultiplicityConfig = cms.PSet(
+                clusterSummaryCollection = cms.InputTag("clusterSummaryProducer"),
+                subDetEnum = cms.int32(5),
+                subDetVariable = cms.string("pHits")
+                ),
+            secondMultiplicityConfig = cms.PSet(
+                clusterSummaryCollection = cms.InputTag("clusterSummaryProducer"),
+                subDetEnum = cms.int32(0),
+                subDetVariable = cms.string("cHits")
+                ),
+            ),
+        cut = cms.string("(mult2>50000) && ( mult2 > 20000+7*mult1)")
+        )
+
+# Tracking TOBTEC fakes filter ##
+process.load('RecoMET.METFilters.tobtecfakesfilter_cfi')
+# if true, only events passing filter (bad events) will pass
+process.tobtecfakesfilter.filter=cms.bool(False) 
 
 ## Add the latest Tau discriminators _________________________________________||
 process.load("RecoTauTag.Configuration.RecoPFTauTag_cff")
@@ -1473,6 +1512,12 @@ process.filtersSeq = cms.Sequence(
    process.hcalLaserEventFilter *
    process.EcalDeadCellTriggerPrimitiveFilter *
    process.goodVertices * process.trackingFailureFilter *
+   process.tobtecfakesfilter *
+   ~process.manystripclus53X *
+   ~process.toomanystripclus53X *
+   ~process.logErrorTooManyClusters *
+   ~process.logErrorTooManyTripletsPairs *
+   ~process.logErrorTooManySeeds *
    process.eeBadScFilter
 )
 
