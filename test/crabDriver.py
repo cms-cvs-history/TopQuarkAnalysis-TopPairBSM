@@ -196,7 +196,7 @@ def main():
     )
 
     parser.add_option(
-        '--tag', type='string', default='TLBSM_53x_v2',
+        '--tag', type='string', default='TLBSM_53x_v3',
         help='Version of tlbsm, the tag has to follow the format TLBSM_XXX_vX.'
     )
 
